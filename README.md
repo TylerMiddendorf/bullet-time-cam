@@ -1,6 +1,72 @@
-# XIAO ESP32S3 Sense Four-Camera Shared Trigger
+# Handheld Four-Camera Bullet-Time Rig
 
-Arduino firmware for a four-camera Seeed Studio XIAO ESP32S3 Sense rig using the OV3660 camera. The same sketch is flashed to all four boards. A shared momentary trigger on `D1 / GPIO2` captures one high-quality 2048x1536 JPEG on each board and saves it to that board's onboard microSD card. An optional external LED on each board's `D0 / GPIO1` turns on before capture and stays visible for at least one second.
+This project is building a production-like, self-contained bullet-time camera: a fairly compact handheld device with four camera viewpoints, an integrated screen, a physical shutter button, a central processor, removable media storage, and an internal rechargeable battery.
+
+Each camera is managed by its own Seeed Studio XIAO ESP32S3 Sense and OV3660 sensor. A central computer—currently expected to be a Raspberry Pi 4 Model B or similar—will collect each four-image capture, improve and align the images, and create an animated GIF that moves through the viewpoints. The central computer will also run the on-device interface and may eventually host a Wi-Fi hotspot for browsing and downloading finished media.
+
+The first complete rig has four cameras spaced approximately 4 cm apart in a straight horizontal line and is held like a normal digital camera. Its typical subject distance is about 3.5 ft, although other distances should remain usable. The initial output will play the four nearly simultaneous photographs forward and backward, making the viewpoint appear to move while the scene remains frozen. A reviewable result should normally reach the built-in screen within two seconds.
+
+The longer-term ideal is a scalable 12+ camera system. A larger array will use a slight curve to aim its outer cameras toward the subject. Later processing may add view alignment, appearance matching, AI frame interpolation, and experiments with NeRF or 3D Gaussian Splatting.
+
+Version 1 deliberately performs no alignment or appearance normalization: it transfers the four original JPEGs, preserves them, creates the simple animated GIF, and preserves that GIF as well. Image-quality processing begins after the complete capture-to-display system works reliably.
+
+The version 1 display shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
+
+The Raspberry Pi will boot from a protected internal card. Original JPEGs and generated GIFs will be written to a separate user-removable media card, keeping the operating system isolated from normal media handling.
+
+Version 1 requires an internal rechargeable battery and USB-C charging, but it does not need to operate while charging. One power button must safely boot and shut down the complete device. A low battery must initiate the same orderly shutdown before a brownout can corrupt storage or interrupt writes. Final battery capacity will be chosen after measuring the assembled system, with the goal of long runtime and many captures per charge.
+
+The first enclosure will be a reasonably compact, box-shaped 3D print with openings for every externally accessible component. Refined ergonomics, weight optimization, integrated lighting, tripod mounting, and weather resistance are deliberately deferred until later physical revisions.
+
+Version 1 degrades gracefully when a camera fails: it preserves and processes the images received from the remaining nodes instead of discarding the entire capture. The screen reports the failed camera number and relevant diagnostics. The two-second result goal is a soft normal-case target; the loading screen may remain longer while capture, transfer, or saving is actively progressing.
+
+USB and Wi-Fi are the two candidate links between the camera nodes and central computer. USB is the leading option for the first four-camera build because of its predictable latency and reliability, while Wi-Fi remains an alternate path worth prototyping, especially for future scaling. The preferred final data path transfers each JPEG directly from node memory to the central computer instead of requiring four node microSD cards.
+
+User-facing Wi-Fi features are deliberately much later. Hotspot-based media access, remote capture, status, and settings will wait until the self-contained onboard experience is highly polished.
+
+The long-term product goal and current decisions are maintained in:
+
+- [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md)
+- [`docs/INTERVIEW.md`](docs/INTERVIEW.md)
+- [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
+
+## Current Project State
+
+The four-camera capture subsystem is working as a breadboard prototype:
+
+- Four XIAO ESP32S3 Sense modules are fitted with OV3660 sensors and 16 GB microSD cards.
+- All four nodes share one physical shutter button.
+- Every node has its own status LED.
+- The boards are currently powered over USB from a battery hub.
+- One button press causes each node to capture and save its own image to its local microSD card.
+- A Raspberry Pi 4 Model B with 2 GB RAM, a compatible touchscreen, and a 3D printer are available for the next stage.
+- A USB hub, integrated battery system, and separate removable-media card reader have not yet been acquired.
+
+No implementation work has occurred beyond the working breadboard capture prototype. The repository currently contains the camera-node firmware, wiring and flashing instructions, and captured test images. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
+
+The agreed next milestone is a bench-top, USB-powered end-to-end prototype: four camera nodes to Raspberry Pi transfer, original preservation, GIF generation, and touchscreen review. With approximately $200 remaining for version 1, battery and enclosure work are intentionally deferred until this central path is working and measured.
+
+Development is milestone-based with no fixed version 1 deadline.
+
+## Planned System
+
+| Subsystem | Responsibility | State |
+| --- | --- | --- |
+| Four ESP32S3 camera nodes | Capture four initial viewpoints and report status | Working breadboard prototype |
+| Shared shutter control | Start one coordinated capture | Working breadboard prototype |
+| Central computer | Collect captures and coordinate the complete device | Planned; Raspberry Pi 4B is provisional |
+| Processing pipeline | Align, clean up, enhance, and animate the four images | Planned |
+| Integrated screen and UI | V1 status and post-capture review; preview/settings later | Planned |
+| Central removable storage | Store user-accessible photos and GIFs | Planned |
+| Internal battery system | Power and recharge the complete device | Planned |
+| Wi-Fi media access | Let phones and laptops browse/download results | Optional later stage |
+| Compact handheld enclosure | Turn the prototype into one finished physical product | Planned |
+| Scalable camera array | Expand the architecture toward 12+ slightly curved viewpoints | Future |
+
+## Current Camera-Node Firmware
+
+The same Arduino sketch is flashed to all four camera nodes. A shared momentary trigger on `D1 / GPIO2` captures one high-quality 2048x1536 JPEG on each board and saves it to that board's onboard microSD card. An external LED on each board's `D0 / GPIO1` turns on before capture and stays visible for at least one second.
 
 This gives practical same-button synchronization: all four boards see the same active-low trigger and start their capture sequence nearly together. It is not sensor-level hardware shutter sync; the OV3660 sensors still free-run independently, so exact exposure timing can vary by roughly a camera frame.
 
@@ -152,6 +218,18 @@ Optional PlatformIO port discovery, if PlatformIO is installed:
 $Pio = "$env:LOCALAPPDATA\CodexTools\platformio-venv\Scripts\pio.exe"
 & $Pio device list
 ```
+
+### Deploy With the Repository Skill
+
+Codex can use the repo-scoped `$deploy-xiao-esp32s3-sense` skill to discover one attached ESP32 device, compile with the required OPI PSRAM setting, upload the sketch, and verify camera, microSD, and trigger startup over serial.
+
+The bundled helper can also be run directly from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ".agents\skills\deploy-xiao-esp32s3-sense\scripts\deploy_xiao.ps1"
+```
+
+Pass `-Port COM6` when more than one ESP32 serial device is attached. A successful upload is not treated as a complete deployment unless the serial startup checks also pass.
 
 ## Image Quality Notes
 

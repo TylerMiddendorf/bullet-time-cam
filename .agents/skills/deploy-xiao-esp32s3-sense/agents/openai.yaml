@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy XIAO ESP32S3 Sense"
+  short_description: "Build, flash, and verify camera firmware"
+  default_prompt: "Use $deploy-xiao-esp32s3-sense to deploy this repository's camera firmware to a connected XIAO ESP32S3 Sense and verify startup."
