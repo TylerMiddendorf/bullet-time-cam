@@ -33,7 +33,7 @@ Work:
 - Verify the touchscreen displays the desktop or a full-screen test image.
 - Verify touch input if the display provides it, although touch interaction is not required for version 1.
 - Connect one XIAO ESP32S3 directly to the Pi and record how it enumerates.
-- Determine whether the existing battery hub carries data or only supplies power.
+- Determine whether the available powered USB hub carries data or only supplies power.
 - Record the current firmware, board-core, PSRAM, and USB-CDC build settings.
 
 Exit gate:
@@ -43,7 +43,7 @@ Exit gate:
 - One camera node is visible to the Pi over USB.
 - The remaining hardware unknowns are written down.
 
-Evidence recorded June 27, 2026 (partial; checkpoint remains open):
+Evidence recorded June 27 and July 8, 2026 (partial; checkpoint remains open):
 
 - A Windows bench host detected one connected XIAO as `COM6`, an ESP32 USB serial/JTAG device.
 - Arduino CLI 1.5.1 with Espressif ESP32 core 3.3.10 compiled and uploaded `button_capture` using `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`.
@@ -51,7 +51,11 @@ Evidence recorded June 27, 2026 (partial; checkpoint remains open):
 - Upload verification identified an ESP32-S3 with 8 MB embedded PSRAM and verified all written image hashes.
 - A bounded 115200-baud serial smoke test observed the 2048x1536 camera-ready, microSD-ready, and shared-trigger-ready messages.
 - The repository skill at `.agents/skills/deploy-xiao-esp32s3-sense` repeats the guarded compile, upload, and startup verification workflow.
-- Still unresolved for this checkpoint: Raspberry Pi enumeration, Pi boot/display verification, touchscreen identification, and whether the existing battery hub carries USB data.
+- The Raspberry Pi 4 was imaged successfully and boots to Raspberry Pi OS with its HDMI display working.
+- The intended display is confirmed at 800x480 resolution, with HDMI for video and a micro-USB connection for touch and/or display-side power.
+- Touch input on the intended display now works on the Raspberry Pi.
+- One XIAO ESP32S3 camera node was identified by the Raspberry Pi as expected through the powered USB hub, confirming that the hub carries USB data for at least one node.
+- Still unresolved for this checkpoint: touchscreen manufacturer/model/physical size, exact display power requirements, exact Raspberry Pi enumeration output for the connected XIAO, and whether a direct-to-Pi comparison should also be recorded.
 
 ## Checkpoint 2 - Offline Media and UI Vertical Slice
 
@@ -249,8 +253,9 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Identify the touchscreen model and interfaces.
-2. Boot the Pi and confirm the touchscreen.
-3. Copy or clone this repository onto the Pi.
-4. Implement the offline capture-set/GIF/UI slice using the existing photos.
-5. Only then modify one camera node for direct USB JPEG transfer.
+1. Record the display manufacturer/model, physical size, and exact power requirements.
+2. Record the exact Raspberry Pi enumeration output for one XIAO through the powered USB hub (`lsusb`, recent `dmesg`, and `/dev/ttyACM*` or `/dev/ttyUSB*` path).
+3. Optionally compare one direct-to-Pi connection if the hub path later behaves strangely.
+4. Copy or clone this repository onto the Pi.
+5. Implement the offline capture-set/GIF/UI slice using the existing photos.
+6. Only then modify one camera node for direct USB JPEG transfer.

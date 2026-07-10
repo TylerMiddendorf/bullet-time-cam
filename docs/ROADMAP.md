@@ -18,7 +18,7 @@ Status: complete prototype
 
 ## Milestone 1 - Bench-Top End-to-End Capture
 
-Status: next
+Status: active
 
 Goal: use bench/USB power to prove the entire software and data path before investing in the battery system or enclosure.
 
@@ -43,7 +43,7 @@ Work:
 - Define a transport-independent capture and image-transfer protocol.
 - Prototype direct JPEG transfer from one ESP32S3 frame buffer.
 - Select USB or Wi-Fi from measured latency, reliability, power, and complexity.
-- If USB leads, acquire only the hub/cabling needed for the bench prototype.
+- If USB leads, validate the available powered hub first and acquire only the hub/cabling still needed for the bench prototype.
 - Scale transfer from one node to all four nodes.
 - Implement capture-set grouping, partial-set handling, and diagnostics.
 - Preserve originals and generate the version 1 GIF.
@@ -120,4 +120,4 @@ Ergonomics, weight optimization, integrated lighting, tripod mounting, and weath
 
 ## Budget Rule
 
-Approximately $200 remains for version 1. Do not purchase battery, charging, enclosure-specific, or optional network hardware until the bench-top end-to-end milestone identifies actual requirements. Confirm electrical and software compatibility before buying each missing component.
+Approximately $200 remains for version 1. Do not purchase battery, charging, enclosure-specific, or optional network hardware until the bench-top end-to-end milestone identifies actual requirements. Use already-available bench hardware where reliable, and confirm electrical and software compatibility before buying each missing component.

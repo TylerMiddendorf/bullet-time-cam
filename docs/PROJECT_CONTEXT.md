@@ -243,7 +243,7 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 ## Current State
 
-As of June 27, 2026:
+As of July 8, 2026:
 
 - Four XIAO ESP32S3 Sense modules, four OV3660 sensors, and four 16 GB microSD cards are on hand.
 - All four modules are assembled on a breadboard.
@@ -252,14 +252,17 @@ As of June 27, 2026:
 - The boards are powered by USB from a battery hub.
 - The shared button and all four camera nodes work as expected.
 - Each node captures and saves images to its individual microSD card.
-- The repository contains working camera-node firmware, wiring and flashing instructions, and multi-camera test images.
+- The repository contains working camera-node firmware plus wiring and flashing instructions.
 - A Raspberry Pi 4 Model B with 2 GB RAM is on hand.
-- A Raspberry Pi-compatible touchscreen is on hand.
+- The Raspberry Pi 4 has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
+- Touch input works on the intended display.
+- The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
+- A powered USB hub is available for bench testing and carries USB data for at least one XIAO ESP32S3 camera node as detected by the Raspberry Pi.
 - A 3D printer is available.
-- No USB hub has been acquired.
+- The final integrated USB hub/cabling choice has not been validated.
 - No integrated battery/charging system has been acquired.
 - No separate user-removable card reader has been acquired.
-- No Raspberry Pi application, transfer service, GIF-generation pipeline, display UI, power integration, or enclosure work has started.
+- Raspberry Pi/display bring-up is mostly complete and first USB enumeration through a powered hub has started, but no Raspberry Pi application, transfer service, GIF-generation pipeline, display UI, power integration, or enclosure work has started.
 - Approximately $200 remains available for version 1.
 
 This is a successful four-camera capture-subsystem prototype at the boundary before central integration. It demonstrates the camera nodes, common trigger, local status indication, and local image storage. The next major milestone is the first bench-top end-to-end path through the Raspberry Pi; the project is not yet the self-contained handheld product.
@@ -354,8 +357,8 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 - Define progress detection, timeout thresholds, retry rules, and the minimum viable partial animation.
 - Implement user-visible camera-specific errors and useful diagnostic logging.
 - Choose and benchmark the central computer.
-- Identify the available touchscreen model, interface, resolution, power needs, and software support.
-- Acquire a suitable USB hub if USB is selected for the first transfer prototype.
+- Record the available touchscreen model, physical size, exact power needs, and software support.
+- Validate the available powered USB hub with all required camera nodes, or acquire a suitable USB hub if the bench hub is not reliable enough for the first transfer prototype.
 - Acquire a separate user-removable media-card reader.
 - Design the image alignment, cleanup, enhancement, and GIF pipeline.
 - Design the on-device interface and preview architecture.

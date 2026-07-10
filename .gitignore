@@ -1,0 +1,14 @@
+# Local camera captures and generated image artifacts.
+/photos/**/*.[jJ][pP][gG]
+/photos/**/*.[jJ][pP][eE][gG]
+/photos/**/*.[pP][nN][gG]
+/photos/**/*.[gG][iI][fF]
+/photos/**/*.[wW][eE][bB][pP]
+/photos/**/*.[bB][mM][pP]
+/photos/**/*.[tT][iI][fF]
+/photos/**/*.[tT][iI][fF][fF]
+/photos/**/*.[hH][eE][iI][cC]
+/photos/**/*.[dD][nN][gG]
+
+# Arduino/ESP32 build output.
+.build/

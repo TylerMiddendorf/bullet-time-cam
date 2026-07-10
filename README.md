@@ -40,10 +40,14 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - Every node has its own status LED.
 - The boards are currently powered over USB from a battery hub.
 - One button press causes each node to capture and save its own image to its local microSD card.
-- A Raspberry Pi 4 Model B with 2 GB RAM, a compatible touchscreen, and a 3D printer are available for the next stage.
-- A USB hub, integrated battery system, and separate removable-media card reader have not yet been acquired.
+- The Raspberry Pi 4 Model B with 2 GB RAM has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
+- Touch input on the intended display works.
+- The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
+- A powered USB hub is available for bench testing and has identified one ESP32 camera node as expected from the Raspberry Pi, confirming that the hub carries USB data for at least one node.
+- A 3D printer is available for a later enclosure stage.
+- The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-No implementation work has occurred beyond the working breadboard capture prototype. The repository currently contains the camera-node firmware, wiring and flashing instructions, and captured test images. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
+Raspberry Pi/display bring-up is mostly complete and USB enumeration has started, but the repository still contains only the camera-node firmware and wiring and flashing instructions. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
 
 The agreed next milestone is a bench-top, USB-powered end-to-end prototype: four camera nodes to Raspberry Pi transfer, original preservation, GIF generation, and touchscreen review. With approximately $200 remaining for version 1, battery and enclosure work are intentionally deferred until this central path is working and measured.
 
