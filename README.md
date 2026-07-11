@@ -30,6 +30,7 @@ The long-term product goal and current decisions are maintained in:
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md)
 - [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
+- [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md)
 
 ## Current Project State
 
@@ -52,6 +53,18 @@ Raspberry Pi/display bring-up is mostly complete and USB enumeration has started
 The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: physical trigger, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. It will record per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
+
+## Raspberry Pi Development Access
+
+The current bench Pi is reachable over key-based SSH from the local Windows account configured for this project:
+
+```powershell
+ssh camerapi
+```
+
+The alias currently targets Pi hostname `camerapi`, LAN address `10.0.0.136`, and Linux user `username`. Strict host-key checking and a dedicated identity are configured in the Windows user's SSH profile. The private key is stored at `C:\Users\tyler\.ssh\camerapi_ed25519`, outside this repository; never copy it into the project or rely on `.gitignore` to protect it.
+
+Local Codex agents running under the same Windows account can use the alias, subject to network approval. Other machines and cloud-hosted agents do not automatically receive the key. See [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md) for the verified fingerprint, key-only test command, security boundary, and recovery/rotation procedure.
 
 ## Planned System
 

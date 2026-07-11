@@ -257,6 +257,8 @@ As of July 10, 2026:
 - The Raspberry Pi 4 has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input works on the intended display.
 - The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
+- The Raspberry Pi is reachable on the bench LAN as `camerapi` at the current address `10.0.0.136`, with OpenSSH enabled and verified key-based login for the local Windows/Codex development account.
+- The dedicated private SSH key is stored outside the repository under the Windows user profile; non-secret connection details, the pinned host-key fingerprint, access boundaries, and recovery guidance are recorded in `docs/RASPBERRY_PI_SSH.md`.
 - A powered USB hub is available for bench testing and carries USB data for at least one XIAO ESP32S3 camera node as detected by the Raspberry Pi.
 - A 3D printer is available.
 - The final integrated USB hub/cabling choice has not been validated.

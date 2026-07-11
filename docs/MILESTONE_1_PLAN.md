@@ -55,6 +55,7 @@ Evidence recorded June 27 and July 8, 2026 (partial; checkpoint remains open):
 - The intended display is confirmed at 800x480 resolution, with HDMI for video and a micro-USB connection for touch and/or display-side power.
 - Touch input on the intended display now works on the Raspberry Pi.
 - One XIAO ESP32S3 camera node was identified by the Raspberry Pi as expected through the powered USB hub, confirming that the hub carries USB data for at least one node.
+- On July 10, 2026, the Pi was verified on the bench LAN as `camerapi` at `10.0.0.136` with OpenSSH available. A dedicated ED25519 development key was installed and a fresh key-only login succeeded as user `username`; the verified Pi host-key fingerprint and non-secret operating instructions are in `RASPBERRY_PI_SSH.md`.
 - Still unresolved for this checkpoint: touchscreen manufacturer/model/physical size, exact display power requirements, exact Raspberry Pi enumeration output for the connected XIAO, and whether a direct-to-Pi comparison should also be recorded.
 
 ## Checkpoint 2 - Offline Media and UI Vertical Slice
