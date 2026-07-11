@@ -12,3 +12,8 @@
 
 # Arduino/ESP32 build output.
 .build/
+pi_app/captures/
+__pycache__/
+*.pyc
+.build/
+button_capture/build/

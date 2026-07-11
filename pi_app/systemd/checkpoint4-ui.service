@@ -1,0 +1,17 @@
+[Unit]
+Description=Bullet-Time Checkpoint 4 touchscreen receiver
+After=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/esp32Cam
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=%h/esp32cam-tools/bin/python -m pi_app.bullettime.main --config pi_app/config.json
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
+

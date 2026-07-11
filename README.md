@@ -30,6 +30,7 @@ The long-term product goal and current decisions are maintained in:
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md)
 - [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
+- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) - live status for the active Checkpoint 4 implementation session
 - [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md)
 
 ## Current Project State
@@ -50,7 +51,7 @@ The four-camera capture subsystem is working as a breadboard prototype:
 
 Raspberry Pi/display bring-up is mostly complete and USB enumeration has started, but the repository still contains only the camera-node firmware and wiring and flashing instructions. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
 
-The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: physical trigger, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. It will record per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
+The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: capture request, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. Because the physical button is not presently wired into this one-node setup, the Pi touchscreen temporarily sends a framed USB capture request; the shared physical-trigger path remains in firmware and still requires later validation. The test records per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
 
@@ -84,6 +85,10 @@ Local Codex agents running under the same Windows account can use the alias, sub
 ## Current Camera-Node Firmware
 
 The same Arduino sketch is flashed to all four camera nodes. A shared momentary trigger on `D1 / GPIO2` captures one high-quality 2048x1536 JPEG on each board and saves it to that board's onboard microSD card. An external LED on each board's `D0 / GPIO1` turns on before capture and stays visible for at least one second.
+
+For the active one-node bench test, the same capture routine can also be requested by a framed `CAPTURE_REQUEST` over USB. The captured JPEG is streamed directly from the frame buffer to the Pi with CRC protection and Pi-side acknowledgement; microSD saving remains a separate backup path. The USB request is temporary test scaffolding until the physical button is connected to the bench setup.
+
+The Pi receiver/UI, protocol tests, runtime requirements, bounded serial smoke test, and user-service definition are under [`pi_app/`](pi_app/).
 
 This gives practical same-button synchronization: all four boards see the same active-low trigger and start their capture sequence nearly together. It is not sensor-level hardware shutter sync; the OV3660 sensors still free-run independently, so exact exposure timing can vary by roughly a camera frame.
 

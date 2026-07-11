@@ -268,6 +268,7 @@ As of July 10, 2026:
 - Approximately $200 remains available for version 1.
 - Milestone 1 work has deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: physical trigger, direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display.
 - This sequencing change does not mark the earlier offline UI or isolated one-node transfer checkpoints complete; required portions are being integrated into the active test and remaining coverage is deferred.
+- The one-node bench setup does not currently have its physical button connected. A framed Pi-to-node USB capture request is approved as temporary test scaffolding; it exercises the same capture routine but does not satisfy the later physical-trigger verification requirement.
 
 This is a successful four-camera capture-subsystem prototype at the boundary before central integration. It demonstrates the camera nodes, common trigger, local status indication, and local image storage. The next major milestone is the first bench-top end-to-end path through the Raspberry Pi; the project is not yet the self-contained handheld product.
 

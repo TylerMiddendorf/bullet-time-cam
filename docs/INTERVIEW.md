@@ -212,3 +212,10 @@ Implementation status:
 - Earlier Checkpoints 2 and 3 are not declared complete. Their required one-node elements are folded into the active vertical slice; remaining offline four-image, partial-set, and isolated-transfer coverage is deferred.
 - One-node results may be used to project bottlenecks, but they do not replace later concurrent four-node validation or electrical power measurements.
 - No new hardware purchase is authorized by this sequencing change; use the available node, powered hub, Pi, and touchscreen.
+
+### 2026-07-10 - Temporary USB capture request
+
+- The physical shutter button is not currently set up for the one-node bench test.
+- Add a Pi-to-node USB capture-request message so the end-to-end path can be exercised now.
+- The touchscreen may issue this temporary request; it does not replace later verification of the shared physical trigger.
+- Keep all Arduino and Raspberry Pi application/service code in Git. Deploy the Pi application by committing and pushing the repository, then pulling a Git checkout on the Pi rather than relying on ad hoc copied source files.

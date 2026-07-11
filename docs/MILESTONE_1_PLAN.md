@@ -138,11 +138,12 @@ Build the narrowest real vertical slice before completing the broader offline an
 
 End-to-end path:
 
-`physical trigger -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
+`temporary touchscreen/USB request (physical trigger when wired) -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
 
 Work:
 
 - Refactor the node firmware so capture, optional microSD storage, and USB transfer are separate operations; the live path must not read the JPEG back from microSD.
+- Until the physical button is wired for this bench setup, accept a framed Pi-to-node USB capture request. Treat this as test scaffolding and retain the physical-trigger path for later validation.
 - Emit framed, binary-safe messages containing protocol version, hardware UID, local capture sequence, event type, dimensions, byte length, payload checksum, and explicit completion/error status.
 - Map the node UID to logical Camera 1 in Pi configuration.
 - Implement a minimal Pi coordinator with `READY`, `LOADING`, `REVIEW`, and `REVIEW_WITH_ERROR` states.

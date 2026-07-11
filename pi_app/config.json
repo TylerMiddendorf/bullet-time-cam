@@ -1,0 +1,11 @@
+{
+  "storage_root": "captures",
+  "logical_cameras": {
+    "E072A1F9A190": 1
+  },
+  "serial_baud": 115200,
+  "fullscreen": true,
+  "display_width": 800,
+  "display_height": 480,
+  "reconnect_seconds": 1.0
+}
