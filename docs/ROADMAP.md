@@ -62,7 +62,7 @@ Intermediary checkpoints:
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 has now demonstrated the temporary USB-request-to-touchscreen path and a clean 20-capture instrumented run. It remains active until literal hub disconnect/reconnect and live error-presentation tests are completed. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling.
+Checkpoint 4 has now demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, and safe non-commit when the receiver is terminated mid-transfer. It remains active for a live in-flight corruption/interruption NACK test and later physical-button validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling.
 
 Exit criteria:
 

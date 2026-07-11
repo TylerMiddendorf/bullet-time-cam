@@ -44,6 +44,8 @@ Current phase: close remaining Checkpoint 4 physical reconnect and live-error te
 - Terminated the receiver during transfer: no manifest or partial file was committed. A fresh service then rediscovered logical Camera 1 and completed another reviewed capture without a Pi reboot.
 - Confirmed a literal software USB disconnect is unavailable to the unprivileged Pi user: the device `authorized` sysfs control is root-owned and `uhubctl` is not installed.
 - Linked the Git-tracked `checkpoint4-ui.service` into the Pi user service manager, enabled it for the user default target, and verified it active from `/home/username/bullet-time-cam`. Retained visible READY-state evidence showing Camera 1 at `/dev/ttyACM0` with touchscreen capture available.
+- Verified two physical unplug/replug cycles through the hub. The XIAO re-enumerated from USB device 7 to 8 to 9 with the same serial number; the same service process returned to logical Camera 1 without a Pi reboot or configuration edit.
+- During a later live disconnect, retained visible `No camera node found` error evidence and visible Camera 1 recovery evidence. The tapped capture completed before unplug, so this test is not classified as an in-flight interruption.
 
 ## Evidence Collected
 
@@ -52,11 +54,10 @@ Current phase: close remaining Checkpoint 4 physical reconnect and live-error te
 - Firmware compile, application-partition upload, flash hash, camera startup, microSD startup, and trigger-ready verification passed.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
 - USB-request-to-screen behavior and recovery are verified. Physical-button behavior is not verified because the button is not connected.
-- Literal hub unplug/replug and live on-screen interrupted/corrupt-transfer error presentation remain pending; electrical power and concurrent four-node behavior were not measured.
+- Literal hub unplug/replug and general missing-node UI recovery are verified. A live in-flight interrupted/corrupt-transfer NACK remains pending; electrical power and concurrent four-node behavior were not measured.
 
 ## Active Work
 
-- Monitor for the requested physical hub disconnect/reconnect.
 - Preserve the final analytics, screenshots, recovery evidence, and current documentation in Git and pull the final commit onto the Pi.
 - Keep the tracked Pi user service active for touchscreen USB-request captures.
 
@@ -68,7 +69,7 @@ Current phase: close remaining Checkpoint 4 physical reconnect and live-error te
 
 ## Next Actions
 
-1. Physically unplug/replug the camera-node USB connection through the hub while the tracked service is running and confirm Camera 1 returns without a Pi reboot or configuration edit.
-2. Interrupt or corrupt a transfer while the UI remains running and retain evidence that it reports the error without committing a valid original.
+1. Corrupt or interrupt an in-flight payload while the UI remains running and retain evidence that it NACKs/reports the error without committing a valid original.
+2. Validate the physical shared button after it is connected to the bench setup.
 3. Use suitable external instrumentation for electrical power measurements when available.
 4. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.

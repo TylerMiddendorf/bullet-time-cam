@@ -1,0 +1,16 @@
+Checkpoint 4 physical reconnect evidence - July 10/11, 2026
+
+Relevant Raspberry Pi kernel events:
+
+[Sat Jul 11 00:00:16 2026] usb 1-1.3.4: USB disconnect, device number 7
+[Sat Jul 11 00:00:28 2026] usb 1-1.3.4: new full-speed USB device number 8 using xhci_hcd
+[Sat Jul 11 00:00:28 2026] usb 1-1.3.4: SerialNumber: E0:72:A1:F9:A1:90
+[Sat Jul 11 00:00:28 2026] cdc_acm 1-1.3.4:1.0: ttyACM0: USB ACM device
+[Sat Jul 11 00:01:09 2026] usb 1-1.3.4: USB disconnect, device number 8
+[Sat Jul 11 00:01:20 2026] usb 1-1.3.4: new full-speed USB device number 9 using xhci_hcd
+[Sat Jul 11 00:01:20 2026] usb 1-1.3.4: SerialNumber: E0:72:A1:F9:A1:90
+[Sat Jul 11 00:01:20 2026] cdc_acm 1-1.3.4:1.0: ttyACM0: USB ACM device
+
+The same `checkpoint4-ui.service` process remained active throughout. After reconnect, the UI again displayed logical Camera 1 on `/dev/ttyACM0` with no configuration edit or Pi reboot.
+
+During a later live disconnect the UI visibly reported `No camera node found` and returned to `Camera 1 connected: /dev/ttyACM0` after reconnect. That tapped capture completed before cable removal, so this later test demonstrates missing-node error presentation and recovery, not a mid-payload interruption.
