@@ -292,11 +292,14 @@ def main() -> None:
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--trigger-once", action="store_true", help="request one USB capture after connecting")
     parser.add_argument("--trigger-count", type=int, default=0, help="request N sequential USB captures for bench testing")
+    parser.add_argument("--corrupt-next-payload", action="store_true",
+                        help="arm test-only corruption of the next requested USB image")
     args = parser.parse_args()
     with open(args.config, encoding="utf-8") as handle:
         config = json.load(handle)
     config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0,
                                   int(config.get("trigger_count", 0)))
+    config["corrupt_next_payload"] = args.corrupt_next_payload or bool(config.get("corrupt_next_payload", False))
     config["storage_root"] = str((Path(args.config).resolve().parent / config["storage_root"]).resolve())
     (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
     (run_headless if args.headless else run_ui)(config)
