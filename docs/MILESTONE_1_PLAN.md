@@ -125,11 +125,58 @@ Exit gate:
 - The node is identified consistently after reconnect.
 - Measured transfer time is recorded.
 
-## Checkpoint 4 - Transport Decision Gate
+## Checkpoint 4 - Active One-Node Full-System Bench Test
 
-Cost gate: decide before buying a hub
+Status: active by product-owner decision on July 10, 2026
 
-Evaluate one-node USB results against:
+Cost gate: no purchase; use one node, the available powered data hub, Raspberry Pi, and touchscreen
+
+Purpose:
+
+Build the narrowest real vertical slice before completing the broader offline and transport-isolation work: one physical trigger causes one node to capture, transfers the JPEG directly over USB through the hub, the Pi validates and preserves it, performs representative display processing, and shows the result on the touchscreen. Checkpoints 2 and 3 are not complete; their necessary one-node elements are absorbed here, and their remaining multi-image/isolated-test coverage is deferred.
+
+End-to-end path:
+
+`physical trigger -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
+
+Work:
+
+- Refactor the node firmware so capture, optional microSD storage, and USB transfer are separate operations; the live path must not read the JPEG back from microSD.
+- Emit framed, binary-safe messages containing protocol version, hardware UID, local capture sequence, event type, dimensions, byte length, payload checksum, and explicit completion/error status.
+- Map the node UID to logical Camera 1 in Pi configuration.
+- Implement a minimal Pi coordinator with `READY`, `LOADING`, `REVIEW`, and `REVIEW_WITH_ERROR` states.
+- Receive into a temporary file, validate byte length and checksum, then atomically commit the original JPEG into a capture-set directory with `manifest.json`.
+- Produce and display a representative processed artifact. For one image, this may be a single-frame/duplicated-frame GIF or the original JPEG, but the processing and display stages must remain separately timed so multi-image GIF cost can later be substituted cleanly.
+- Keep the latest result visible until the next trigger and require no Pi desktop interaction during normal capture.
+- Record errors without discarding a successfully validated original.
+
+Required instrumentation for every run:
+
+- Node monotonic timestamps: trigger accepted, frame acquisition started, frame ready, transfer started, and transfer completed.
+- Pi monotonic timestamps: first capture event received, payload receive started/completed, validation completed, original committed, processing started/completed, display request issued, and first result visibly rendered when measurable.
+- Derived durations: trigger-to-frame, transfer, validation, storage commit, processing, display update, and total trigger-to-review.
+- Context: capture ID, node UID/logical ID, JPEG dimensions and bytes, checksum result, USB device/path, success/error, retry count, and software/firmware versions.
+- Pi resource observations during capture, transfer, and processing: CPU load, memory use, and storage bytes written. Record available USB topology/link information; defer electrical power measurement until suitable instrumentation exists.
+- Use monotonic clocks for durations. Because ESP32 and Pi clocks are not synchronized, derive cross-device total time from a Pi-observed capture-start event or record the clock-correlation method and uncertainty.
+
+Validation sequence:
+
+1. Demonstrate one complete trigger-to-screen capture and retain its manifest/log.
+2. Run at least 20 consecutive full-resolution captures with zero truncation/checksum failures and no overwritten originals.
+3. Disconnect/reconnect the node through the hub and confirm automatic rediscovery without code/config edits or a Pi reboot.
+4. Force one interrupted transfer and confirm a partial file is not committed as a valid original and the UI reports the error.
+5. Report median, p95, slowest, and failure count for each measured stage and total trigger-to-review.
+
+Exit gate:
+
+- One physical button press repeatedly produces one verified, preserved JPEG on the Pi without reading node microSD and displays the result on the touchscreen.
+- The node remains logically Camera 1 after reconnect, and interrupted transfers fail safely.
+- The manifest/log artifacts contain enough stage timing, size, integrity, resource, and failure data to project likely four-node bottlenecks and guide transport, processing, storage, timeout/retry, hub, and later power-test decisions.
+- The results and limitations are recorded before Checkpoint 5 begins.
+
+Decision after evidence:
+
+Evaluate the one-node results against:
 
 - Transfer latency
 - Reconnect behavior
@@ -144,10 +191,9 @@ Decision:
 - Run a focused Wi-Fi transfer spike only if USB exposes a concrete blocker or if a comparison is still needed to make the decision.
 - Do not build two complete production transports before the first end-to-end milestone.
 
-Exit gate:
-
-- The version 1 transport choice and supporting measurements are recorded.
-- Any required hub/cabling specification is known before purchase.
+- Continue with USB for version 1 if the measured vertical slice is reliable and has a credible path toward the soft two-second target.
+- Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete transports.
+- Extrapolation may identify risks, but final four-node concurrency and power behavior still require Checkpoints 5 and 7 measurements.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
@@ -241,10 +287,10 @@ Exit gate:
 
 ## Recommended Build Order
 
-1. Checkpoint 1: Pi and display bring-up
-2. Checkpoint 2: offline GIF/UI using existing photos
-3. Checkpoint 3: one-node direct USB transfer
-4. Checkpoint 4: transport decision
+1. Checkpoint 1: Pi and display bring-up (substantially demonstrated; documentation details remain)
+2. Checkpoint 4: active one-node full-system bench test
+3. Deferred Checkpoint 2 coverage needed for four-image GIF and partial-set behavior
+4. Deferred Checkpoint 3 coverage not already proven by Checkpoint 4
 5. Checkpoint 5: four-node grouping and failure handling
 6. Checkpoint 6: integrated live flow
 7. Checkpoint 7: performance and reliability pass
@@ -253,9 +299,10 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Record the display manufacturer/model, physical size, and exact power requirements.
-2. Record the exact Raspberry Pi enumeration output for one XIAO through the powered USB hub (`lsusb`, recent `dmesg`, and `/dev/ttyACM*` or `/dev/ttyUSB*` path).
-3. Optionally compare one direct-to-Pi connection if the hub path later behaves strangely.
-4. Copy or clone this repository onto the Pi.
-5. Implement the offline capture-set/GIF/UI slice using the existing photos.
-6. Only then modify one camera node for direct USB JPEG transfer.
+1. Record the exact Pi enumeration and USB topology for the node through the powered hub (`lsusb`, `lsusb -t`, recent `dmesg`, and its `/dev/ttyACM*` or `/dev/ttyUSB*` path).
+2. Copy or clone the repository onto the Pi and record OS, Python, firmware, and dependency versions.
+3. Define the framed protocol and capture-set `manifest.json`, including the required timestamps and metrics above.
+4. Modify one node to send capture events and the frame-buffer JPEG over USB while retaining optional microSD storage as a separate diagnostic path.
+5. Implement the Pi receiver, atomic persistence, minimal processing/display path, and full-screen states.
+6. Demonstrate one capture, then execute the 20-run, reconnect, and interrupted-transfer validation sequence.
+7. Record results and make the USB decision before scaling to four nodes or purchasing integrated hub/cabling hardware.

@@ -55,10 +55,12 @@ Intermediary checkpoints:
 1. Pi and touchscreen bring-up
 2. Offline GIF/UI vertical slice using existing repository photos
 3. One-node direct USB JPEG transfer
-4. Measured USB/Wi-Fi transport decision gate
+4. **Active:** one-node full-system bench test through the powered USB hub, including capture, direct transfer, preservation, representative processing, touchscreen display, and stage analytics
 5. Four-node capture grouping and partial-failure handling
 6. Integrated live GIF/touchscreen flow
 7. Performance and reliability pass
+
+By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
 Exit criteria:
 

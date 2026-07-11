@@ -243,7 +243,7 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 ## Current State
 
-As of July 8, 2026:
+As of July 10, 2026:
 
 - Four XIAO ESP32S3 Sense modules, four OV3660 sensors, and four 16 GB microSD cards are on hand.
 - All four modules are assembled on a breadboard.
@@ -264,10 +264,12 @@ As of July 8, 2026:
 - No separate user-removable card reader has been acquired.
 - Raspberry Pi/display bring-up is mostly complete and first USB enumeration through a powered hub has started, but no Raspberry Pi application, transfer service, GIF-generation pipeline, display UI, power integration, or enclosure work has started.
 - Approximately $200 remains available for version 1.
+- Milestone 1 work has deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: physical trigger, direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display.
+- This sequencing change does not mark the earlier offline UI or isolated one-node transfer checkpoints complete; required portions are being integrated into the active test and remaining coverage is deferred.
 
 This is a successful four-camera capture-subsystem prototype at the boundary before central integration. It demonstrates the camera nodes, common trigger, local status indication, and local image storage. The next major milestone is the first bench-top end-to-end path through the Raspberry Pi; the project is not yet the self-contained handheld product.
 
-The agreed next milestone uses bench/USB power and implements the path from four camera nodes through Raspberry Pi transfer, original preservation, GIF generation, and touchscreen review. Battery integration and enclosure work follow only after this path works and its power/performance requirements have been measured. See `ROADMAP.md`.
+The active work first proves and instruments that complete path with one node through the available USB hub, then scales it to four nodes. Battery integration and enclosure work follow only after the bench path works and its power/performance requirements have been measured. See `ROADMAP.md` and `MILESTONE_1_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -321,6 +323,7 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - A touchscreen and 3D printer are already available.
 - Approximately $200 remains for version 1.
 - The next milestone is a bench-top, USB-powered end-to-end prototype from four camera nodes through Raspberry Pi GIF generation and touchscreen review.
+- Within that milestone, the active checkpoint is a one-node trigger-to-screen vertical slice through the powered USB hub, with detailed timing and resource analytics before four-node scaling.
 - Battery and enclosure integration follow the bench-top end-to-end milestone.
 - Progress is milestone-based without a fixed version 1 deadline.
 

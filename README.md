@@ -49,7 +49,7 @@ The four-camera capture subsystem is working as a breadboard prototype:
 
 Raspberry Pi/display bring-up is mostly complete and USB enumeration has started, but the repository still contains only the camera-node firmware and wiring and flashing instructions. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
 
-The agreed next milestone is a bench-top, USB-powered end-to-end prototype: four camera nodes to Raspberry Pi transfer, original preservation, GIF generation, and touchscreen review. With approximately $200 remaining for version 1, battery and enclosure work are intentionally deferred until this central path is working and measured.
+The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: physical trigger, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. It will record per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
 

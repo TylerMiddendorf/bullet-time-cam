@@ -203,3 +203,12 @@ Implementation status:
 - Version 1 has no fixed deadline.
 - Progress is milestone-based.
 - Each stage advances when its exit criteria are met rather than on a calendar date.
+
+### 2026-07-10 - Fast-forward to one-node full-system bench test
+
+- The product owner chose to fast-forward Milestone 1 work to Checkpoint 4 using one camera node connected through the available USB hub to the Raspberry Pi.
+- The narrow test must cover the real physical trigger, image capture, direct USB image transport, Pi-side validation and preservation, representative processing, and touchscreen display.
+- It must collect detailed timings for the distinct node and Pi stages, plus image size/integrity, Pi resource use, reconnect behavior, and failure evidence needed for future transport, processing, storage, hub, timeout/retry, four-node, and power-test decisions.
+- Earlier Checkpoints 2 and 3 are not declared complete. Their required one-node elements are folded into the active vertical slice; remaining offline four-image, partial-set, and isolated-transfer coverage is deferred.
+- One-node results may be used to project bottlenecks, but they do not replace later concurrent four-node validation or electrical power measurements.
+- No new hardware purchase is authorized by this sequencing change; use the available node, powered hub, Pi, and touchscreen.
