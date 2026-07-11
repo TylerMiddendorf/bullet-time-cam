@@ -17,7 +17,7 @@ import serial
 from PIL import Image, ImageTk
 
 from . import APP_VERSION
-from .protocol import ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK, TRANSFER_COMPLETE, encode_frame, read_frame
+from .protocol import ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK, PING, TRANSFER_COMPLETE, encode_frame, read_frame
 from .storage import atomic_json, commit_capture
 
 
@@ -69,6 +69,8 @@ class Receiver(threading.Thread):
 
     def receive_port(self, port: str) -> None:
         with serial.Serial(port, self.config.get("serial_baud", 115200), timeout=10, write_timeout=10) as stream:
+            stream.write(encode_frame(PING, {"host": "camerapi", "requested_monotonic_ns": time.monotonic_ns()}))
+            stream.flush()
             hello = None
             probe_deadline = time.monotonic() + 15
             while time.monotonic() < probe_deadline:

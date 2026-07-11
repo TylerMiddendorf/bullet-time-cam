@@ -1,7 +1,7 @@
 import io
 import unittest
 
-from pi_app.bullettime.protocol import CAPTURE_REQUEST, IMAGE, ProtocolError, encode_frame, read_frame
+from pi_app.bullettime.protocol import CAPTURE_REQUEST, IMAGE, PING, ProtocolError, encode_frame, read_frame
 
 
 class ProtocolTests(unittest.TestCase):
@@ -31,6 +31,10 @@ class ProtocolTests(unittest.TestCase):
         encoded = encode_frame(IMAGE, {}, b"jpeg")
         with self.assertRaises(ProtocolError):
             read_frame(io.BytesIO(encoded[:-2]))
+
+    def test_ping_fixture(self):
+        frame = read_frame(io.BytesIO(encode_frame(PING, {"host": "test"})))
+        self.assertEqual(frame.message_type, PING)
 
 
 if __name__ == "__main__":

@@ -43,6 +43,7 @@ static const uint8_t MSG_TRANSFER_COMPLETE = 4;
 static const uint8_t MSG_ERROR = 5;
 static const uint8_t MSG_LOG = 6;
 static const uint8_t MSG_CAPTURE_REQUEST = 7;
+static const uint8_t MSG_PING = 8;
 static const uint8_t MSG_ACK = 0x80;
 static const uint8_t MSG_NACK = 0x81;
 
@@ -55,6 +56,8 @@ static uint32_t bootId = 0;
 static char nodeUid[13] = {};
 static uint8_t idleMagicMatched = 0;
 static bool sdReady = false;
+
+void sendHelloFrame();
 
 uint32_t crc32Bytes(const uint8_t *data, size_t length, uint32_t crc = 0) {
   crc = ~crc;
@@ -208,7 +211,14 @@ bool waitForHostAck(uint32_t sequence) {
 bool pollForUsbCaptureRequest() {
   uint8_t messageType = 0;
   char metadata[1024];
-  return readInboundFrame(messageType, metadata, sizeof(metadata)) && messageType == MSG_CAPTURE_REQUEST;
+  if (!readInboundFrame(messageType, metadata, sizeof(metadata))) {
+    return false;
+  }
+  if (messageType == MSG_PING) {
+    sendHelloFrame();
+    return false;
+  }
+  return messageType == MSG_CAPTURE_REQUEST;
 }
 
 void initializeNodeIdentity() {
@@ -217,6 +227,15 @@ void initializeNodeIdentity() {
   snprintf(nodeUid, sizeof(nodeUid), "%02X%02X%02X%02X%02X%02X",
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   bootId = esp_random();
+}
+
+void sendHelloFrame() {
+  char helloMetadata[320];
+  snprintf(helloMetadata, sizeof(helloMetadata),
+           "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":%lu,\"firmware_version\":\"0.1.0\",\"timestamp_us\":%llu}",
+           nodeUid, static_cast<unsigned long>(bootId), static_cast<unsigned long>(captureSequence),
+           static_cast<unsigned long long>(esp_timer_get_time()));
+  sendFrame(MSG_HELLO, helloMetadata);
 }
 
 void halt(const char *message) {
@@ -554,12 +573,7 @@ void setup() {
   initializeSdCard();
 
   Serial.println("Ready. Pull the shared trigger LOW to capture.");
-  char helloMetadata[320];
-  snprintf(helloMetadata, sizeof(helloMetadata),
-           "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":0,\"firmware_version\":\"0.1.0\",\"timestamp_us\":%llu}",
-           nodeUid, static_cast<unsigned long>(bootId),
-           static_cast<unsigned long long>(esp_timer_get_time()));
-  sendFrame(MSG_HELLO, helloMetadata);
+  sendHelloFrame();
 }
 
 void loop() {

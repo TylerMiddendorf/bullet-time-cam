@@ -33,7 +33,9 @@ Current phase: add and verify temporary USB-triggered end-to-end capture
 - Added temporary touchscreen/USB `CAPTURE_REQUEST` support, bounded HELLO/UID discovery, matching capture ACK validation, IMAGE-to-TRANSFER_COMPLETE transaction finalization, explicit integrity evidence, and corrected payload-only USB timing.
 - Made USB capture success independent of optional node microSD backup; missing/failed backup no longer blocks or changes a Pi-committed USB result.
 - Expanded protocol tests to five passing cases, including capture request framing and partial-frame failure classification. Reviewed firmware compiles successfully at 428,677 bytes flash and 33,632 bytes dynamic memory.
-- Created Git commit `823a762` (`Implement one-node USB capture bench path`). The requested push to `origin/main` is paused because the external-data safeguard requires explicit confirmation that this repository may be sent to the configured GitHub destination. Pi pull, committed-source flash, and USB-triggered runtime validation therefore remain pending.
+- Created and pushed the reviewed one-node implementation commit; see the following Git deployment entry for the final amended hash.
+- Session-scoped GitHub authorization was granted. Commit `80cb048` was pushed to `origin/main`, cloned to `/home/username/bullet-time-cam`, explicitly pulled and verified clean at the same hash, then built and flashed from that committed source.
+- Pi-side tests and the post-flash camera/microSD/trigger startup smoke test passed. The first committed-source USB-trigger run exposed a HELLO timeout because the earlier smoke test consumed the one boot-time HELLO and later serial opens did not reset the node. Added an explicit framed PING/HELLO response handshake; verification is in progress.
 
 ## Evidence Collected
 
@@ -48,7 +50,7 @@ Current phase: add and verify temporary USB-triggered end-to-end capture
 - Deploy the compiled firmware to the node attached to the Pi.
 - Deploy the Pi application and run remote tests.
 - Verify firmware startup and execute physical trigger tests.
-- After explicit push authorization, push the reviewed commit, clone/pull it on the Pi, run from that checkout, rebuild/flash the committed firmware, and execute the temporary USB-trigger test.
+- Commit and push the PING/HELLO correction, pull it on the Pi, rebuild/flash from that checkout, and repeat the temporary USB-trigger test.
 
 ## Blockers and Limitations
 
