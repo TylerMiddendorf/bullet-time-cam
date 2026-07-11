@@ -17,7 +17,8 @@ import serial
 from PIL import Image, ImageTk
 
 from . import APP_VERSION
-from .protocol import ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK, PING, TRANSFER_COMPLETE, encode_frame, read_frame
+from .protocol import (ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK,
+                       PING, TEST_CORRUPT_NEXT_IMAGE, TRANSFER_COMPLETE, encode_frame, read_frame)
 from .storage import atomic_json, commit_capture
 
 
@@ -61,8 +62,10 @@ class Receiver(threading.Thread):
         self.config, self.events, self.commands, self.stop = config, events, commands, stop
         self.capture = {}
         self.pending_images = {}
+        self.rejected_images = set()
         self.automatic_triggers_remaining = int(config.get("trigger_count", 0))
         self.automatic_trigger_in_flight = False
+        self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
 
     def send_status(self, state: str, **values) -> None:
         self.events.put({"state": state, **values})
@@ -112,6 +115,12 @@ class Receiver(threading.Thread):
                 except queue.Empty:
                     pass
                 if request_capture:
+                    if self.corrupt_next_payload:
+                        stream.write(encode_frame(TEST_CORRUPT_NEXT_IMAGE, {
+                            "host": "camerapi", "reason": "checkpoint4_live_nack_test",
+                        }))
+                        stream.flush()
+                        self.corrupt_next_payload = False
                     request = {
                         "host": "camerapi",
                         "requested_monotonic_ns": time.monotonic_ns(),
@@ -124,7 +133,9 @@ class Receiver(threading.Thread):
                     self.send_status("LOADING", message="USB capture requested…")
                 frame_read_started_ns = time.monotonic_ns()
                 try:
-                    frame = read_frame(stream)
+                    # The receiver verifies IMAGE payload CRC itself so it retains the
+                    # metadata needed to send a targeted NACK on a live bad payload.
+                    frame = read_frame(stream, validate_payload_crc=False)
                 except TimeoutError:
                     continue
                 now = time.monotonic_ns()
@@ -165,7 +176,10 @@ class Receiver(threading.Thread):
                     except Exception as exc:
                         stream.write(encode_frame(NACK, response_metadata(meta, "failed", str(exc))))
                         stream.flush()
-                        raise
+                        self.rejected_images.add(key)
+                        message = f"NACK sent: {exc}"
+                        print(message, flush=True)
+                        self.send_status("ERROR", message=message)
                 elif frame.message_type == ERROR:
                     self.send_status("ERROR", message=meta.get("message", "Node error"))
                 elif frame.message_type == LOG:
@@ -173,6 +187,9 @@ class Receiver(threading.Thread):
                     # replace the latest REVIEW image on the touchscreen.
                     continue
                 elif frame.message_type == TRANSFER_COMPLETE:
+                    if key in self.rejected_images:
+                        self.rejected_images.remove(key)
+                        continue
                     pending = self.pending_images.pop(key, None)
                     if pending is None:
                         stream.write(encode_frame(NACK, response_metadata(meta, "failed", "missing matching IMAGE")))
@@ -278,7 +295,8 @@ def main() -> None:
     args = parser.parse_args()
     with open(args.config, encoding="utf-8") as handle:
         config = json.load(handle)
-    config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0)
+    config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0,
+                                  int(config.get("trigger_count", 0)))
     config["storage_root"] = str((Path(args.config).resolve().parent / config["storage_root"]).resolve())
     (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
     (run_headless if args.headless else run_ui)(config)

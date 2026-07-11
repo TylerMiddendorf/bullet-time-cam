@@ -24,6 +24,7 @@ ERROR = 5
 LOG = 6
 CAPTURE_REQUEST = 7
 PING = 8
+TEST_CORRUPT_NEXT_IMAGE = 9
 ACK = 0x80
 NACK = 0x81
 
@@ -80,7 +81,7 @@ def _seek_magic(stream: BinaryIO) -> None:
             return
 
 
-def read_frame(stream: BinaryIO) -> Frame:
+def read_frame(stream: BinaryIO, *, validate_payload_crc: bool = True) -> Frame:
     _seek_magic(stream)
     rest = _read_exact(stream, HEADER.size - len(MAGIC))
     header = MAGIC + rest
@@ -97,7 +98,7 @@ def read_frame(stream: BinaryIO) -> Frame:
     payload_started_ns = time.monotonic_ns()
     payload = _read_exact(stream, payload_len)
     payload_completed_ns = time.monotonic_ns()
-    if crc32(payload) != payload_crc:
+    if validate_payload_crc and crc32(payload) != payload_crc:
         raise ProtocolError("payload CRC mismatch")
     try:
         metadata = json.loads(metadata_bytes.decode("utf-8"))

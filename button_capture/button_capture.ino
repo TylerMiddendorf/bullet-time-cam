@@ -44,6 +44,10 @@ static const uint8_t MSG_ERROR = 5;
 static const uint8_t MSG_LOG = 6;
 static const uint8_t MSG_CAPTURE_REQUEST = 7;
 static const uint8_t MSG_PING = 8;
+// Test-only command: the next USB image has a valid header CRC for the
+// original frame buffer but one payload byte is changed on the wire. It is
+// inert unless the host explicitly sends this command.
+static const uint8_t MSG_TEST_CORRUPT_NEXT_IMAGE = 9;
 static const uint8_t MSG_ACK = 0x80;
 static const uint8_t MSG_NACK = 0x81;
 
@@ -56,6 +60,7 @@ static uint32_t bootId = 0;
 static char nodeUid[13] = {};
 static uint8_t idleMagicMatched = 0;
 static bool sdReady = false;
+static bool corruptNextUsbImage = false;
 
 void sendHelloFrame();
 
@@ -103,7 +108,19 @@ bool writeAll(const uint8_t *data, size_t length) {
   return true;
 }
 
-bool sendFrame(uint8_t messageType, const char *metadata, const uint8_t *payload = nullptr, size_t payloadLength = 0) {
+bool writePayloadWithOneCorruptByte(const uint8_t *data, size_t length) {
+  if (length == 0) {
+    return true;
+  }
+  const size_t corruptOffset = length / 2;
+  const uint8_t corrupted = data[corruptOffset] ^ 0x01;
+  return writeAll(data, corruptOffset) &&
+         writeAll(&corrupted, 1) &&
+         writeAll(data + corruptOffset + 1, length - corruptOffset - 1);
+}
+
+bool sendFrame(uint8_t messageType, const char *metadata, const uint8_t *payload = nullptr, size_t payloadLength = 0,
+               bool corruptPayloadOnWire = false) {
   const size_t metadataLength = strlen(metadata);
   uint8_t header[28] = {};
   memcpy(header, "BTC1", 4);
@@ -117,7 +134,8 @@ bool sendFrame(uint8_t messageType, const char *metadata, const uint8_t *payload
   writeU32Le(header + 24, crc32Bytes(header, 24));
   return writeAll(header, sizeof(header)) &&
          writeAll(reinterpret_cast<const uint8_t *>(metadata), metadataLength) &&
-         (!payloadLength || writeAll(payload, payloadLength));
+         (!payloadLength || (corruptPayloadOnWire ? writePayloadWithOneCorruptByte(payload, payloadLength)
+                                                  : writeAll(payload, payloadLength)));
 }
 
 void sendNodeMessage(uint8_t messageType, uint32_t sequence, uint64_t timestampUs, const char *message) {
@@ -216,6 +234,11 @@ bool pollForUsbCaptureRequest() {
   }
   if (messageType == MSG_PING) {
     sendHelloFrame();
+    return false;
+  }
+  if (messageType == MSG_TEST_CORRUPT_NEXT_IMAGE) {
+    corruptNextUsbImage = true;
+    sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "TEST_CORRUPTION_ARMED");
     return false;
   }
   return messageType == MSG_CAPTURE_REQUEST;
@@ -366,7 +389,9 @@ bool capturePhoto() {
              static_cast<unsigned long long>(frameReadyUs),
              static_cast<unsigned long long>(transferStartedUs));
 
-    bool transferred = sendFrame(MSG_IMAGE, imageMetadata, fb->buf, fb->len);
+    const bool corruptPayloadOnWire = corruptNextUsbImage;
+    corruptNextUsbImage = false;
+    bool transferred = sendFrame(MSG_IMAGE, imageMetadata, fb->buf, fb->len, corruptPayloadOnWire);
     const uint64_t transferCompletedUs = esp_timer_get_time();
     char completeMetadata[384];
     snprintf(completeMetadata, sizeof(completeMetadata),

@@ -22,6 +22,13 @@ class ProtocolTests(unittest.TestCase):
         with self.assertRaises(ProtocolError):
             read_frame(io.BytesIO(encoded))
 
+    def test_can_return_corrupt_payload_for_receiver_nack(self):
+        encoded = bytearray(encode_frame(IMAGE, {"capture_seq": 8}, b"jpeg"))
+        encoded[-1] ^= 1
+        frame = read_frame(io.BytesIO(encoded), validate_payload_crc=False)
+        self.assertEqual(frame.metadata["capture_seq"], 8)
+        self.assertNotEqual(frame.payload, b"jpeg")
+
     def test_capture_request_fixture(self):
         frame = read_frame(io.BytesIO(encode_frame(CAPTURE_REQUEST, {"reason": "test"})))
         self.assertEqual(frame.message_type, CAPTURE_REQUEST)
