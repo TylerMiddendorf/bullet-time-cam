@@ -46,7 +46,8 @@ class Receiver(threading.Thread):
         self.config, self.events, self.commands, self.stop = config, events, commands, stop
         self.capture = {}
         self.pending_images = {}
-        self.trigger_once_pending = bool(config.get("trigger_once"))
+        self.automatic_triggers_remaining = int(config.get("trigger_count", 0))
+        self.automatic_trigger_in_flight = False
 
     def send_status(self, state: str, **values) -> None:
         self.events.put({"state": state, **values})
@@ -88,8 +89,8 @@ class Receiver(threading.Thread):
                 raise RuntimeError(f"Unregistered node UID: {node_uid}")
             self.send_status("READY", message=f"Camera 1 connected: {port}\nTap to capture")
             while not self.stop.is_set():
-                request_capture = self.trigger_once_pending
-                self.trigger_once_pending = False
+                automatic_request = self.automatic_triggers_remaining > 0 and not self.automatic_trigger_in_flight
+                request_capture = automatic_request
                 try:
                     while self.commands.get_nowait() == "CAPTURE":
                         request_capture = True
@@ -103,6 +104,8 @@ class Receiver(threading.Thread):
                     }
                     stream.write(encode_frame(CAPTURE_REQUEST, request))
                     stream.flush()
+                    if automatic_request:
+                        self.automatic_trigger_in_flight = True
                     self.send_status("LOADING", message="USB capture requested…")
                 frame_read_started_ns = time.monotonic_ns()
                 try:
@@ -148,8 +151,12 @@ class Receiver(threading.Thread):
                         stream.write(encode_frame(NACK, {**meta, "status": "failed", "error": str(exc)}))
                         stream.flush()
                         raise
-                elif frame.message_type in (ERROR, LOG):
-                    self.send_status("ERROR" if frame.message_type == ERROR else "READY", message=meta.get("message", "Node message"))
+                elif frame.message_type == ERROR:
+                    self.send_status("ERROR", message=meta.get("message", "Node error"))
+                elif frame.message_type == LOG:
+                    # Diagnostics such as optional SD-backup completion must not
+                    # replace the latest REVIEW image on the touchscreen.
+                    continue
                 elif frame.message_type == TRANSFER_COMPLETE:
                     pending = self.pending_images.pop(key, None)
                     if pending is None:
@@ -185,6 +192,9 @@ class Receiver(threading.Thread):
                         stream.write(encode_frame(ACK, {**image_meta, "status": "committed"}))
                         stream.flush()
                         self.send_status("REVIEW", image=str(path), manifest=manifest)
+                        if self.automatic_trigger_in_flight:
+                            self.automatic_triggers_remaining -= 1
+                            self.automatic_trigger_in_flight = False
                     except Exception as exc:
                         stream.write(encode_frame(NACK, {**meta, "status": "failed", "error": str(exc)}))
                         stream.flush()
@@ -249,10 +259,11 @@ def main() -> None:
     parser.add_argument("--config", default="pi_app/config.json")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--trigger-once", action="store_true", help="request one USB capture after connecting")
+    parser.add_argument("--trigger-count", type=int, default=0, help="request N sequential USB captures for bench testing")
     args = parser.parse_args()
     with open(args.config, encoding="utf-8") as handle:
         config = json.load(handle)
-    config["trigger_once"] = args.trigger_once
+    config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0)
     config["storage_root"] = str((Path(args.config).resolve().parent / config["storage_root"]).resolve())
     (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
     (run_headless if args.headless else run_ui)(config)

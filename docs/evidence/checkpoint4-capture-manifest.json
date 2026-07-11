@@ -1,0 +1,84 @@
+{
+  "capture_id": "20260711T034816Z_98acaea5",
+  "created_utc": "2026-07-11T03:48:16Z",
+  "errors": [],
+  "files": [
+    {
+      "bytes": 552763,
+      "crc32": "ed3dd7c3",
+      "path": "camera_01.jpg",
+      "role": "original"
+    }
+  ],
+  "limitations": [
+    "display timestamp is a software render callback, not a photon measurement"
+  ],
+  "metrics": {
+    "app_version": "0.1.0",
+    "durations_ms": {
+      "capture_event_to_display_callback": 2536.757261,
+      "capture_event_to_payload_received": 2247.965358,
+      "host_payload_receive": 633.866358,
+      "jpeg_decode_validation": 28.777059,
+      "node_transfer": 763.284,
+      "payload_to_commit": 64.098151
+    },
+    "integrity": {
+      "checksum_ok": true,
+      "computed_crc32": "ed3dd7c3",
+      "expected_crc32": "ed3dd7c3"
+    },
+    "node_monotonic_us": {
+      "acquisition_started_us": 9400347,
+      "frame_ready_us": 10752546,
+      "transfer_completed_us": 11646642,
+      "transfer_started_us": 10883358,
+      "trigger_accepted_us": 9400238
+    },
+    "pi_monotonic_ns": {
+      "capture_event_received_ns": 5006119324897,
+      "display_callback_ns": 5008656082158,
+      "original_committed_ns": 5008431388406,
+      "payload_receive_started_ns": 5007733423897,
+      "payload_received_ns": 5008367290255
+    },
+    "resource_samples": [
+      {
+        "available_memory_bytes": 1520205824,
+        "phase": "capture_started",
+        "pi_monotonic_ns": 5006119903570,
+        "process_cpu_percent": 0.0,
+        "process_rss_bytes": 31727616,
+        "storage_free_bytes": 6991351808
+      },
+      {
+        "available_memory_bytes": 1507069952,
+        "phase": "payload_received",
+        "pi_monotonic_ns": 5008368717541,
+        "process_cpu_percent": 0.0,
+        "process_rss_bytes": 33501184,
+        "storage_free_bytes": 6991351808
+      }
+    ],
+    "serial_port": "/dev/ttyACM0"
+  },
+  "node": {
+    "acquisition_started_us": 9400347,
+    "boot_id": 4226109202,
+    "capture_seq": 1,
+    "frame_ready_us": 10752546,
+    "height": 1536,
+    "jpeg_bytes": 552763,
+    "jpeg_crc32": "ed3dd7c3",
+    "logical_camera_id": 1,
+    "node_uid": "E072A1F9A190",
+    "transfer_completed_us": 11646642,
+    "transfer_started_us": 10883358,
+    "transfer_status": "written",
+    "trigger_accepted_us": 9400238,
+    "width": 2048
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "timing_basis": "Pi durations use monotonic_ns; node microseconds are unsynchronized"
+}

@@ -36,6 +36,7 @@ Current phase: add and verify temporary USB-triggered end-to-end capture
 - Created and pushed the reviewed one-node implementation commit; see the following Git deployment entry for the final amended hash.
 - Session-scoped GitHub authorization was granted. Commit `80cb048` was pushed to `origin/main`, cloned to `/home/username/bullet-time-cam`, explicitly pulled and verified clean at the same hash, then built and flashed from that committed source.
 - Pi-side tests and the post-flash camera/microSD/trigger startup smoke test passed. The first committed-source USB-trigger run exposed a HELLO timeout because the earlier smoke test consumed the one boot-time HELLO and later serial opens did not reset the node. Added an explicit framed PING/HELLO response handshake; verification is in progress.
+- After the PING/HELLO fix, one USB request successfully produced a verified 552,763-byte 2048x1536 JPEG and complete manifest. Measured capture-event-to-display-callback was 2,536.8 ms; node transfer was 763.3 ms and Pi payload receive was 633.9 ms. The screenshot then exposed that the later optional `SD_BACKUP_SAVED` LOG replaced the review image. LOG messages are now prevented from changing UI state, and a Git-tracked sequential trigger-count mode is being added for the 20-run test.
 
 ## Evidence Collected
 
