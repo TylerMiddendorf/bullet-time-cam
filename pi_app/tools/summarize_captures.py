@@ -31,6 +31,14 @@ def main() -> None:
         durations["node_trigger_to_frame"] = (node["frame_ready_us"] - node["trigger_accepted_us"]) / 1000
         durations["node_acquisition"] = (node["frame_ready_us"] - node["acquisition_started_us"]) / 1000
         durations["jpeg_bytes"] = manifest["files"][0]["bytes"]
+        samples = manifest["metrics"].get("resource_samples", [])
+        if len(samples) >= 2 and "process_cpu_user_seconds" in samples[0]:
+            cpu_start = samples[0]["process_cpu_user_seconds"] + samples[0]["process_cpu_system_seconds"]
+            cpu_end = samples[-1]["process_cpu_user_seconds"] + samples[-1]["process_cpu_system_seconds"]
+            durations["process_cpu_capture_to_payload_ms"] = (cpu_end - cpu_start) * 1000
+            durations["process_peak_rss_bytes"] = max(sample["process_rss_bytes"] for sample in samples)
+            durations["minimum_available_memory_bytes"] = min(sample["available_memory_bytes"] for sample in samples)
+            durations["maximum_system_load_1m"] = max(sample["system_load_average_1m"] for sample in samples)
         for name, value in durations.items():
             series.setdefault(name, []).append(float(value))
     summary = {

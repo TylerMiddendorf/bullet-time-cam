@@ -28,15 +28,18 @@ def discover_ports() -> list[str]:
 
 def resource_sample(phase: str) -> dict:
     process = psutil.Process()
+    process_cpu = process.cpu_times()
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
     return {
         "phase": phase,
         "pi_monotonic_ns": time.monotonic_ns(),
-        "process_cpu_percent": process.cpu_percent(None),
+        "process_cpu_user_seconds": process_cpu.user,
+        "process_cpu_system_seconds": process_cpu.system,
         "process_rss_bytes": process.memory_info().rss,
         "available_memory_bytes": memory.available,
         "storage_free_bytes": disk.free,
+        "system_load_average_1m": psutil.getloadavg()[0],
     }
 
 

@@ -1,0 +1,64 @@
+{
+  "capture_count": 20,
+  "checksum_failure_count": 0,
+  "complete_count": 20,
+  "error_count": 0,
+  "first_capture_id": "20260711T035151Z_df9377bf",
+  "last_capture_id": "20260711T035304Z_cbb7cf74",
+  "metrics": {
+    "capture_event_to_display_callback": {
+      "maximum": 2884.185,
+      "median": 2509.255,
+      "minimum": 2459.717,
+      "p95": 2867.09
+    },
+    "capture_event_to_payload_received": {
+      "maximum": 2324.597,
+      "median": 2278.956,
+      "minimum": 2237.262,
+      "p95": 2323.047
+    },
+    "host_payload_receive": {
+      "maximum": 649.256,
+      "median": 640.232,
+      "minimum": 628.269,
+      "p95": 646.884
+    },
+    "jpeg_bytes": {
+      "maximum": 556118.0,
+      "median": 554382.5,
+      "minimum": 546792.0,
+      "p95": 555825.0
+    },
+    "jpeg_decode_validation": {
+      "maximum": 30.823,
+      "median": 0.296,
+      "minimum": 0.285,
+      "p95": 0.418
+    },
+    "node_acquisition": {
+      "maximum": 1420.151,
+      "median": 1373.626,
+      "minimum": 1334.291,
+      "p95": 1416.571
+    },
+    "node_transfer": {
+      "maximum": 779.969,
+      "median": 770.791,
+      "minimum": 756.866,
+      "p95": 778.17
+    },
+    "node_trigger_to_frame": {
+      "maximum": 1420.265,
+      "median": 1373.779,
+      "minimum": 1334.44,
+      "p95": 1416.721
+    },
+    "payload_to_commit": {
+      "maximum": 310.194,
+      "median": 34.07,
+      "minimum": 29.577,
+      "p95": 302.842
+    }
+  }
+}
