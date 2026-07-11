@@ -55,7 +55,7 @@ The active Milestone 1 checkpoint is now a one-node full-system bench test throu
 
 Development is milestone-based with no fixed version 1 deadline.
 
-The latest one-node evidence is a clean 20-capture run with zero checksum failures or partial files. Median capture-event-to-display callback was 2.494 seconds. Camera acquisition and USB transfer account for most of that latency. See [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) and the evidence recorded in [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md).
+The latest one-node evidence includes a clean 20-capture run with zero checksum failures or partial files, plus a live deliberately corrupted payload that produced a targeted NACK, visible touchscreen error, no committed/partial image, and an immediately successful normal recovery capture. Median normal capture-event-to-display callback was 2.494 seconds. Camera acquisition and USB transfer account for most of that latency. See [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) and the evidence recorded in [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md).
 
 ## Raspberry Pi Development Access
 

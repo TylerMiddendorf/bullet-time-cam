@@ -1,0 +1,30 @@
+Checkpoint 4 live corrupt-payload/NACK evidence
+Date: 2026-07-11
+
+Source and deployment:
+- Firmware/Pi protocol source commit: 69ed2ee
+- One-shot Pi CLI source commit: ead18a3
+- Target: esp32:esp32:XIAO_ESP32S3:PSRAM=opi
+- Compile result: 428,965 bytes flash; 33,632 bytes dynamic memory
+- Application image: 429,120 bytes, flashed at 0x10000; written hash verified
+- Startup verification: ESP32-S3 with 8 MB PSRAM; camera, microSD, and shared-trigger markers passed
+
+Live fault test:
+- A test-only framed command armed corruption of exactly the next USB IMAGE payload.
+- Firmware calculated the frame CRC over the original JPEG, then changed one payload byte only on the wire.
+- The persistent receiver logic retained the frame metadata, independently calculated the JPEG CRC, and sent a targeted NACK.
+- Pi service evidence: `NACK sent: JPEG metadata checksum mismatch`
+- The touchscreen UI remained alive and visibly displayed the NACK error.
+- Before test: 44 manifests, 44 committed Camera 1 JPEGs, 0 `.part` files.
+- After corrupt transfer: 44 manifests, 44 committed Camera 1 JPEGs, 0 `.part` files.
+- Screenshot: `checkpoint4-live-nack.png`
+
+Recovery:
+- A normal USB capture request immediately after the NACK succeeded.
+- After recovery: 45 manifests, 45 committed Camera 1 JPEGs, 0 `.part` files.
+- Screenshot: `checkpoint4-live-nack-recovered.png`
+- The transient test process was stopped and the normal `checkpoint4-ui.service` was restored active.
+
+Limitations:
+- This verifies the one-node USB corrupt-payload/NACK/no-commit/recovery path.
+- It does not validate the shared physical shutter, concurrent four-node behavior, or electrical power.

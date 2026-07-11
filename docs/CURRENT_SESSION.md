@@ -1,6 +1,6 @@
 # Current Session - Milestone 1 Checkpoint 4
 
-Date: July 10, 2026
+Date: July 10-11, 2026
 
 Objective: implement and verify the one-node physical-trigger-to-touchscreen path through the powered USB hub, while collecting the evidence required by Checkpoint 4.
 
@@ -8,7 +8,7 @@ Objective: implement and verify the one-node physical-trigger-to-touchscreen pat
 
 Overall: in progress
 
-Current phase: close remaining Checkpoint 4 physical reconnect and live-error tests
+Current phase: close remaining Checkpoint 4 physical-shutter test
 
 ## Progress Log
 
@@ -46,19 +46,23 @@ Current phase: close remaining Checkpoint 4 physical reconnect and live-error te
 - Linked the Git-tracked `checkpoint4-ui.service` into the Pi user service manager, enabled it for the user default target, and verified it active from `/home/username/bullet-time-cam`. Retained visible READY-state evidence showing Camera 1 at `/dev/ttyACM0` with touchscreen capture available.
 - Verified two physical unplug/replug cycles through the hub. The XIAO re-enumerated from USB device 7 to 8 to 9 with the same serial number; the same service process returned to logical Camera 1 without a Pi reboot or configuration edit.
 - During a later live disconnect, retained visible `No camera node found` error evidence and visible Camera 1 recovery evidence. The tapped capture completed before unplug, so this test is not classified as an in-flight interruption.
+- Added an inert-until-commanded, one-shot corrupt-payload test path. Firmware computes the IMAGE CRC over the original JPEG and changes one payload byte only on the wire; the Pi retains header metadata, independently detects the mismatch, sends a targeted NACK, and keeps the UI alive.
+- Built the updated XIAO firmware for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi` at 428,965 bytes flash and 33,632 bytes dynamic memory. Flashed the 429,120-byte application image only at `0x10000`; the write hash verified. Post-flash camera, microSD, and shared-trigger startup checks passed with 8 MB PSRAM detected.
+- Ran the live fault test through the powered hub. The Pi reported `NACK sent: JPEG metadata checksum mismatch`, the touchscreen visibly displayed the error, and counts remained 44 manifests, 44 Camera 1 originals, and zero `.part` files.
+- Ran an immediate normal recovery request. It committed and displayed capture 45 with zero `.part` files. Stopped the transient test unit and restored the normal `checkpoint4-ui.service` active.
 
 ## Evidence Collected
 
 - Pi environment and USB topology evidence is listed in the progress log above.
-- Current protocol test result: 6 tests passed, 0 failed.
+- Current protocol test result: 7 tests passed, 0 failed.
 - Firmware compile, application-partition upload, flash hash, camera startup, microSD startup, and trigger-ready verification passed.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
 - USB-request-to-screen behavior and recovery are verified. Physical-button behavior is not verified because the button is not connected.
-- Literal hub unplug/replug and general missing-node UI recovery are verified. A live in-flight interrupted/corrupt-transfer NACK remains pending; electrical power and concurrent four-node behavior were not measured.
+- Literal hub unplug/replug, general missing-node UI recovery, and the live corrupt-payload/NACK/no-commit/recovery path are verified. Electrical power and concurrent four-node behavior were not measured.
+- Live NACK evidence is retained in `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
 
 ## Active Work
 
-- Preserve the final analytics, screenshots, recovery evidence, and current documentation in Git and pull the final commit onto the Pi.
 - Keep the tracked Pi user service active for touchscreen USB-request captures.
 
 ## Blockers and Limitations
@@ -69,7 +73,6 @@ Current phase: close remaining Checkpoint 4 physical reconnect and live-error te
 
 ## Next Actions
 
-1. Corrupt or interrupt an in-flight payload while the UI remains running and retain evidence that it NACKs/reports the error without committing a valid original.
-2. Validate the physical shared button after it is connected to the bench setup.
-3. Use suitable external instrumentation for electrical power measurements when available.
-4. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.
+1. Validate the physical shared button after it is connected to the bench setup.
+2. Use suitable external instrumentation for electrical power measurements when available.
+3. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.

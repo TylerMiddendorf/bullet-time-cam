@@ -197,7 +197,7 @@ Decision:
 - Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete transports.
 - Extrapolation may identify risks, but final four-node concurrency and power behavior still require Checkpoints 5 and 7 measurements.
 
-Evidence recorded July 10, 2026 (Checkpoint 4 remains active):
+Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 
 - Implemented and Git-deployed a CRC-protected `BTC1` USB protocol with PING/HELLO discovery, stable eFuse UID, capture request/start, JPEG image, transfer completion, ACK/NACK, LOG, and ERROR messages.
 - Node `E072A1F9A190` is mapped to logical Camera 1. The Pi checkout at `/home/username/bullet-time-cam` was pulled from `origin/main`; firmware and Pi runtime tests were executed from that Git-tracked source.
@@ -213,7 +213,8 @@ Evidence recorded July 10, 2026 (Checkpoint 4 remains active):
 - Concrete evidence artifacts are under `docs/evidence/`, including the final 20-run summary, a successful review screenshot, recovery screenshot, representative manifest, and screenshots of defects found and fixed during integration.
 - Two physical hub disconnect/reconnect cycles were completed. Kernel enumeration advanced from device 7 to 8 to 9 with the same serial number and `/dev/ttyACM0`; the same service process rediscovered logical Camera 1 without configuration edits or a Pi reboot.
 - A later live disconnect visibly produced `No camera node found`, then returned to `Camera 1 connected` after reconnect. Its tapped capture completed before cable removal, so it demonstrates missing-node error presentation and recovery rather than a mid-payload interruption.
-- Still required before closing Checkpoint 4: exercise a deliberately corrupted transfer, or interrupt an in-flight payload while the UI remains alive, and retain the resulting NACK/error evidence. The earlier forced mid-transfer receiver termination proved safe non-commit but could not display an error because the UI process itself was stopped.
+- On July 11, a test-only one-shot command deliberately changed one byte of the next live USB IMAGE payload while retaining the original CRC. The Pi independently detected `JPEG metadata checksum mismatch`, sent a targeted NACK, kept the touchscreen UI alive with a visible error, and committed neither a manifest/JPEG nor a `.part` file. Counts remained 44 manifests, 44 Camera 1 originals, and zero partials. The immediately following normal request succeeded as capture 45 with zero partials, and the normal UI service was restored active. Evidence: `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
+- Still required before closing Checkpoint 4: connect and validate the physical shared shutter. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
 - Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
