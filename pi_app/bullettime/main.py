@@ -40,6 +40,18 @@ def resource_sample(phase: str) -> dict:
     }
 
 
+def response_metadata(metadata: dict, status: str, error: str | None = None) -> dict:
+    response = {
+        "node_uid": metadata.get("node_uid"),
+        "boot_id": metadata.get("boot_id"),
+        "capture_seq": metadata.get("capture_seq"),
+        "status": status,
+    }
+    if error:
+        response["error"] = error[:96]
+    return response
+
+
 class Receiver(threading.Thread):
     def __init__(self, config: dict, events: queue.Queue, commands: queue.Queue, stop: threading.Event):
         super().__init__(daemon=True)
@@ -148,7 +160,7 @@ class Receiver(threading.Thread):
                             "serial_port": port,
                         }
                     except Exception as exc:
-                        stream.write(encode_frame(NACK, {**meta, "status": "failed", "error": str(exc)}))
+                        stream.write(encode_frame(NACK, response_metadata(meta, "failed", str(exc))))
                         stream.flush()
                         raise
                 elif frame.message_type == ERROR:
@@ -160,7 +172,7 @@ class Receiver(threading.Thread):
                 elif frame.message_type == TRANSFER_COMPLETE:
                     pending = self.pending_images.pop(key, None)
                     if pending is None:
-                        stream.write(encode_frame(NACK, {**meta, "status": "failed", "error": "missing matching IMAGE"}))
+                        stream.write(encode_frame(NACK, response_metadata(meta, "failed", "missing matching IMAGE")))
                         stream.flush()
                         continue
                     try:
@@ -189,14 +201,14 @@ class Receiver(threading.Thread):
                         manifest["metrics"]["pi_monotonic_ns"]["original_committed_ns"] = committed_ns
                         manifest["metrics"]["durations_ms"]["payload_to_commit"] = (committed_ns - state["payload_received_ns"]) / 1_000_000
                         atomic_json(path.parent / "manifest.json", manifest)
-                        stream.write(encode_frame(ACK, {**image_meta, "status": "committed"}))
+                        stream.write(encode_frame(ACK, response_metadata(image_meta, "committed")))
                         stream.flush()
                         self.send_status("REVIEW", image=str(path), manifest=manifest)
                         if self.automatic_trigger_in_flight:
                             self.automatic_triggers_remaining -= 1
                             self.automatic_trigger_in_flight = False
                     except Exception as exc:
-                        stream.write(encode_frame(NACK, {**meta, "status": "failed", "error": str(exc)}))
+                        stream.write(encode_frame(NACK, response_metadata(meta, "failed", str(exc))))
                         stream.flush()
                         raise
 
