@@ -197,6 +197,23 @@ Decision:
 - Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete transports.
 - Extrapolation may identify risks, but final four-node concurrency and power behavior still require Checkpoints 5 and 7 measurements.
 
+Evidence recorded July 10, 2026 (Checkpoint 4 remains active):
+
+- Implemented and Git-deployed a CRC-protected `BTC1` USB protocol with PING/HELLO discovery, stable eFuse UID, capture request/start, JPEG image, transfer completion, ACK/NACK, LOG, and ERROR messages.
+- Node `E072A1F9A190` is mapped to logical Camera 1. The Pi checkout at `/home/username/bullet-time-cam` was pulled from `origin/main`; firmware and Pi runtime tests were executed from that Git-tracked source.
+- Demonstrated the temporary touchscreen/Pi USB request through the powered hub to a 2048x1536 frame-buffer JPEG, Pi checksum/length/decode validation, atomic original commit, manifest creation, and visible touchscreen review. The physical button was not connected for this test.
+- Final resource-instrumented run: 20 consecutive captures, 20 complete manifests, zero checksum failures, zero recorded errors, zero leftover `.part` files.
+- JPEG size: 554,270-byte median, 561,018-byte p95, and 561,320-byte maximum.
+- Node trigger event to frame ready: 1,373.7 ms median, 1,407.2 ms p95, and 1,407.6 ms maximum. The existing settle/warm-up acquisition is the largest latency stage.
+- Node USB transfer: 773.1 ms median, 783.5 ms p95, and 784.3 ms maximum. Pi payload receive: 643.2 ms median and 651.1 ms p95.
+- Pi payload-received to atomic original commit: 35.9 ms median, 41.7 ms p95, and 63.8 ms maximum. JPEG decode validation was 0.296 ms median after warm-up.
+- Capture event to display callback: 2,493.8 ms median, 2,580.0 ms p95, 2,588.4 ms maximum, and 2,422.4 ms minimum. None of this final run met the soft two-second target; acquisition and USB transfer are the primary optimization targets.
+- Pi application CPU time from capture event through payload receipt: 220 ms median and 270 ms p95. Peak process RSS was about 59.9 MB median and 61.5 MB maximum; minimum available system memory remained about 1.48 GB and one-minute system load remained below 0.08.
+- Terminating the receiver during a requested transfer left the manifest count unchanged and left no `.part` file. After the node's bounded ACK timeout, a new service rediscovered the same UID and completed a reviewed capture without a Pi reboot or configuration edit.
+- Concrete evidence artifacts are under `docs/evidence/`, including the final 20-run summary, a successful review screenshot, recovery screenshot, representative manifest, and screenshots of defects found and fixed during integration.
+- Still required before closing Checkpoint 4: physically disconnect/reconnect the node through the hub and confirm rediscovery, then exercise an interrupted/corrupt transfer while the UI remains alive and visibly reports the error. The Pi user cannot software-toggle this hub port (`authorized` is root-only and `uhubctl` is unavailable).
+- Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
+
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
 Cost gate: acquire a powered data hub only after Checkpoint 4 confirms USB

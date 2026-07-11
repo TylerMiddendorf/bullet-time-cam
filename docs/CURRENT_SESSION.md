@@ -8,7 +8,7 @@ Objective: implement and verify the one-node physical-trigger-to-touchscreen pat
 
 Overall: in progress
 
-Current phase: add and verify temporary USB-triggered end-to-end capture
+Current phase: close remaining Checkpoint 4 physical reconnect and live-error tests
 
 ## Progress Log
 
@@ -38,21 +38,27 @@ Current phase: add and verify temporary USB-triggered end-to-end capture
 - Pi-side tests and the post-flash camera/microSD/trigger startup smoke test passed. The first committed-source USB-trigger run exposed a HELLO timeout because the earlier smoke test consumed the one boot-time HELLO and later serial opens did not reset the node. Added an explicit framed PING/HELLO response handshake; verification is in progress.
 - After the PING/HELLO fix, one USB request successfully produced a verified 552,763-byte 2048x1536 JPEG and complete manifest. Measured capture-event-to-display-callback was 2,536.8 ms; node transfer was 763.3 ms and Pi payload receive was 633.9 ms. The screenshot then exposed that the later optional `SD_BACKUP_SAVED` LOG replaced the review image. LOG messages are now prevented from changing UI state, and a Git-tracked sequential trigger-count mode is being added for the 20-run test.
 - The first repeated-run attempt committed its first image but the node reported `HOST_ACK_TIMEOUT`. The ACK unnecessarily repeated all image metadata (about 387 framed bytes), risking ESP32 CDC RX-buffer overflow during the transmit-to-receive transition. ACK/NACK responses are being reduced to only the validated transaction identity and short status/error fields before repeating the 20-run test.
+- Compact transaction-identity ACK/NACK messages eliminated the repeated-run stall.
+- Completed a clean 20-capture run, then repeated a final 20-capture run after correcting CPU instrumentation. The final run completed 20/20 with zero checksum failures, zero recorded errors, and no `.part` files.
+- Final-run median/p95: capture event to display 2,493.8/2,580.0 ms; node acquisition 1,373.5/1,407.0 ms; node transfer 773.1/783.5 ms; Pi payload receive 643.2/651.1 ms; commit 35.9/41.7 ms; process CPU 220/270 ms. Peak application RSS was 61.5 MB maximum.
+- Terminated the receiver during transfer: no manifest or partial file was committed. A fresh service then rediscovered logical Camera 1 and completed another reviewed capture without a Pi reboot.
+- Confirmed a literal software USB disconnect is unavailable to the unprivileged Pi user: the device `authorized` sysfs control is root-owned and `uhubctl` is not installed.
+- Linked the Git-tracked `checkpoint4-ui.service` into the Pi user service manager, enabled it for the user default target, and verified it active from `/home/username/bullet-time-cam`. Retained visible READY-state evidence showing Camera 1 at `/dev/ttyACM0` with touchscreen capture available.
 
 ## Evidence Collected
 
 - Pi environment and USB topology evidence is listed in the progress log above.
-- Local protocol test result: 3 tests passed, 0 failed.
+- Current protocol test result: 6 tests passed, 0 failed.
 - Firmware compile, application-partition upload, flash hash, camera startup, microSD startup, and trigger-ready verification passed.
-- Trigger-to-screen behavior is not yet verified.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
+- USB-request-to-screen behavior and recovery are verified. Physical-button behavior is not verified because the button is not connected.
+- Literal hub unplug/replug and live on-screen interrupted/corrupt-transfer error presentation remain pending; electrical power and concurrent four-node behavior were not measured.
 
 ## Active Work
 
-- Deploy the compiled firmware to the node attached to the Pi.
-- Deploy the Pi application and run remote tests.
-- Verify firmware startup and execute physical trigger tests.
-- Commit and push the PING/HELLO correction, pull it on the Pi, rebuild/flash from that checkout, and repeat the temporary USB-trigger test.
+- Monitor for the requested physical hub disconnect/reconnect.
+- Preserve the final analytics, screenshots, recovery evidence, and current documentation in Git and pull the final commit onto the Pi.
+- Keep the tracked Pi user service active for touchscreen USB-request captures.
 
 ## Blockers and Limitations
 
@@ -62,8 +68,7 @@ Current phase: add and verify temporary USB-triggered end-to-end capture
 
 ## Next Actions
 
-1. Record Pi system, USB, serial-device, display-session, and dependency details.
-2. Implement and locally validate the firmware and Pi application.
-3. Deploy the firmware to the single connected node and verify startup.
-4. Deploy/run the Pi application and execute the available end-to-end tests.
-5. Record concrete results in this session log and the milestone documents.
+1. Physically unplug/replug the camera-node USB connection through the hub while the tracked service is running and confirm Camera 1 returns without a Pi reboot or configuration edit.
+2. Interrupt or corrupt a transfer while the UI remains running and retain evidence that it reports the error without committing a valid original.
+3. Use suitable external instrumentation for electrical power measurements when available.
+4. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.

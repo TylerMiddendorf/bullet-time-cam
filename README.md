@@ -49,11 +49,13 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-Raspberry Pi/display bring-up is mostly complete and USB enumeration has started, but the repository still contains only the camera-node firmware and wiring and flashing instructions. The Raspberry Pi application, image-transfer protocol, GIF pipeline, display interface, consolidated removable storage, internal power system, and handheld enclosure remain to be built.
+The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, protocol tests, smoke-test and analytics tools, and user-service definition. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 
 The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: capture request, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. Because the physical button is not presently wired into this one-node setup, the Pi touchscreen temporarily sends a framed USB capture request; the shared physical-trigger path remains in firmware and still requires later validation. The test records per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
+
+The latest one-node evidence is a clean 20-capture run with zero checksum failures or partial files. Median capture-event-to-display callback was 2.494 seconds. Camera acquisition and USB transfer account for most of that latency. See [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) and the evidence recorded in [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md).
 
 ## Raspberry Pi Development Access
 

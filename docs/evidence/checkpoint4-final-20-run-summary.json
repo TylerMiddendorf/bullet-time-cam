@@ -1,0 +1,88 @@
+{
+  "capture_count": 20,
+  "checksum_failure_count": 0,
+  "complete_count": 20,
+  "error_count": 0,
+  "first_capture_id": "20260711T035631Z_92327b39",
+  "last_capture_id": "20260711T035747Z_be88ad91",
+  "metrics": {
+    "capture_event_to_display_callback": {
+      "maximum": 2588.449,
+      "median": 2493.818,
+      "minimum": 2422.446,
+      "p95": 2580.002
+    },
+    "capture_event_to_payload_received": {
+      "maximum": 2325.591,
+      "median": 2277.403,
+      "minimum": 2230.267,
+      "p95": 2307.697
+    },
+    "host_payload_receive": {
+      "maximum": 651.873,
+      "median": 643.23,
+      "minimum": 634.393,
+      "p95": 651.148
+    },
+    "jpeg_bytes": {
+      "maximum": 561320.0,
+      "median": 554269.5,
+      "minimum": 546508.0,
+      "p95": 561018.0
+    },
+    "jpeg_decode_validation": {
+      "maximum": 29.183,
+      "median": 0.296,
+      "minimum": 0.284,
+      "p95": 0.428
+    },
+    "maximum_system_load_1m": {
+      "maximum": 0.071,
+      "median": 0.037,
+      "minimum": 0.018,
+      "p95": 0.065
+    },
+    "minimum_available_memory_bytes": {
+      "maximum": 1511608320.0,
+      "median": 1484384256.0,
+      "minimum": 1478688768.0,
+      "p95": 1491824640.0
+    },
+    "node_acquisition": {
+      "maximum": 1407.453,
+      "median": 1373.519,
+      "minimum": 1334.784,
+      "p95": 1407.007
+    },
+    "node_transfer": {
+      "maximum": 784.317,
+      "median": 773.144,
+      "minimum": 763.817,
+      "p95": 783.507
+    },
+    "node_trigger_to_frame": {
+      "maximum": 1407.618,
+      "median": 1373.668,
+      "minimum": 1334.931,
+      "p95": 1407.157
+    },
+    "payload_to_commit": {
+      "maximum": 63.768,
+      "median": 35.924,
+      "minimum": 29.301,
+      "p95": 41.747
+    },
+    "process_cpu_capture_to_payload_ms": {
+      "maximum": 270.0,
+      "median": 220.0,
+      "minimum": 180.0,
+      "p95": 270.0
+    },
+    "process_peak_rss_bytes": {
+      "maximum": 61526016.0,
+      "median": 59918336.0,
+      "minimum": 33730560.0,
+      "p95": 61517824.0
+    }
+  }
+}
