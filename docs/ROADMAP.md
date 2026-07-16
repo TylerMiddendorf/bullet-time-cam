@@ -48,6 +48,7 @@ Work:
 - Implement capture-set grouping, partial-set handling, and diagnostics.
 - Preserve originals and generate the version 1 GIF.
 - Implement the loading/result/error display states.
+- Configure a product boot path that shows only the product logo before handing directly to the full-screen application, with no visible desktop, console, cursor, or boot diagnostics.
 - Measure normal shutter-to-review time against the soft two-second target.
 
 Intermediary checkpoints:

@@ -5,6 +5,8 @@
   },
   "serial_baud": 115200,
   "fullscreen": true,
+  "startup_logo": "../assets/Logo_800x480.png",
+  "hide_pointer": true,
   "corrupt_next_payload": false,
   "trigger_count": 0,
   "display_width": 800,

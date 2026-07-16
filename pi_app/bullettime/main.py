@@ -14,7 +14,7 @@ from pathlib import Path
 
 import psutil
 import serial
-from PIL import Image, ImageTk
+from PIL import Image, ImageOps, ImageTk
 
 from . import APP_VERSION
 from .protocol import (ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK,
@@ -248,13 +248,48 @@ def run_ui(config: dict) -> None:
 
     root = tk.Tk()
     root.configure(background="black")
+    if config.get("hide_pointer", True):
+        root.configure(cursor="none")
     if config.get("fullscreen", True):
         root.attributes("-fullscreen", True)
-    label = tk.Label(root, text="Starting…", fg="white", bg="black", font=("Sans", 28), compound="center")
+    label = tk.Label(
+        root,
+        text="",
+        fg="white",
+        bg="black",
+        font=("Sans", 28),
+        compound="center",
+        borderwidth=0,
+        highlightthickness=0,
+        padx=0,
+        pady=0,
+    )
     label.pack(fill="both", expand=True)
+    image_ref = {"value": None}
+
+    startup_logo = config.get("startup_logo")
+    if startup_logo:
+        with Image.open(startup_logo) as source:
+            display_size = (
+                int(config.get("display_width", 800)),
+                int(config.get("display_height", 480)),
+            )
+            logo = ImageOps.contain(source.convert("RGB"), display_size, Image.Resampling.LANCZOS)
+            canvas = Image.new("RGB", display_size, "black")
+            canvas.paste(
+                logo,
+                ((display_size[0] - logo.width) // 2, (display_size[1] - logo.height) // 2),
+            )
+            image_ref["value"] = ImageTk.PhotoImage(canvas)
+        label.configure(image=image_ref["value"])
+
+    # Map a complete logo frame before receiver discovery can publish status.
+    # This makes the first application-owned frame match the boot splash.
+    root.update_idletasks()
+    root.update()
+
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
     Receiver(config, events, commands, stop).start()
-    image_ref = {"value": None}
 
     def poll() -> None:
         try:
@@ -297,10 +332,14 @@ def main() -> None:
     args = parser.parse_args()
     with open(args.config, encoding="utf-8") as handle:
         config = json.load(handle)
+    config_dir = Path(args.config).resolve().parent
     config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0,
                                   int(config.get("trigger_count", 0)))
     config["corrupt_next_payload"] = args.corrupt_next_payload or bool(config.get("corrupt_next_payload", False))
-    config["storage_root"] = str((Path(args.config).resolve().parent / config["storage_root"]).resolve())
+    config["storage_root"] = str((config_dir / config["storage_root"]).resolve())
+    if config.get("startup_logo"):
+        logo_path = Path(config["startup_logo"])
+        config["startup_logo"] = str((logo_path if logo_path.is_absolute() else config_dir / logo_path).resolve())
     (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
     (run_headless if args.headless else run_ui)(config)
 

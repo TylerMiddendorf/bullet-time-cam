@@ -14,7 +14,7 @@ The longer-term ideal is a scalable 12+ camera system. A larger array will use a
 
 Version 1 deliberately performs no alignment or appearance normalization: it transfers the four original JPEGs, preserves them, creates the simple animated GIF, and preserves that GIF as well. Image-quality processing begins after the complete capture-to-display system works reliably.
 
-The version 1 display shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
+The version 1 display shows only `assets/Logo_800x480.png` while the Raspberry Pi boots, then hands directly to the full-screen camera application without exposing firmware artwork, boot logs, a desktop, login prompt, cursor, or startup diagnostics. The application shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
 
 The Raspberry Pi will boot from a protected internal card. Original JPEGs and generated GIFs will be written to a separate user-removable media card, keeping the operating system isolated from normal media handling.
 

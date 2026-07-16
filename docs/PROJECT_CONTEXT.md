@@ -24,14 +24,15 @@ The likely central computer is a Raspberry Pi 4 Model B, but that selection is p
 The current product concept is:
 
 1. Power on a self-contained handheld camera.
-2. Use its screen to review status and configure capture settings.
-3. Hold and aim the rig like a normal digital camera.
-4. Press one physical shutter button.
-5. All four camera nodes capture their viewpoints.
-6. The central computer receives the images and performs the post-processing pipeline.
-7. The initial product plays the four photographs in sequence and then reverses direction, creating the appearance of a camera moving back and forth while time is frozen.
-8. Under normal conditions, a reviewable result targets appearing on the built-in screen within two seconds after capture.
-9. The user retrieves finished media from removable storage and, potentially, through the device's Wi-Fi hotspot.
+2. See only the product logo during boot, followed directly by the full-screen camera application without visible operating-system screens, boot logs, cursors, or loading diagnostics.
+3. Use its screen to review status and configure capture settings.
+4. Hold and aim the rig like a normal digital camera.
+5. Press one physical shutter button.
+6. All four camera nodes capture their viewpoints.
+7. The central computer receives the images and performs the post-processing pipeline.
+8. The initial product plays the four photographs in sequence and then reverses direction, creating the appearance of a camera moving back and forth while time is frozen.
+9. Under normal conditions, a reviewable result targets appearing on the built-in screen within two seconds after capture.
+10. The user retrieves finished media from removable storage and, potentially, through the device's Wi-Fi hotspot.
 
 The intended subjects include people, places, and objects. The expected capture environment has good light, such as daylight outdoors or an LED ring illuminating the scene.
 
@@ -296,6 +297,7 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - Version 1 provides post-capture review but no live preview.
 - During capture, version 1 displays a loading/capture screen.
 - After capture, the latest result remains displayed until the next capture.
+- During boot, the display shows only `assets/Logo_800x480.png` and transitions directly to the full-screen camera application; Raspberry Pi firmware artwork, desktop UI, boot logs, cursors, and startup diagnostics are not user-visible.
 - Version 1 does not provide an on-device gallery or deletion controls.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.

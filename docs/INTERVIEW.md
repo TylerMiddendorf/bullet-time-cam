@@ -219,3 +219,10 @@ Implementation status:
 - Add a Pi-to-node USB capture-request message so the end-to-end path can be exercised now.
 - The touchscreen may issue this temporary request; it does not replace later verification of the shared physical trigger.
 - Keep all Arduino and Raspberry Pi application/service code in Git. Deploy the Pi application by committing and pushing the repository, then pulling a Git checkout on the Pi rather than relying on ad hoc copied source files.
+
+### 2026-07-16 - Product boot presentation
+
+- During Raspberry Pi startup, the integrated display shows only the repository product logo at `assets/Logo_800x480.png`.
+- The logo transitions directly into the full-screen camera application.
+- Raspberry Pi firmware artwork, desktop UI, boot logs, loading diagnostics, login prompts, and cursors must not be visible during normal startup.
+- SSH and the serial console may remain available as non-display recovery and diagnostic paths.

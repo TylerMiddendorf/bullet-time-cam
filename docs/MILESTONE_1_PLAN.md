@@ -257,12 +257,14 @@ Work:
 - Overlay or accompany partial results with the failed camera number and useful details.
 - Keep the loading state active while progress continues beyond two seconds.
 - Avoid an automatic recapture of a missed moment; transfer retries may reuse the retained frame buffer when safe.
+- Show `assets/Logo_800x480.png` throughout boot and application startup, then hand directly to the full-screen camera UI without exposing Raspberry Pi firmware artwork, the desktop, a console/login prompt, a cursor, or startup diagnostics.
 
 Exit gate:
 
 - A real button press completes the full node-to-screen path without manual file movement.
 - Complete and partial captures behave as defined.
 - The user never needs to interact with the Pi desktop during normal capture.
+- A filmed cold boot shows only the product logo before the camera application becomes visible; no operating-system or diagnostic frame appears.
 
 ## Checkpoint 7 - Performance and Reliability Pass
 
