@@ -78,7 +78,9 @@ install -m 0644 "${PLYMOUTH_SOURCE}/bullet-time.plymouth" "${THEME_DIR}/bullet-t
 install -m 0644 "${PLYMOUTH_SOURCE}/bullet-time.script" "${THEME_DIR}/bullet-time.script"
 /usr/sbin/plymouth-set-default-theme bullet-time
 
-read -r -a current_tokens <"${CMDLINE_FILE}"
+# Raspberry Pi OS commonly ships cmdline.txt without a trailing newline. Bash
+# still populates the array in that case, but read returns nonzero at EOF.
+IFS=' ' read -r -a current_tokens <"${CMDLINE_FILE}" || true
 new_tokens=()
 for token in "${current_tokens[@]}"; do
   case "${token}" in
