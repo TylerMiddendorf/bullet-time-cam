@@ -4,7 +4,6 @@ set -euo pipefail
 
 CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
-EXPECTED_THEME="/usr/share/plymouth/themes/bullet-time/bullet-time.plymouth"
 EXPECTED_LOGO="assets/Logo_800x480.png"
 
 failures=0
@@ -25,7 +24,7 @@ check "quiet Plymouth boot is enabled" grep -Eq '(^| )quiet splash( |$)' "${CMDL
 check "early fullscreen logo is enabled" grep -Eq '(^| )fullscreen_logo=1( |$)' "${CMDLINE_FILE}"
 check "boot cursor is disabled" grep -Eq '(^| )vt.global_cursor_default=0( |$)' "${CMDLINE_FILE}"
 check "firmware rainbow splash is disabled" grep -Eq '^disable_splash=1$' "${CONFIG_FILE}"
-check "custom Plymouth theme is selected" test "$(readlink -f /usr/share/plymouth/themes/default.plymouth 2>/dev/null || true)" = "${EXPECTED_THEME}"
+check "custom Plymouth theme is selected" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "bullet-time"
 check "TTY1 getty is masked" test "$(systemctl is-enabled getty@tty1.service 2>/dev/null || true)" = "masked"
 check "labwc omits the desktop panel" bash -c "! grep -q 'wf-panel-pi' \"${HOME}/.config/labwc/autostart\""
 check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${HOME}/.config/labwc/autostart"
