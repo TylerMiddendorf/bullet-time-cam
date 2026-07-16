@@ -187,14 +187,10 @@ Evaluate the one-node results against:
 - Expected four-node behavior
 - Path toward 12+ nodes
 
-Decision:
+Current direction after the one-node evidence:
 
-- Continue with USB for version 1 if results are reliable and compatible with the soft two-second target.
-- Run a focused Wi-Fi transfer spike only if USB exposes a concrete blocker or if a comparison is still needed to make the decision.
-- Do not build two complete production transports before the first end-to-end milestone.
-
-- Continue with USB for version 1 if the measured vertical slice is reliable and has a credible path toward the soft two-second target.
-- Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete transports.
+- Continue with USB for version 1 while validating the physical trigger and four-node path; the measured vertical slice is reliable but still exceeds the soft two-second target.
+- Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete production transports before the first end-to-end milestone.
 - Extrapolation may identify risks, but final four-node concurrency and power behavior still require Checkpoints 5 and 7 measurements.
 
 Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
@@ -219,7 +215,7 @@ Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
-Cost gate: acquire a powered data hub only after Checkpoint 4 confirms USB
+Cost gate: use the available powered data hub for initial four-node validation. Acquire a replacement hub or cabling only if measured four-node reliability, topology, or power behavior shows the bench hardware is inadequate.
 
 Work:
 
@@ -321,10 +317,10 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Record the exact Pi enumeration and USB topology for the node through the powered hub (`lsusb`, `lsusb -t`, recent `dmesg`, and its `/dev/ttyACM*` or `/dev/ttyUSB*` path).
-2. Copy or clone the repository onto the Pi and record OS, Python, firmware, and dependency versions.
-3. Define the framed protocol and capture-set `manifest.json`, including the required timestamps and metrics above.
-4. Modify one node to send capture events and the frame-buffer JPEG over USB while retaining optional microSD storage as a separate diagnostic path.
-5. Implement the Pi receiver, atomic persistence, minimal processing/display path, and full-screen states.
-6. Demonstrate one capture, then execute the 20-run, reconnect, and interrupted-transfer validation sequence.
-7. Record results and make the USB decision before scaling to four nodes or purchasing integrated hub/cabling hardware.
+1. Connect the physical shared shutter to the one-node bench setup and verify repeated physical-trigger-to-touchscreen captures without regressing the temporary USB-request path.
+2. Record the physical-trigger timing and integrity evidence needed to close Checkpoint 4; keep the checkpoint open if the exit gate is not satisfied.
+3. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
+4. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
+5. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
+6. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
+7. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.

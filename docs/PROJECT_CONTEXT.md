@@ -243,7 +243,7 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 ## Current State
 
-As of July 10, 2026:
+As of July 16, 2026 (latest hardware and bench evidence recorded July 11):
 
 - Four XIAO ESP32S3 Sense modules, four OV3660 sensors, and four 16 GB microSD cards are on hand.
 - All four modules are assembled on a breadboard.
@@ -264,18 +264,18 @@ As of July 10, 2026:
 - The final integrated USB hub/cabling choice has not been validated.
 - No integrated battery/charging system has been acquired.
 - No separate user-removable card reader has been acquired.
-- Raspberry Pi/display bring-up is mostly complete and first USB enumeration through a powered hub has started, but no Raspberry Pi application, transfer service, GIF-generation pipeline, display UI, power integration, or enclosure work has started.
+- Raspberry Pi/display bring-up and the one-node USB capture vertical slice are implemented. Four-node grouping, multi-image GIF generation, removable-media integration, power integration, and enclosure work have not started.
 - Approximately $200 remains available for version 1.
-- Milestone 1 work has deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: physical trigger, direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display.
+- Milestone 1 work deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display. The temporary USB-request path is validated; the physical-trigger portion remains open.
 - This sequencing change does not mark the earlier offline UI or isolated one-node transfer checkpoints complete; required portions are being integrated into the active test and remaining coverage is deferred.
 - The one-node bench setup does not currently have its physical button connected. A framed Pi-to-node USB capture request is approved as temporary test scaffolding; it exercises the same capture routine but does not satisfy the later physical-trigger verification requirement.
 - The Git-tracked Pi application and camera firmware now complete the one-node USB-request-to-touchscreen path through the powered hub, with CRC validation, atomic original preservation, manifests, resource/timing instrumentation, and reconnect discovery by stable node UID.
 - A final 20-capture resource-instrumented run completed 20/20 captures with no checksum failures, recorded errors, or partial files. Median capture-event-to-display callback was 2.494 seconds, so the soft two-second target is not yet met; camera acquisition (1.374 seconds median) and node transfer (0.773 seconds median) dominate.
 - A forced receiver interruption left no committed or partial capture, and the app/node recovered without a Pi reboot. Two literal cable unplug/replug cycles preserved logical Camera 1 and service continuity; a live disconnect displayed a missing-node error and recovered visibly. A deliberately corrupted live USB payload produced a targeted NACK and visible checksum error without committing an original or partial file; the next normal capture succeeded. Physical-button validation, electrical power measurement, and concurrent four-node behavior remain unverified.
 
-This is a successful four-camera capture-subsystem prototype at the boundary before central integration. It demonstrates the camera nodes, common trigger, local status indication, and local image storage. The next major milestone is the first bench-top end-to-end path through the Raspberry Pi; the project is not yet the self-contained handheld product.
+The project now has both a successful four-camera local-capture prototype and a validated one-node Raspberry Pi vertical slice. The node-to-Pi protocol, direct JPEG transfer, integrity checks, atomic preservation, instrumentation, and touchscreen review work for the temporary USB-request path. It is not yet a four-node end-to-end system or a self-contained handheld product.
 
-The active work first proves and instruments that complete path with one node through the available USB hub, then scales it to four nodes. Battery integration and enclosure work follow only after the bench path works and its power/performance requirements have been measured. See `ROADMAP.md` and `MILESTONE_1_PLAN.md`.
+The active gate is to connect and validate the physical shared shutter for the one-node path, then scale the proven USB architecture to four nodes and generate the live multi-image GIF. Battery integration and enclosure work follow only after the bench path works and its power/performance requirements have been measured. See `ROADMAP.md` and `MILESTONE_1_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -355,23 +355,23 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 
 - Choose total enclosure width and define the curve/convergence geometry for a future 12+ camera array.
 - Define GIF frame duration, playback direction, loop behavior, and export settings.
-- Define the capture-set directory and filename scheme for four originals plus one GIF.
-- Define camera-node identity and capture-set synchronization.
-- Prototype and benchmark USB and Wi-Fi image transfer with four nodes.
+- Extend the existing one-node manifest and capture-set scheme to four originals plus one GIF.
+- Register the remaining node UIDs and define four-node capture-set synchronization.
+- Scale and benchmark USB image transfer with four nodes; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
 - Test capture, transfer, and initial processing against the two-second normal-case target.
-- Design a transport-independent capture and image-transfer protocol.
+- Extend the existing `BTC1` capture and transfer protocol for concurrent multi-node grouping and partial sets.
 - Design the central computer's safe open-drain connection to the trigger bus.
-- Implement reliable image transfer and retry/error handling.
-- Assign and persist a stable logical number for each camera node.
+- Extend the validated one-node transfer and recovery behavior to four concurrent nodes.
+- Assign and persist stable logical numbers for Cameras 2 through 4.
 - Define progress detection, timeout thresholds, retry rules, and the minimum viable partial animation.
-- Implement user-visible camera-specific errors and useful diagnostic logging.
-- Choose and benchmark the central computer.
+- Extend the existing one-node error UI and diagnostics to camera-specific partial-set failures.
+- Benchmark the Raspberry Pi candidate under concurrent four-node capture and GIF generation before finalizing it.
 - Record the available touchscreen model, physical size, exact power needs, and software support.
 - Validate the available powered USB hub with all required camera nodes, or acquire a suitable USB hub if the bench hub is not reliable enough for the first transfer prototype.
 - Acquire a separate user-removable media-card reader.
 - Design the image alignment, cleanup, enhancement, and GIF pipeline.
 - Design the on-device interface and preview architecture.
-- Select a display and implement the minimal version 1 status/review interface.
+- Extend the implemented one-node loading/review/error interface to the complete four-node version 1 flow.
 - Add live preview after version 1 works end to end.
 - Define version 2 camera settings and how they are synchronized across nodes.
 - Select and integrate the separate user-removable card reader.
@@ -391,6 +391,6 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 
 ## Draft Definition of Done
 
-The project is complete when a user can pick up one self-contained device, power it on, configure a shot on its screen, press its physical shutter once, reliably capture all four views, receive a processed bullet-time GIF, review it, and remove or download the finished media without opening the device or manually handling the four camera-node cards.
+The project is complete when a user can pick up one self-contained device, power it on, confirm readiness on its screen, press its physical shutter once, reliably capture all four views, receive a processed bullet-time GIF, review it, and remove or download the finished media without opening the device or manually handling the four camera-node cards.
 
 This definition is a draft and should be refined during the project interview.

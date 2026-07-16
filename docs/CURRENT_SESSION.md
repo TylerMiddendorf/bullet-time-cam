@@ -1,14 +1,16 @@
 # Current Session - Milestone 1 Checkpoint 4
 
-Date: July 10-11, 2026
+Implementation dates: July 10-11, 2026
 
-Objective: implement and verify the one-node physical-trigger-to-touchscreen path through the powered USB hub, while collecting the evidence required by Checkpoint 4.
+Status reviewed: July 16, 2026
+
+Objective: implement and verify the one-node trigger-to-touchscreen path through the powered USB hub, using the approved temporary USB request while the physical shutter is disconnected, and collect the evidence required by Checkpoint 4.
 
 ## Status
 
 Overall: in progress
 
-Current phase: close remaining Checkpoint 4 physical-shutter test
+Current phase: connect and validate the physical shutter to close the remaining Checkpoint 4 gate; no newer hardware evidence has been recorded since July 11
 
 ## Progress Log
 

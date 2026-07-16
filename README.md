@@ -1,5 +1,9 @@
 # Handheld Four-Camera Bullet-Time Rig
 
+<p align="center">
+  <img src="assets/Logo_800x480.png" alt="Bullet-time camera project logo" width="480">
+</p>
+
 This project is building a production-like, self-contained bullet-time camera: a fairly compact handheld device with four camera viewpoints, an integrated screen, a physical shutter button, a central processor, removable media storage, and an internal rechargeable battery.
 
 Each camera is managed by its own Seeed Studio XIAO ESP32S3 Sense and OV3660 sensor. A central computer—currently expected to be a Raspberry Pi 4 Model B or similar—will collect each four-image capture, improve and align the images, and create an animated GIF that moves through the viewpoints. The central computer will also run the on-device interface and may eventually host a Wi-Fi hotspot for browsing and downloading finished media.
@@ -35,6 +39,8 @@ The long-term product goal and current decisions are maintained in:
 
 ## Current Project State
 
+As of July 16, 2026, with the latest hardware and bench evidence recorded July 11:
+
 The four-camera capture subsystem is working as a breadboard prototype:
 
 - Four XIAO ESP32S3 Sense modules are fitted with OV3660 sensors and 16 GB microSD cards.
@@ -49,7 +55,7 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, protocol tests, smoke-test and analytics tools, and user-service definition. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
+The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, seven passing protocol tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 
 The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: capture request, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. Because the physical button is not presently wired into this one-node setup, the Pi touchscreen temporarily sends a framed USB capture request; the shared physical-trigger path remains in firmware and still requires later validation. The test records per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
@@ -75,10 +81,10 @@ Local Codex agents running under the same Windows account can use the alias, sub
 | --- | --- | --- |
 | Four ESP32S3 camera nodes | Capture four initial viewpoints and report status | Working breadboard prototype |
 | Shared shutter control | Start one coordinated capture | Working breadboard prototype |
-| Central computer | Collect captures and coordinate the complete device | Planned; Raspberry Pi 4B is provisional |
-| Processing pipeline | Align, clean up, enhance, and animate the four images | Planned |
-| Integrated screen and UI | V1 status and post-capture review; preview/settings later | Planned |
-| Central removable storage | Store user-accessible photos and GIFs | Planned |
+| Central computer | Collect captures and coordinate the complete device | Raspberry Pi 4B validated for one-node vertical slice; four-node suitability remains provisional |
+| Processing pipeline | Preserve originals and create the version 1 animation | One-image representative processing implemented; four-image GIF pending |
+| Integrated screen and UI | V1 status and post-capture review; preview/settings later | One-node loading/review/error flow implemented; four-node integration pending |
+| Central removable storage | Store user-accessible photos and GIFs | Atomic Pi-side capture persistence implemented; separate removable media pending |
 | Internal battery system | Power and recharge the complete device | Planned |
 | Wi-Fi media access | Let phones and laptops browse/download results | Optional later stage |
 | Compact handheld enclosure | Turn the prototype into one finished physical product | Planned |

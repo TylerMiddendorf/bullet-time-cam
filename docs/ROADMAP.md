@@ -1,6 +1,6 @@
 # Bullet-Time Camera Rig Roadmap
 
-This roadmap reflects the project interview as of June 27, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
+This roadmap reflects product decisions through July 10, 2026 and verified bench evidence through July 11, 2026; checkpoint status was reviewed on July 16, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
 
 The project has no fixed completion date. Milestones advance when their exit criteria are satisfied.
 
@@ -18,7 +18,7 @@ Status: complete prototype
 
 ## Milestone 1 - Bench-Top End-to-End Capture
 
-Status: active
+Status: active - Checkpoint 4 physical-shutter validation remains open
 
 Goal: use bench/USB power to prove the entire software and data path before investing in the battery system or enclosure.
 
@@ -62,7 +62,7 @@ Intermediary checkpoints:
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 has now demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. It remains active for physical-button validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling.
+Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. It remains active for physical-button validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. No newer hardware validation was recorded between July 11 and the July 16 documentation review.
 
 Exit criteria:
 
