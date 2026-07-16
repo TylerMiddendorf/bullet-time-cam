@@ -73,9 +73,10 @@ configure-splash "${LOGO_TGA}" --no-cmdline
 # Plymouth 24.004.60 on Raspberry Pi OS Trixie before root startup.
 /usr/sbin/plymouth-set-default-theme pix
 
-# Raspberry Pi OS commonly ships cmdline.txt without a trailing newline. Bash
-# still populates the array in that case, but read returns nonzero at EOF.
-IFS=' ' read -r -a current_tokens <"${CMDLINE_FILE}" || true
+# Collapse any CRLF left by boot-card recovery on Windows, while still
+# tolerating Raspberry Pi OS images that omit the final newline entirely.
+cmdline_text="$(tr '\r\n' ' ' <"${CMDLINE_FILE}")"
+IFS=' ' read -r -a current_tokens <<<"${cmdline_text}"
 new_tokens=()
 for token in "${current_tokens[@]}"; do
   case "${token}" in
