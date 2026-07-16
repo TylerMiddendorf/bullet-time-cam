@@ -20,11 +20,11 @@ check() {
 }
 
 check "HDMI console is removed" bash -c "! grep -Eq '(^| )console=tty1( |$)' '${CMDLINE_FILE}'"
-check "quiet Plymouth boot is enabled" grep -Eq '(^| )quiet splash( |$)' "${CMDLINE_FILE}"
+check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
 check "early fullscreen logo is enabled" grep -Eq '(^| )fullscreen_logo=1( |$)' "${CMDLINE_FILE}"
 check "boot cursor is disabled" grep -Eq '(^| )vt.global_cursor_default=0( |$)' "${CMDLINE_FILE}"
 check "firmware rainbow splash is disabled" grep -Eq '^disable_splash=1$' "${CONFIG_FILE}"
-check "custom Plymouth theme is selected" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "bullet-time"
+check "distro Plymouth theme is restored" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "pix"
 check "TTY1 getty is masked" test "$(systemctl is-enabled getty@tty1.service 2>/dev/null || true)" = "masked"
 check "labwc omits the desktop panel" bash -c "! grep -q 'wf-panel-pi' \"${HOME}/.config/labwc/autostart\""
 check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${HOME}/.config/labwc/autostart"

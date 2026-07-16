@@ -14,21 +14,17 @@ TARGET_HOME="$(getent passwd "${TARGET_USER}" | cut -d: -f6)"
 TARGET_UID="$(id -u "${TARGET_USER}")"
 TARGET_GROUP="$(id -gn "${TARGET_USER}")"
 LOGO_PNG="${REPO_ROOT}/assets/Logo_800x480.png"
-PLYMOUTH_SOURCE="${REPO_ROOT}/pi_app/boot/plymouth"
 SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/checkpoint4-ui.service"
 CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
 BACKUP_ROOT="/var/lib/bullet-time-boot-backups"
 BACKUP_DIR="${BACKUP_ROOT}/$(date -u +%Y%m%dT%H%M%SZ)"
-THEME_DIR="/usr/share/plymouth/themes/bullet-time"
 USER_LABWC_DIR="${TARGET_HOME}/.config/labwc"
 USER_SYSTEMD_DIR="${TARGET_HOME}/.config/systemd/user"
 USER_AUTOSTART="${USER_LABWC_DIR}/autostart"
 USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
 
-for required in "${LOGO_PNG}" "${PLYMOUTH_SOURCE}/bullet-time.plymouth" \
-  "${PLYMOUTH_SOURCE}/bullet-time.script" "${SERVICE_SOURCE}" \
-  "${CMDLINE_FILE}" "${CONFIG_FILE}"; do
+for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" "${CMDLINE_FILE}" "${CONFIG_FILE}"; do
   if [ ! -f "${required}" ]; then
     echo "Required file not found: ${required}" >&2
     exit 1
@@ -55,7 +51,7 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y imagemagick plymouth-themes rpi-splash-screen-support swaybg
+apt-get install -y imagemagick rpi-splash-screen-support swaybg
 
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEMP_DIR}"' EXIT
@@ -72,11 +68,10 @@ fi
 # Raspberry Pi's supported helper embeds the early fullscreen logo in initramfs.
 configure-splash "${LOGO_TGA}" --no-cmdline
 
-install -d -m 0755 "${THEME_DIR}"
-install -m 0644 "${LOGO_PNG}" "${THEME_DIR}/logo.png"
-install -m 0644 "${PLYMOUTH_SOURCE}/bullet-time.plymouth" "${THEME_DIR}/bullet-time.plymouth"
-install -m 0644 "${PLYMOUTH_SOURCE}/bullet-time.script" "${THEME_DIR}/bullet-time.script"
-/usr/sbin/plymouth-set-default-theme bullet-time
+# Keep the distro's proven theme selected even though Plymouth is disabled for
+# this product path. The custom script theme used in the first attempt crashed
+# Plymouth 24.004.60 on Raspberry Pi OS Trixie before root startup.
+/usr/sbin/plymouth-set-default-theme pix
 
 # Raspberry Pi OS commonly ships cmdline.txt without a trailing newline. Bash
 # still populates the array in that case, but read returns nonzero at EOF.
@@ -84,7 +79,7 @@ IFS=' ' read -r -a current_tokens <"${CMDLINE_FILE}" || true
 new_tokens=()
 for token in "${current_tokens[@]}"; do
   case "${token}" in
-    console=tty1|quiet|splash|plymouth.ignore-serial-consoles|vt.global_cursor_default=*|fullscreen_logo=*|fullscreen_logo_name=*|loglevel=*|systemd.show_status=*|rd.systemd.show_status=*|udev.log_level=*|consoleblank=*)
+    console=tty1|quiet|splash|plymouth.ignore-serial-consoles|plymouth.enable=*|rd.plymouth=*|vt.global_cursor_default=*|fullscreen_logo=*|fullscreen_logo_name=*|loglevel=*|systemd.show_status=*|rd.systemd.show_status=*|udev.log_level=*|consoleblank=*)
       ;;
     *)
       new_tokens+=("${token}")
@@ -93,8 +88,8 @@ for token in "${current_tokens[@]}"; do
 done
 new_tokens+=(
   "quiet"
-  "splash"
-  "plymouth.ignore-serial-consoles"
+  "plymouth.enable=0"
+  "rd.plymouth=0"
   "vt.global_cursor_default=0"
   "fullscreen_logo=1"
   "fullscreen_logo_name=logo.tga"

@@ -213,6 +213,10 @@ Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 - Still required before closing Checkpoint 4: connect and validate the physical shared shutter. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
 - Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
 
+Evidence recorded July 16, 2026:
+
+- Built commit `f9729ea` for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`, then wrote and verified the same firmware image set on all four Pi-attached nodes. All four cameras reached camera-ready and trigger-ready after flashing, but all four reported `microSD unavailable: card mount failed`; therefore deployment is not fully startup-verified and Checkpoint 4 remains open. The Pi receiver service was restored active and all four stable USB identities remained present. See `docs/evidence/four-node-flash-2026-07-16.md` for hashes, node identities, and exact limitations.
+
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
 Cost gate: use the available powered data hub for initial four-node validation. Acquire a replacement hub or cabling only if measured four-node reliability, topology, or power behavior shows the bench hardware is inadequate.
@@ -265,6 +269,13 @@ Exit gate:
 - Complete and partial captures behave as defined.
 - The user never needs to interact with the Pi desktop during normal capture.
 - A filmed cold boot shows only the product logo before the camera application becomes visible; no operating-system or diagnostic frame appears.
+
+Boot-presentation evidence recorded July 16, 2026 (exit gate remains open):
+
+- The first hardware trial used Raspberry Pi's supported early fullscreen image helper, a custom static Plymouth script theme, a logo compositor background, and an app-owned logo first frame.
+- Plymouth 24.004.60 crashed in `libply-splash-core`/`libply` before normal root startup; the display showed its backtrace and the Pi never reached networking or the application.
+- Two timestamped pre-change backups were created under `/var/lib/bullet-time-boot-backups/` before the failed reboot.
+- The repository follow-up removes the custom Plymouth theme, restores the distro `pix` theme as a fallback, and explicitly disables Plymouth. It retains the supported early fullscreen logo and matched compositor/application frames. SD-card recovery and a new cold-boot demonstration are still required.
 
 ## Checkpoint 7 - Performance and Reliability Pass
 

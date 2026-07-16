@@ -18,7 +18,7 @@ Use `--headless` for receiver/storage testing without the fullscreen UI. The app
 
 ## Product Boot Experience
 
-The camera boot path uses the same `assets/Logo_800x480.png` at three handoff points: Raspberry Pi early boot, a static Plymouth theme, and the application's first full-screen frame. A minimal labwc autostart omits the desktop panel and file-manager desktop, uses the logo as the compositor background, and launches the camera service as soon as the graphical session exists.
+The camera boot path uses the same `assets/Logo_800x480.png` for Raspberry Pi early boot, the compositor background, and the application's first full-screen frame. Plymouth is explicitly disabled because its script renderer crashed during the first Raspberry Pi OS Trixie hardware trial. A minimal labwc autostart omits the desktop panel and file-manager desktop, uses the logo as the compositor background, and launches the camera service as soon as the graphical session exists.
 
 Install from the Git checkout on the Raspberry Pi:
 
