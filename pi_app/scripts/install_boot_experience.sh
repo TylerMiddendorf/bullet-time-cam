@@ -15,16 +15,20 @@ TARGET_UID="$(id -u "${TARGET_USER}")"
 TARGET_GROUP="$(id -gn "${TARGET_USER}")"
 LOGO_PNG="${REPO_ROOT}/assets/Logo_800x480.png"
 SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/checkpoint4-ui.service"
+SESSION_SOURCE="${REPO_ROOT}/pi_app/session"
 CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
+LIGHTDM_FILE="/etc/lightdm/lightdm.conf"
 BACKUP_ROOT="/var/lib/bullet-time-boot-backups"
 BACKUP_DIR="${BACKUP_ROOT}/$(date -u +%Y%m%dT%H%M%SZ)"
-USER_LABWC_DIR="${TARGET_HOME}/.config/labwc"
+USER_LABWC_DIR="${TARGET_HOME}/.config/bullet-time-labwc"
 USER_SYSTEMD_DIR="${TARGET_HOME}/.config/systemd/user"
 USER_AUTOSTART="${USER_LABWC_DIR}/autostart"
 USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
 
-for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" "${CMDLINE_FILE}" "${CONFIG_FILE}"; do
+for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" \
+  "${SESSION_SOURCE}/bullet-time-session" "${SESSION_SOURCE}/bullet-time.desktop" \
+  "${CMDLINE_FILE}" "${CONFIG_FILE}" "${LIGHTDM_FILE}"; do
   if [ ! -f "${required}" ]; then
     echo "Required file not found: ${required}" >&2
     exit 1
@@ -39,6 +43,7 @@ fi
 install -d -m 0755 "${BACKUP_DIR}"
 cp -a "${CMDLINE_FILE}" "${BACKUP_DIR}/cmdline.txt"
 cp -a "${CONFIG_FILE}" "${BACKUP_DIR}/config.txt"
+cp -a "${LIGHTDM_FILE}" "${BACKUP_DIR}/lightdm.conf"
 if [ -e "${USER_AUTOSTART}" ]; then
   cp -a "${USER_AUTOSTART}" "${BACKUP_DIR}/labwc-autostart"
 fi
@@ -52,6 +57,18 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y swaybg
+
+# Remove the early-logo initramfs integration that hung this OS/kernel when
+# tty1 was absent. Preserve the generated files in the timestamped backup.
+install -d -m 0755 "${BACKUP_DIR}/retired-early-splash"
+for splash_file in /etc/initramfs-tools/hooks/splash-screen-hook.sh /lib/firmware/logo.tga; do
+  if [ -e "${splash_file}" ]; then
+    mv "${splash_file}" "${BACKUP_DIR}/retired-early-splash/"
+  fi
+done
+if dpkg-query -W -f='${Status}' rpi-splash-screen-support 2>/dev/null | grep -q 'install ok installed'; then
+  apt-get purge -y rpi-splash-screen-support
+fi
 
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEMP_DIR}"' EXIT
@@ -101,6 +118,13 @@ install -d -m 0755 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${USER_LABWC_DIR}" 
 } >"${TEMP_DIR}/labwc-autostart"
 install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${TEMP_DIR}/labwc-autostart" "${USER_AUTOSTART}"
 install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${SERVICE_SOURCE}" "${USER_SERVICE}"
+install -m 0755 "${SESSION_SOURCE}/bullet-time-session" "/usr/local/bin/bullet-time-session"
+install -m 0644 "${SESSION_SOURCE}/bullet-time.desktop" "/usr/share/wayland-sessions/bullet-time.desktop"
+
+sed -i -E \
+  -e 's/^user-session=.*/user-session=bullet-time/' \
+  -e 's/^autologin-session=.*/autologin-session=bullet-time/' \
+  "${LIGHTDM_FILE}"
 
 # The HDMI virtual console must never clear the logo with a login prompt.
 # Serial console and SSH remain available as recovery paths.
@@ -113,6 +137,9 @@ if [ -S "/run/user/${TARGET_UID}/bus" ]; then
   runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
     systemctl --user daemon-reload
 fi
+
+# Rebuild without the retired early-logo hook and payload.
+update-initramfs -u -k all
 
 echo "Installed the Bullet-Time logo boot experience."
 echo "Backup: ${BACKUP_DIR}"

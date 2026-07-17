@@ -18,7 +18,7 @@ Use `--headless` for receiver/storage testing without the fullscreen UI. The app
 
 ## Product Boot Experience
 
-The camera boot path suppresses Raspberry Pi firmware artwork, the HDMI console, Plymouth, cursors, and systemd/udev status. A minimal labwc autostart omits the desktop panel and file-manager desktop, uses `assets/Logo_800x480.png` as the compositor background, and launches the camera service as soon as the graphical session exists; the application renders the same logo as its first full-screen frame. The display remains black before the graphical session because both custom Plymouth and Raspberry Pi's initramfs early-fullscreen-logo path prevented this exact Raspberry Pi OS Trixie/kernel build from reaching normal startup during hardware trials.
+The camera boot path suppresses Raspberry Pi firmware artwork, the HDMI console, Plymouth, cursors, and systemd/udev status. A dedicated LightDM/labwc camera session does not merge Raspberry Pi's system desktop autostart, so the panel and file-manager desktop never launch. It uses `assets/Logo_800x480.png` as the compositor background and launches the camera service as soon as the graphical session exists; the application renders the same logo as its first full-screen frame. The display remains black before the graphical session because both custom Plymouth and Raspberry Pi's initramfs early-fullscreen-logo path prevented this exact Raspberry Pi OS Trixie/kernel build from reaching normal startup during hardware trials. The installer removes that package-generated initramfs hook and payload before removing the diagnostic `tty1` console.
 
 Install from the Git checkout on the Raspberry Pi:
 

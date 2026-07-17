@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -eu
+
+. /usr/bin/setup_env
+
+if raspi-config nonint is_pi && ! raspi-config nonint gpu_has_mmu; then
+  export WLR_RENDERER=pixman
+fi
+
+exec /usr/bin/labwc --config-dir "${HOME}/.config/bullet-time-labwc"

@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Bullet-Time Camera
+Exec=/usr/local/bin/bullet-time-session
