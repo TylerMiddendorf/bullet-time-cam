@@ -235,3 +235,16 @@ Implementation status:
 - A logo during the pre-userspace kernel phase is no longer required on this exact platform because both attempted early-logo mechanisms prevented the Pi from reaching userspace or networking.
 - Reliable startup takes priority over showing the logo earlier. The non-display SSH and serial recovery paths remain available.
 - The accepted state and its rejected alternatives must be reproducible from the repository on a replacement Pi; `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`, the installer, and the verifier are the canonical deployment path.
+
+### 2026-07-17 - Simplified camera nodes and Raspberry Pi hardware trigger
+
+- Remove the individual camera-node status LEDs and their GPIO behavior from the target design.
+- Remove camera-node microSD initialization, saving, backup behavior, card requirements, and related runtime messages from the target firmware.
+- Continue preserving every original JPEG and generated GIF on central storage; this decision removes only the four node-local cards and does not change the separate user-removable media requirement.
+- Keep each camera's shared active-low trigger on XIAO `D1 / GPIO2` with the physical normally-open shutter button between the trigger bus and common ground.
+- Use Raspberry Pi BCM `GPIO17` on physical pin 11 to initiate the same shared hardware trigger through a 2N3904 NPN open-collector circuit.
+- Connect Pi GPIO17 through 4.7 kOhm to the 2N3904 base, connect 100 kOhm from base to common ground, connect the emitter to common ground, and connect the collector to the shared trigger bus.
+- Keep GPIO17 low while idle and pulse it high for approximately 100 ms to produce the active-low trigger pulse.
+- Do not connect a Raspberry Pi output directly to the shared trigger bus and never drive the bus high.
+- Do not add a separate Pi trigger-sense input. Camera nodes continue reporting `CAPTURE_STARTED` over USB so physical-button and Pi-initiated captures enter the same Pi workflow.
+- Treat the current LED/microSD firmware and Pi USB `CAPTURE_REQUEST` behavior as the pre-revision implementation until the new code is built, deployed, and bench-validated.

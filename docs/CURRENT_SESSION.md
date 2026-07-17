@@ -10,7 +10,7 @@ Objective: implement and verify the one-node trigger-to-touchscreen path through
 
 Overall: in progress
 
-Current phase: connect and validate the physical shutter to close the remaining Checkpoint 4 gate; no newer hardware evidence has been recorded since July 11
+Current phase: implement the July 17 node simplification and Pi GPIO17 trigger decision, then connect and validate both physical and Pi-initiated hardware triggering; no newer trigger hardware evidence has been recorded since July 11
 
 ## Progress Log
 
@@ -68,6 +68,7 @@ Current phase: connect and validate the physical shutter to close the remaining 
 ## Active Work
 
 - Keep the tracked Pi user service active for touchscreen USB-request captures.
+- Pending next implementation session: remove camera-node status LED and node microSD behavior, add Pi BCM GPIO17 hardware-trigger control through the documented 2N3904 circuit, and replace the normal touchscreen USB request with a single hardware pulse.
 
 ## Blockers and Limitations
 

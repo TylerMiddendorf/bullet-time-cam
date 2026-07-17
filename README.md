@@ -35,6 +35,8 @@ The long-term product goal and current decisions are maintained in:
 - [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
 - [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) - live status for the active Checkpoint 4 implementation session
+- [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md) - approved shared-shutter and Raspberry Pi GPIO17 circuit
+- [`docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md`](docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md) - paste-ready implementation handoff
 - [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md)
 - [`docs/RASPBERRY_PI_BOOT_RUNBOOK.md`](docs/RASPBERRY_PI_BOOT_RUNBOOK.md) - reproduce, verify, recover, or roll back the accepted product boot state
 
@@ -56,6 +58,8 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - A powered USB hub is available for bench testing and has identified one ESP32 camera node as expected from the Raspberry Pi, confirming that the hub carries USB data for at least one node.
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
+
+The historical prototype facts above describe the currently deployed firmware. A July 17 product decision approves a simplified target node: no GPIO-driven camera status LEDs and no camera-node microSD initialization or storage. JPEGs will transfer directly from each frame buffer to the Pi. The separate central user-removable media card remains required. The same revision adds Pi-initiated hardware capture on BCM GPIO17 through the 2N3904 circuit documented in [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md). These code changes and their hardware validation are still pending.
 
 The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, seven passing protocol tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 
@@ -94,9 +98,11 @@ Local Codex agents running under the same Windows account can use the alias, sub
 
 ## Current Camera-Node Firmware
 
-The same Arduino sketch is flashed to all four camera nodes. A shared momentary trigger on `D1 / GPIO2` captures one high-quality 2048x1536 JPEG on each board and saves it to that board's onboard microSD card. An external LED on each board's `D0 / GPIO1` turns on before capture and stays visible for at least one second.
+The same Arduino sketch is flashed to all four camera nodes. The current pre-revision sketch uses `D1 / GPIO2` as the shared active-low trigger, `D0 / GPIO1` for a status LED, and the Sense microSD interface for optional backup. It also streams the captured JPEG directly from the frame buffer to the Pi.
 
 For the active one-node bench test, the same capture routine can also be requested by a framed `CAPTURE_REQUEST` over USB. The captured JPEG is streamed directly from the frame buffer to the Pi with CRC protection and Pi-side acknowledgement; microSD saving remains a separate backup path. The USB request is temporary test scaffolding until the physical button is connected to the bench setup.
+
+The approved next revision removes the status LED and all node microSD code and makes the hardware trigger the normal path for both the physical button and Pi-initiated capture. After that revision, `D0 / GPIO1` is unused, node cards are not required, and the Pi pulses BCM GPIO17 through a 2N3904 rather than sending a normal touchscreen `CAPTURE_REQUEST`. The Pi still learns that either type of capture started through USB `CAPTURE_STARTED` messages.
 
 The Pi receiver/UI, protocol tests, runtime requirements, bounded serial smoke test, and user-service definition are under [`pi_app/`](pi_app/).
 
@@ -108,15 +114,17 @@ Flash the same sketch to all four modules.
 
 Use a normally-open pushbutton between the shared `D1 / GPIO2` trigger bus and the common `GND` bus. The sketch enables the ESP32 internal pull-up on every board, so no external resistor is required for the trigger. Four internal pull-ups in parallel are still light enough for a normal pushbutton.
 
-Connect all four board grounds together. This common ground is required even if the boards are powered from separate USB cables.
+Connect all four board grounds and Raspberry Pi ground together. This common ground is required for both the physical button and the Pi-controlled transistor stage, even when the devices are powered through USB.
 
 ### Circuit Summary
 
 | Net | Connects To | Notes |
 | --- | --- | --- |
 | `TRIGGER` | All four `D1 / GPIO2` pins and one side of the pushbutton | Idle `HIGH` through each board's internal pull-up |
-| `GND` | All four `GND` pins and the other side of the pushbutton | Required for a shared logic reference |
-| `STATUS_LED_1..4` | Each board's own `D0 / GPIO1`, resistor, LED, and that board's `GND` | Optional; do not connect the four `D0` pins together |
+| `GND` | All four camera grounds, Pi ground, transistor emitter, bottom of the 100 kOhm resistor, and the other side of the pushbutton | Required shared logic reference |
+| `PI_TRIGGER` | Pi BCM GPIO17 / physical pin 11 through 4.7 kOhm to the 2N3904 base | Pi idles low and pulses high for 100 ms |
+| `BASE_PULLDOWN` | 100 kOhm from 2N3904 base to common ground | Keeps the transistor off during Pi boot/high-impedance states |
+| `OPEN_COLLECTOR` | 2N3904 collector to `TRIGGER`; emitter to `GND` | Pulls the bus low without the Pi driving it high |
 | `5V` power | Each board's USB-C port or each board's `5V` pin from one regulated supply | Keep `3V3` rails separate unless you have a deliberate shared-power design |
 
 ```mermaid
@@ -137,6 +145,14 @@ flowchart LR
   GND --- C2G["Camera 2 GND"]
   GND --- C3G["Camera 3 GND"]
   GND --- C4G["Camera 4 GND"]
+
+  PI17["Pi BCM GPIO17 / physical pin 11"] --> R47["4.7 kOhm"]
+  R47 --> BASE["2N3904 base"]
+  BASE --- R100["100 kOhm"]
+  R100 --- GND
+  EMITTER["2N3904 emitter"] --- GND
+  COLLECTOR["2N3904 collector"] --- TRIG
+  PIG["Pi GND / physical pin 6"] --- GND
 ```
 
 - Trigger unpressed reads `HIGH`.
@@ -145,31 +161,24 @@ flowchart LR
 - If one board is powered off while the others are on, disconnect it from the trigger bus or power all boards together to avoid weak backfeed through GPIO protection paths.
 - Do not tie the `3V3` rails together when boards are powered from separate USB cables.
 - If using one external supply, use a regulated 5V supply sized for all four boards and wire 5V/GND in a star layout rather than daisy-chaining through the boards.
-- Do not use `D8`, `D9`, or `D10` for the trigger; the Sense microSD slot uses those SPI pins.
-- Do not use the onboard/user LED for status; on the Sense board, `GPIO21` is also the microSD chip-select used by `SD.begin(21)`.
-- Insert a FAT32 microSD card, up to 32 GB, into each Sense expansion board before booting.
-
-For optional status LEDs, wire each board separately. Do not tie the four `D0 / GPIO1` pins together.
-
-```mermaid
-flowchart LR
-  D0["One board D0 / GPIO1"] --- R["220 ohm to 1 kohm resistor"]
-  R --- A["LED anode (+)"]
-  C["LED cathode (-)"] --- GND["That board GND"]
-```
-
-- Status LED on: that board's `GPIO1` drives `HIGH`.
-- Status LED off: that board's `GPIO1` drives `LOW`.
+- Do not connect Raspberry Pi GPIO17 directly to the trigger bus. It connects only to the transistor base through 4.7 kOhm.
+- Do not connect status LEDs to the camera GPIO pins in the revised design; `D0 / GPIO1` will be unused.
+- The revised camera-node firmware will not require microSD cards. Until that code is deployed, the current firmware may still print card-related messages.
+- Confirm the actual 2N3904 emitter/base/collector pin order for the specific manufacturer before applying power.
+- See [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md) for multimeter checks and staged bench validation.
 
 ### Four-Board Checklist
 
 - Flash this same sketch to Camera 1, Camera 2, Camera 3, and Camera 4.
-- Put a FAT32 microSD card in each Sense expansion board.
 - Connect all four `D1 / GPIO2` pins to the same trigger bus.
 - Connect the trigger pushbutton between the trigger bus and common ground.
 - Connect all four `GND` pins to the common ground bus.
+- Connect the 2N3904 collector to the trigger bus and emitter to common ground.
+- Connect Pi BCM GPIO17 through 4.7 kOhm to the transistor base, and connect 100 kOhm from that base junction to common ground.
+- Connect Pi ground to the common ground bus.
 - Power all four boards before pressing the trigger.
-- Start with empty cards if you want matching filenames, such as `photo_0001.jpg`, across all four cameras.
+
+> **Migration note:** The build, deployment, serial-output, and validation sections below still describe the currently committed pre-revision firmware, including its LED and microSD checks. Use [`docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md`](docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md) to implement the approved revision, then update those sections from verified behavior.
 
 ## Load With Arduino IDE
 

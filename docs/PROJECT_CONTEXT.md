@@ -99,12 +99,10 @@ There are four identical camera nodes. Each currently consists of:
 
 - Seeed Studio XIAO ESP32S3 Sense
 - OV3660 camera sensor
-- 16 GB microSD card
 - Connection to the shared physical trigger
-- Individual status LED
 - The same Arduino camera-node firmware
 
-Each node currently captures a 2048x1536 JPEG and saves it to its own microSD card.
+The existing breadboard prototype and repository firmware still contain 16 GB node microSD cards and individual GPIO-driven status LEDs. By product-owner decision on July 17, 2026, both are removed from the target camera-node design: node firmware will stream the 2048x1536 JPEG directly from the frame buffer to the Pi, will not initialize or write microSD, and will not reserve a GPIO for a status LED. This revision is approved but not yet implemented or bench-validated, so earlier microSD/LED evidence remains historical rather than proof of the revised node design.
 
 ### Central computer - planned
 
@@ -159,9 +157,9 @@ The transport should sit behind a common capture/transfer protocol so the rest o
 
 ### Trigger architecture
 
-For the first complete version, the physical shutter button continues to pull the shared active-low trigger line used by all camera nodes.
+For the first complete version, the physical shutter button pulls the shared active-low `D1 / GPIO2` trigger line used by all camera nodes. All four camera grounds share the trigger reference.
 
-Later, the central computer should also be able to initiate a capture for remote shutter, intervalometer, and time-lapse features. Its trigger output can join the same active-low trigger line, but it must behave as an isolated/open-drain pull-down. It must not drive the line high while the physical button can short it to ground. The exact transistor, buffer, or isolation circuit remains to be designed.
+The Raspberry Pi also initiates the same simultaneous hardware capture through BCM `GPIO17` (physical pin 11) and a 2N3904 NPN open-collector stage. GPIO17 connects through 4.7 kOhm to the transistor base; a 100 kOhm resistor pulls the base to common ground; the emitter connects to common ground; and the collector connects to the shared trigger bus. GPIO17 idles low and pulses high for 100 ms, causing the transistor to pull the trigger bus low without ever driving the bus high. The Pi learns that capture began from the nodes' USB `CAPTURE_STARTED` messages rather than a separate trigger-sense GPIO. The complete circuit, power-sequencing rules, and validation sequence are in [`TRIGGER_CIRCUIT.md`](TRIGGER_CIRCUIT.md).
 
 ### Display and controls
 
@@ -203,12 +201,17 @@ Current prototype storage:
 
 - Each camera node saves captures to its own 16 GB microSD card.
 
+Approved camera-node revision:
+
+- Remove node microSD initialization, saving, backup, diagnostics, and card requirements from the firmware and deployment checks.
+- Transfer every live JPEG directly from the ESP32S3 frame buffer to the central computer.
+- Preserve user media centrally; removing node cards does not remove the separate user-removable media requirement.
+
 Planned product storage:
 
 - User-removable storage for finished captures and animations
 - A central mechanism for collecting images from the four nodes
 - Direct image transfer from each node to the central computer, if bandwidth tests support it
-- Node microSD storage only as an optional backup or diagnostic path rather than the primary pipeline
 - A protected internal boot card dedicated to the Raspberry Pi operating system and application
 - A physically separate user-removable media card containing the original JPEGs and generated GIFs
 
@@ -310,7 +313,11 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The two-second target is soft and may be exceeded while work is actively progressing.
 - The first version continues to use the shared physical trigger line.
 - The central computer should later be able to activate that trigger for remote and time-lapse capture.
-- Direct transfer to the central computer is preferred over dependence on four node microSD cards, subject to bandwidth testing.
+- Camera-node microSD storage and GPIO-driven status LEDs are removed from the target node design; the current code still requires a cleanup revision before this decision is implemented.
+- Live JPEGs transfer directly from each ESP32S3 frame buffer to the central computer.
+- Each node uses `D1 / GPIO2` for the shared active-low physical trigger; `D0 / GPIO1` becomes unused after the pending firmware revision.
+- Raspberry Pi BCM GPIO17, physical pin 11, activates the shared trigger through the documented 2N3904 open-collector circuit.
+- The Pi observes capture start through USB `CAPTURE_STARTED` messages rather than a separate trigger-sense GPIO.
 - The final device has an integrated screen and a physical shutter button.
 - The final device uses an internal rechargeable battery.
 - The user needs removable storage for exported media.
@@ -342,7 +349,7 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - USB as the primary transport for the first four-camera product
 - Wi-Fi as an alternate transport and possible scaling option
 - A shared application protocol that can operate over USB or Wi-Fi
-- ESP32S3 frame-buffer transmission without an intermediate microSD write
+- ESP32S3 frame-buffer transmission without an intermediate node storage write
 - A touchscreen as the main on-device input method
 - Live or near-live camera previews before capture
 - A much-later device-hosted Wi-Fi hotspot for media access and possible remote control
@@ -363,7 +370,8 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 - Scale and benchmark USB image transfer with four nodes; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
 - Test capture, transfer, and initial processing against the two-second normal-case target.
 - Extend the existing `BTC1` capture and transfer protocol for concurrent multi-node grouping and partial sets.
-- Design the central computer's safe open-drain connection to the trigger bus.
+- Implement and validate Raspberry Pi BCM GPIO17 control of the approved 2N3904 open-collector trigger circuit.
+- Remove the camera-node status-LED GPIO behavior and all node microSD code, messages, deployment requirements, and non-historical documentation.
 - Extend the validated one-node transfer and recovery behavior to four concurrent nodes.
 - Assign and persist stable logical numbers for Cameras 2 through 4.
 - Define progress detection, timeout thresholds, retry rules, and the minimum viable partial animation.

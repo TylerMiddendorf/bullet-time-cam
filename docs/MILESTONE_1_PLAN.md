@@ -15,9 +15,13 @@ Battery integration, removable user media, and enclosure work are intentionally 
 - Use USB as the first live-transfer transport.
 - Keep transport behind an interface so Wi-Fi can be added without rewriting capture grouping, media handling, or the UI.
 - Send each JPEG directly from the ESP32S3 camera frame buffer.
+- Do not initialize, read, write, or require camera-node microSD storage.
+- Do not reserve or drive a camera-node GPIO for a status LED.
 - Preserve original JPEG bytes without image normalization.
 - Generate a separate display/export GIF from the available camera images.
 - Keep the physical button connected directly to the shared ESP32S3 trigger line.
+- Drive the same shared active-low trigger from Raspberry Pi BCM GPIO17 through the approved 2N3904 open-collector circuit; idle GPIO17 low and pulse it high for 100 ms.
+- Treat USB `CAPTURE_STARTED` as the Pi notification path for either trigger source; do not add a Pi trigger-sense input.
 - Have each node report capture start immediately so the Pi can enter its loading state and group events from one press.
 
 These are implementation recommendations for the milestone, not irreversible product decisions.
@@ -142,8 +146,10 @@ End-to-end path:
 
 Work:
 
-- Refactor the node firmware so capture, optional microSD storage, and USB transfer are separate operations; the live path must not read the JPEG back from microSD.
+- Refactor the node firmware so capture and USB transfer are separate operations; remove all node microSD code, messages, card checks, backup behavior, and deployment requirements.
+- Remove the node status LED pin, self-test, timing, messages, and writes so `D0 / GPIO1` is unused.
 - Until the physical button is wired for this bench setup, accept a framed Pi-to-node USB capture request. Treat this as test scaffolding and retain the physical-trigger path for later validation.
+- Add Pi BCM GPIO17 output support and move normal touchscreen/Pi-initiated captures to a 100 ms hardware-trigger pulse. Do not send a USB `CAPTURE_REQUEST` for the same action; retain it only as explicitly selected test scaffolding if it remains useful.
 - Emit framed, binary-safe messages containing protocol version, hardware UID, local capture sequence, event type, dimensions, byte length, payload checksum, and explicit completion/error status.
 - Map the node UID to logical Camera 1 in Pi configuration.
 - Implement a minimal Pi coordinator with `READY`, `LOADING`, `REVIEW`, and `REVIEW_WITH_ERROR` states.
@@ -210,7 +216,7 @@ Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 - Two physical hub disconnect/reconnect cycles were completed. Kernel enumeration advanced from device 7 to 8 to 9 with the same serial number and `/dev/ttyACM0`; the same service process rediscovered logical Camera 1 without configuration edits or a Pi reboot.
 - A later live disconnect visibly produced `No camera node found`, then returned to `Camera 1 connected` after reconnect. Its tapped capture completed before cable removal, so it demonstrates missing-node error presentation and recovery rather than a mid-payload interruption.
 - On July 11, a test-only one-shot command deliberately changed one byte of the next live USB IMAGE payload while retaining the original CRC. The Pi independently detected `JPEG metadata checksum mismatch`, sent a targeted NACK, kept the touchscreen UI alive with a visible error, and committed neither a manifest/JPEG nor a `.part` file. Counts remained 44 manifests, 44 Camera 1 originals, and zero partials. The immediately following normal request succeeded as capture 45 with zero partials, and the normal UI service was restored active. Evidence: `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
-- Still required before closing Checkpoint 4: connect and validate the physical shared shutter. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
+- Still required before closing Checkpoint 4: implement the approved LED/microSD removal, connect and validate the physical shared shutter, and validate Raspberry Pi GPIO17 initiation through the 2N3904 circuit without duplicate USB requests. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
 - Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
 
 Evidence recorded July 16, 2026:
@@ -338,10 +344,12 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Connect the physical shared shutter to the one-node bench setup and verify repeated physical-trigger-to-touchscreen captures without regressing the temporary USB-request path.
-2. Record the physical-trigger timing and integrity evidence needed to close Checkpoint 4; keep the checkpoint open if the exit gate is not satisfied.
-3. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
-4. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
-5. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
-6. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
-7. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.
+1. Remove camera-node status-LED GPIO behavior and all node microSD code, messages, tests, deployment checks, and current-instructions references while preserving historical evidence.
+2. Add Raspberry Pi BCM GPIO17 control with a safe low idle and 100 ms high pulse for the documented 2N3904 open-collector circuit; make normal Pi-initiated captures use the hardware trigger without also sending a USB capture request.
+3. Connect the physical shared shutter and transistor circuit to the one-node bench setup and verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures.
+4. Record timing and integrity evidence for both trigger sources, including exactly one capture per action, before closing Checkpoint 4.
+5. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
+6. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
+7. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
+8. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
+9. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.
