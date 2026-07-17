@@ -93,14 +93,15 @@ for token in "${current_tokens[@]}"; do
   esac
 done
 new_tokens+=(
+  "console=tty1"
   "quiet"
   "plymouth.enable=0"
   "rd.plymouth=0"
   "vt.global_cursor_default=0"
-  "loglevel=3"
+  "loglevel=0"
   "systemd.show_status=false"
   "rd.systemd.show_status=false"
-  "udev.log_level=3"
+  "udev.log_level=0"
   "consoleblank=0"
 )
 printf '%s\n' "${new_tokens[*]}" >"${TEMP_DIR}/cmdline.txt"

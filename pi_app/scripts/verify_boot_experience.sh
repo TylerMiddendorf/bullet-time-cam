@@ -20,7 +20,7 @@ check() {
   fi
 }
 
-check "HDMI console is removed" bash -c "! grep -Eq '(^| )console=tty1( |$)' '${CMDLINE_FILE}'"
+check "required tty1 console is retained" grep -Eq '(^| )console=tty1( |$)' "${CMDLINE_FILE}"
 check "kernel command line contains no carriage returns" bash -c "tr -d '\r' < '${CMDLINE_FILE}' | cmp -s - '${CMDLINE_FILE}'"
 check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
 check "unstable early fullscreen logo is disabled" bash -c "! grep -Eq '(^| )fullscreen_logo=1( |$)' '${CMDLINE_FILE}'"
