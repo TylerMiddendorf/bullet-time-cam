@@ -31,6 +31,8 @@ This is intentionally a black-to-logo-to-app sequence, not a logo-throughout-ker
 | Validated source | commit `0068220807824f11923a5fdb4d361d90094036fc` plus subsequent runbook/installer hardening |
 | Final visual boot ID | `3b377b08-599e-434e-bc40-948f24710254` |
 
+The visually accepted boot used labwc 0.9.7. During the later reproducibility audit, Debian offered labwc 0.9.8; the upgraded live Pi cold-booted successfully as boot ID `a067e50f-99de-4080-b2fa-3198eec8e80a`, passed all 28 expanded checks, ran only the four intended session processes, and emitted no cloud-init stage messages. The installer now uses `apt-get install --no-upgrade` so rerunning it does not silently replace desktop/session packages already supplied by the selected image.
+
 Use the same Raspberry Pi OS desktop image when exact reproducibility is more important than upgrading. If a later image or kernel is used, treat the first cold boot as a new hardware validation; do not assume its initramfs, Plymouth, console, or compositor behavior is identical.
 
 ## Fresh-Pi Installation
@@ -86,7 +88,7 @@ sudo ./pi_app/scripts/install_boot_experience.sh
 sudo reboot
 ```
 
-The installer is idempotent and creates a new timestamped backup before every run. It also installs the Python runtime and pinned `pi_app/requirements.txt` dependencies under `${HOME}/esp32cam-tools`.
+The installer is idempotent and creates a new timestamped backup before every run. It also installs the Python runtime and pinned `pi_app/requirements.txt` dependencies under `${HOME}/esp32cam-tools`. Existing image packages are not upgraded as a side effect of installation.
 
 ### 5. Verify after reboot
 
@@ -97,7 +99,7 @@ cd "${HOME}/bullet-time-cam"
 ./pi_app/scripts/verify_boot_experience.sh
 ```
 
-Every check must report `PASS`. Also perform one physical cold-boot observation. The automated checks prove configuration and process state; only a person or recorded video proves that no transient frame was visible.
+All 28 checks must report `PASS`. Also perform one physical cold-boot observation. The automated checks prove configuration and process state; only a person or recorded video proves that no transient frame was visible.
 
 Expected live processes are:
 
@@ -202,4 +204,3 @@ Never replace the whole command line with an example from another card: the `roo
 - Raspberry Pi boot-partition and image layout: <https://www.raspberrypi.com/documentation/configuration/computers/raspberry-pi.html>
 - cloud-init supported disable mechanisms: <https://cloudinit.readthedocs.io/en/21.2/topics/boot.html>
 - labwc environment and cursor variables: <https://labwc.github.io/labwc-config.5.html>
-

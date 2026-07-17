@@ -80,7 +80,7 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y \
+apt-get install --no-upgrade -y \
   git kanshi labwc lightdm network-manager plymouth python3 python3-pil \
   python3-tk python3-venv raspi-config-core rpd-common rpd-plym-splash \
   swaybg x11-apps

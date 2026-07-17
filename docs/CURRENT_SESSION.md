@@ -53,6 +53,7 @@ Current phase: connect and validate the physical shutter to close the remaining 
 - Ran the live fault test through the powered hub. The Pi reported `NACK sent: JPEG metadata checksum mismatch`, the touchscreen visibly displayed the error, and counts remained 44 manifests, 44 Camera 1 originals, and zero `.part` files.
 - Ran an immediate normal recovery request. It committed and displayed capture 45 with zero `.part` files. Stopped the transient test unit and restored the normal `checkpoint4-ui.service` active.
 - Independently completed and visually accepted the product-boot presentation on July 17: reliable direct-kernel boot, cloud-init disabled after provisioning, isolated labwc session, matched compositor/application logo frames, no visible OS/debug content, and a transparent compositor cursor. The replacement-Pi process is recorded in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
+- Audited replacement-Pi reproducibility, expanded the installer to provision runtime dependencies and deterministic LightDM autologin, expanded verification from 20 to 28 checks, and completed a successful post-install cold boot. The installer preserves existing image package versions with `apt-get install --no-upgrade`.
 
 ## Evidence Collected
 
