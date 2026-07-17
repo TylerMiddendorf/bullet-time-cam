@@ -234,7 +234,8 @@ Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
 - Flashed the same non-erase image set with esptool 5.3.1 to `E072A1F99CF8`, `E072A1F99CC0`, `E072A1F9A190`, and `E072A1F9B3E4`; every image write passed hash verification and every board reported 8 MB PSRAM.
 - Bounded serial reads on all four nodes passed camera-ready (2048x1536 JPEG quality 8), BTC1 v1 protocol/matching eFuse UID, and shared-trigger-ready gates. No card marker was required or emitted.
 - Detailed commands and hashes are in `docs/evidence/milestone1-trigger-refactor-2026-07-17.md`.
-- Still required: explicit approval to push local implementation commit `416cb91` to `origin/main`, Pi checkout/installer deployment, unpowered circuit measurements, one physical-button capture, one Pi-pulse capture, and repeated timing/integrity/duplicate evidence. Startup verification is not capture or four-node concurrency proof.
+- Product-owner approval was received to push through `e365a0a`; `origin/main` and the Pi checkout match that revision. The Pi reran 13 tests successfully, the pinned installer completed with backup `20260717T194902Z`, and 30 persistent setup checks passed with only the intentionally stopped service reported inactive.
+- Still required: unpowered circuit measurements, service startup/LOW claim verification, one physical-button capture, one Pi-pulse capture, and repeated timing/integrity/duplicate evidence. Startup verification is not capture or four-node concurrency proof.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
@@ -357,12 +358,11 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Obtain explicit approval to push implementation commit `416cb91`, pull it to the Pi, run the pinned installer/runtime verification, and initialize GPIO17 LOW without pulsing it.
-2. Complete and record the unpowered multimeter checks in `TRIGGER_CIRCUIT.md`.
-3. Verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures, with exactly one `CAPTURE_STARTED` and one JPEG per connected node and no duplicate USB request.
-4. Record timing and integrity evidence for both trigger sources before closing Checkpoint 4.
-5. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
-6. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
-7. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
-8. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
-9. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.
+1. Complete and record the unpowered multimeter checks in `TRIGGER_CIRCUIT.md`, then start the installed service and verify GPIO17 is output LOW without pulsing it.
+2. Verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures, with exactly one `CAPTURE_STARTED` and one JPEG per connected node and no duplicate USB request.
+3. Record timing and integrity evidence for both trigger sources before closing Checkpoint 4.
+4. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
+5. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
+6. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
+7. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
+8. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.

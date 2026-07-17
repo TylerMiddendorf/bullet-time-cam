@@ -1,6 +1,6 @@
 # Milestone 1 Node Simplification and Trigger Refactor - July 17, 2026
 
-Status: firmware implementation, compile, four-node flash, and four-node startup smoke verification complete; Raspberry Pi application deployment and electrical trigger demonstrations pending.
+Status: firmware implementation, compile, four-node flash/startup smoke verification, and stopped-service Raspberry Pi deployment complete; electrical trigger demonstrations pending.
 
 ## Implementation
 
@@ -53,10 +53,20 @@ Bounded post-flash serial reads observed all three revised deployment gates on e
 
 No node printed or required a card marker. This proves startup without node-card access; it does not by itself prove capture, transfer, physical-trigger behavior, Pi GPIO behavior, or four-node concurrency.
 
+## Raspberry Pi Git Deployment
+
+- Product-owner approval was received to push to `origin/main`.
+- Local `main`, `origin/main`, and `/home/username/bullet-time-cam` were aligned at `e365a0a` by `git push origin main` and `git pull --ff-only origin main`.
+- The Pi reran `python -m unittest discover -s pi_app/tests -v`: 13 passed, 0 failed.
+- `sudo -n pi_app/scripts/install_boot_experience.sh` completed with backup `/var/lib/bullet-time-boot-backups/20260717T194902Z`.
+- The pinned `python3-lgpio` package was already installed; the app venv now reports `include-system-site-packages = true` and imports `/usr/lib/python3/dist-packages/lgpio.py`.
+- The persistent verifier passed 30 setup checks. Its only failure was the deliberately stopped `checkpoint4-ui.service`.
+- `pinctrl get 17` reported `GPIO17 = input`, pull-down, LOW. This is a read-only pre-activation observation, not proof that the application claimed the pin LOW.
+
 ## Pending Hardware Gates
 
 - The product owner must confirm the unpowered multimeter checks in `docs/TRIGGER_CIRCUIT.md` before GPIO17 is pulsed.
-- Local implementation commit `416cb91` has not been pushed to `origin/main`; the Raspberry Pi checkout and service therefore have not been updated or restarted with the GPIO code.
+- The revised service is installed but intentionally stopped until the unpowered circuit checks are confirmed. GPIO17 has not been claimed or pulsed by the application.
 - No physical-button capture or Pi-initiated hardware capture has been performed with this revision.
 - No repeated hardware-trigger timing/integrity run or duplicate-capture count exists yet.
 - Checkpoint 4 remains active, and this startup evidence is not four-node capture-concurrency proof.

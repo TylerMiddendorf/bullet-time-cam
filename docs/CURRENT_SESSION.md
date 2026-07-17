@@ -64,7 +64,10 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - Repository deployment helper compile succeeded for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`: 371,077 bytes flash, 33,368 bytes dynamic memory, and 371,232-byte application image with SHA-256 `275f9a9c5e18c7383cf1f4b1b4d55280c7070fac40ff1089fcc6f5f20d3f9ab0`.
 - Flashed the same non-erase image set to all four attached identities with esptool 5.3.1. Every write hash verified, and all four boards reported ESP32-S3 revision 0.2 with 8 MB PSRAM.
 - Bounded post-flash serial output passed camera-ready, BTC1/matching eFuse identity, and trigger-ready gates on `E072A1F99CF8`, `E072A1F99CC0`, `E072A1F9A190`, and `E072A1F9B3E4`. No node-storage marker was expected or emitted.
-- Created local implementation commit `416cb91`. Direct push to `origin/main` was blocked pending explicit product-owner approval, so the Pi checkout/service has not been updated and the stopped service has not touched GPIO17.
+- Created local implementation commit `416cb91` and evidence/documentation commit `e365a0a`. After explicit product-owner approval, pushed `main` to `origin/main` and fast-forwarded the Pi checkout from `d0e735a` to `e365a0a`.
+- Reran the Pi test suite at `e365a0a`: 13 passed, 0 failed. Shell syntax checks for the installer, verifier, and session launcher also passed.
+- Ran the pinned installer successfully. It preserved backup `/var/lib/bullet-time-boot-backups/20260717T194902Z`, found `python3-lgpio` 0.2.2 already installed, and changed the application venv to expose system packages. The venv now imports `/usr/lib/python3/dist-packages/lgpio.py`.
+- The persistent verifier passed 30 configuration checks; its sole expected failure was `camera app is active` because the service remains deliberately stopped pending the circuit check. Read-only `pinctrl get 17` showed GPIO17 as an input with pull-down and LOW; the application has not claimed or pulsed it.
 
 ## Evidence Collected
 
@@ -78,21 +81,20 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 
 ## Active Work
 
-- Keep the Pi user service stopped until commit `416cb91` is explicitly approved for push/pull and the revised runtime is installed.
-- After deployment, initialize GPIO17 LOW but do not pulse until the unpowered breadboard checks are confirmed.
+- Keep the installed Pi user service stopped until the unpowered circuit checks are confirmed.
+- After those checks, start the service and verify GPIO17 initializes output LOW before allowing a pulse.
 - Then demonstrate physical-button and Pi-initiated capture separately and run the repeated integrity/timing/duplicate test.
 
 ## Blockers and Limitations
 
-- Publishing commit `416cb91` to `origin/main` requires explicit product-owner approval.
 - Unpowered multimeter validation and a physical trigger press require the product owner at the bench.
 - Electrical power analytics require suitable measurement hardware and are outside this software-only session unless such hardware is already attached and accessible.
 - One-node measurements cannot validate four-node USB contention or aggregate power behavior.
 
 ## Next Actions
 
-1. Approve pushing `416cb91`, then pull/install/verify the Pi runtime and confirm GPIO17 initializes LOW.
-2. Record the unpowered circuit measurements and validate the physical shared button plus one Pi hardware pulse without duplicates.
+1. Record the unpowered circuit measurements, then start the revised service and confirm GPIO17 is claimed output LOW.
+2. Validate the physical shared button plus one Pi hardware pulse without duplicates.
 3. Run repeated captures and record timing, integrity, node identity, failures, and duplicate count.
 4. Use suitable external instrumentation for electrical power measurements when available.
 5. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.

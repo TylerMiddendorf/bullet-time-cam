@@ -1,6 +1,6 @@
 # Shared Trigger and Raspberry Pi Control Circuit
 
-Status: approved hardware design; camera-node simplification is deployed and startup-verified on four nodes, and Raspberry Pi GPIO control is implemented and fake-backend tested but not yet deployed or electrically bench-validated.
+Status: approved hardware design; camera-node simplification is deployed and startup-verified on four nodes, and Raspberry Pi GPIO control is installed and fake-backend tested but intentionally stopped pending unpowered circuit checks and electrical bench validation.
 
 ## Design Intent
 

@@ -58,7 +58,7 @@ The original four-camera breadboard prototype demonstrated local card capture wi
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is implemented and covered by fake-backend tests, but it has not been deployed or electrically exercised. The unpowered circuit measurements, physical-button capture, Pi-trigger capture, and repeated four-node trigger tests remain pending; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
+The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is installed on the Pi and covered by fake-backend tests, but the service remains stopped and the pin has not been claimed or pulsed by the application. The unpowered circuit measurements, physical-button capture, Pi-trigger capture, and repeated four-node trigger tests remain pending; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
 
 The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, seven passing protocol tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 

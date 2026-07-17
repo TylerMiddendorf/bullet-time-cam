@@ -40,7 +40,7 @@ End-to-end path after the approved trigger/node simplification:
 Work:
 
 - Camera-node simplification is implemented, flashed, and startup-verified on all four nodes; capture validation remains open.
-- Raspberry Pi BCM GPIO17 hardware-trigger output is implemented and fake-backend tested with a boot-safe low idle and 100 ms high pulse; Git deployment and electrical validation remain open.
+- Raspberry Pi BCM GPIO17 hardware-trigger output is installed and fake-backend tested with a boot-safe low idle and 100 ms high pulse; the service is stopped pending unpowered circuit checks and electrical validation.
 - Use USB `CAPTURE_STARTED` as the Pi notification path for both physical and Pi-initiated captures; do not add a direct trigger-sense GPIO.
 - Identify and configure the available touchscreen.
 - Establish Raspberry Pi OS and application development environment.
