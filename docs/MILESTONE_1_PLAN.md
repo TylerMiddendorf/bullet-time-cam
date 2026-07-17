@@ -276,6 +276,8 @@ Boot-presentation evidence recorded July 16, 2026 (exit gate remains open):
 - Plymouth 24.004.60 crashed in `libply-splash-core`/`libply` before normal root startup; the display showed its backtrace and the Pi never reached networking or the application.
 - Two timestamped pre-change backups were created under `/var/lib/bullet-time-boot-backups/` before the failed reboot.
 - The repository follow-up removes the custom Plymouth theme, restores the distro `pix` theme as a fallback, and explicitly disables Plymouth. It retains the supported early fullscreen logo and matched compositor/application frames. SD-card recovery and a new cold-boot demonstration are still required.
+- The recovered Pi booted when both splash mechanisms were absent, showing only the temporary recovery console before the app logo. A subsequent trial kept Plymouth disabled but re-enabled Raspberry Pi's early fullscreen logo; the Pi produced black/no-signal output and never reached networking. That early-logo path is therefore also rejected for the current OS/kernel.
+- The next fallback disables both initramfs splash paths and the HDMI console, leaving a black pre-graphical display before matched compositor/application logo frames. It prioritizes reliable startup and no visible OS/debug output, but does not satisfy the stronger logo-throughout-boot requirement unless a later compatible early-display mechanism is found.
 
 ## Checkpoint 7 - Performance and Reliability Pass
 

@@ -51,26 +51,14 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y imagemagick rpi-splash-screen-support swaybg
+apt-get install -y swaybg
 
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEMP_DIR}"' EXIT
-LOGO_TGA="${TEMP_DIR}/logo.tga"
-
-if command -v magick >/dev/null 2>&1; then
-  magick "${LOGO_PNG}" -colors 224 -depth 8 -type TrueColor -alpha off \
-    -compress none -define tga:bits-per-sample=8 "${LOGO_TGA}"
-else
-  convert "${LOGO_PNG}" -colors 224 -depth 8 -type TrueColor -alpha off \
-    -compress none -define tga:bits-per-sample=8 "${LOGO_TGA}"
-fi
-
-# Raspberry Pi's supported helper embeds the early fullscreen logo in initramfs.
-configure-splash "${LOGO_TGA}" --no-cmdline
 
 # Keep the distro's proven theme selected even though Plymouth is disabled for
-# this product path. The custom script theme used in the first attempt crashed
-# Plymouth 24.004.60 on Raspberry Pi OS Trixie before root startup.
+# this product path. Hardware trials showed that both custom Plymouth and the
+# Trixie early-fullscreen-logo path can prevent this Pi from reaching root.
 /usr/sbin/plymouth-set-default-theme pix
 
 # Collapse any CRLF left by boot-card recovery on Windows, while still
@@ -92,8 +80,6 @@ new_tokens+=(
   "plymouth.enable=0"
   "rd.plymouth=0"
   "vt.global_cursor_default=0"
-  "fullscreen_logo=1"
-  "fullscreen_logo_name=logo.tga"
   "loglevel=3"
   "systemd.show_status=false"
   "rd.systemd.show_status=false"
@@ -127,8 +113,6 @@ if [ -S "/run/user/${TARGET_UID}/bus" ]; then
   runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
     systemctl --user daemon-reload
 fi
-
-update-initramfs -u -k all
 
 echo "Installed the Bullet-Time logo boot experience."
 echo "Backup: ${BACKUP_DIR}"

@@ -22,7 +22,7 @@ check() {
 check "HDMI console is removed" bash -c "! grep -Eq '(^| )console=tty1( |$)' '${CMDLINE_FILE}'"
 check "kernel command line contains no carriage returns" bash -c "tr -d '\r' < '${CMDLINE_FILE}' | cmp -s - '${CMDLINE_FILE}'"
 check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
-check "early fullscreen logo is enabled" grep -Eq '(^| )fullscreen_logo=1( |$)' "${CMDLINE_FILE}"
+check "unstable early fullscreen logo is disabled" bash -c "! grep -Eq '(^| )fullscreen_logo=1( |$)' '${CMDLINE_FILE}'"
 check "boot cursor is disabled" grep -Eq '(^| )vt.global_cursor_default=0( |$)' "${CMDLINE_FILE}"
 check "firmware rainbow splash is disabled" grep -Eq '^disable_splash=1$' "${CONFIG_FILE}"
 check "distro Plymouth theme is restored" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "pix"
