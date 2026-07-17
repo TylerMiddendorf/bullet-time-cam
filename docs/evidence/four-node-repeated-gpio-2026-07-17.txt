@@ -1,0 +1,783 @@
+READY_ALL
+{"capture_started_spread_ms": 0.416344, "cycle": 1, "pulse_to_all_completions_ms": 2496.740412}
+{"capture_started_spread_ms": 4.12181, "cycle": 2, "pulse_to_all_completions_ms": 2478.640612}
+{"capture_started_spread_ms": 2.867408, "cycle": 3, "pulse_to_all_completions_ms": 2456.687719}
+{"capture_started_spread_ms": 4.929757, "cycle": 4, "pulse_to_all_completions_ms": 2448.390095}
+{"capture_started_spread_ms": 2.966408, "cycle": 5, "pulse_to_all_completions_ms": 2453.370673}
+{"capture_started_spread_ms": 3.897915, "cycle": 6, "pulse_to_all_completions_ms": 2479.289077}
+{"capture_started_spread_ms": 3.775212, "cycle": 7, "pulse_to_all_completions_ms": 2448.299111}
+{"capture_started_spread_ms": 4.595684, "cycle": 8, "pulse_to_all_completions_ms": 2436.665633}
+{"capture_started_spread_ms": 4.008839, "cycle": 9, "pulse_to_all_completions_ms": 2480.464958}
+{"capture_started_spread_ms": 1.474463, "cycle": 10, "pulse_to_all_completions_ms": 2451.372956}
+FINAL_SUMMARY
+{
+  "all_expected_completions": true,
+  "all_expected_starts": true,
+  "all_expected_valid_images": true,
+  "completed_cycle_count": 10,
+  "cycle_times": [
+    {
+      "capture_started_spread_ms": 0.416344,
+      "cycle": 1,
+      "pulse_to_all_completions_ms": 2496.740412
+    },
+    {
+      "capture_started_spread_ms": 4.12181,
+      "cycle": 2,
+      "pulse_to_all_completions_ms": 2478.640612
+    },
+    {
+      "capture_started_spread_ms": 2.867408,
+      "cycle": 3,
+      "pulse_to_all_completions_ms": 2456.687719
+    },
+    {
+      "capture_started_spread_ms": 4.929757,
+      "cycle": 4,
+      "pulse_to_all_completions_ms": 2448.390095
+    },
+    {
+      "capture_started_spread_ms": 2.966408,
+      "cycle": 5,
+      "pulse_to_all_completions_ms": 2453.370673
+    },
+    {
+      "capture_started_spread_ms": 3.897915,
+      "cycle": 6,
+      "pulse_to_all_completions_ms": 2479.289077
+    },
+    {
+      "capture_started_spread_ms": 3.775212,
+      "cycle": 7,
+      "pulse_to_all_completions_ms": 2448.299111
+    },
+    {
+      "capture_started_spread_ms": 4.595684,
+      "cycle": 8,
+      "pulse_to_all_completions_ms": 2436.665633
+    },
+    {
+      "capture_started_spread_ms": 4.008839,
+      "cycle": 9,
+      "pulse_to_all_completions_ms": 2480.464958
+    },
+    {
+      "capture_started_spread_ms": 1.474463,
+      "cycle": 10,
+      "pulse_to_all_completions_ms": 2451.372956
+    }
+  ],
+  "duplicate_capture_count": 0,
+  "error_count": 0,
+  "nodes": {
+    "E072A1F99CC0": {
+      "completions": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28674430537993,
+          "valid": true
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28677069564415,
+          "valid": true
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28679673908207,
+          "valid": true
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28682269794036,
+          "valid": true
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28684867254004,
+          "valid": true
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28687495273534,
+          "valid": true
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28690099194362,
+          "valid": true
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28692674217440,
+          "valid": true
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28695302958233,
+          "valid": true
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28697901906271,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 3579219490,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F99CC0",
+        "timestamp_us": 1387945
+      },
+      "images": [
+        {
+          "bytes": 247228,
+          "capture_seq": 1,
+          "computed_crc32": "cb1e46ed",
+          "expected_crc32": "cb1e46ed",
+          "valid": true
+        },
+        {
+          "bytes": 255694,
+          "capture_seq": 2,
+          "computed_crc32": "4020077d",
+          "expected_crc32": "4020077d",
+          "valid": true
+        },
+        {
+          "bytes": 254806,
+          "capture_seq": 3,
+          "computed_crc32": "7a667186",
+          "expected_crc32": "7a667186",
+          "valid": true
+        },
+        {
+          "bytes": 252025,
+          "capture_seq": 4,
+          "computed_crc32": "c4c370fc",
+          "expected_crc32": "c4c370fc",
+          "valid": true
+        },
+        {
+          "bytes": 249477,
+          "capture_seq": 5,
+          "computed_crc32": "d85b8b88",
+          "expected_crc32": "d85b8b88",
+          "valid": true
+        },
+        {
+          "bytes": 252540,
+          "capture_seq": 6,
+          "computed_crc32": "fca32ab8",
+          "expected_crc32": "fca32ab8",
+          "valid": true
+        },
+        {
+          "bytes": 252280,
+          "capture_seq": 7,
+          "computed_crc32": "627f95d7",
+          "expected_crc32": "627f95d7",
+          "valid": true
+        },
+        {
+          "bytes": 245570,
+          "capture_seq": 8,
+          "computed_crc32": "7d95b090",
+          "expected_crc32": "7d95b090",
+          "valid": true
+        },
+        {
+          "bytes": 248867,
+          "capture_seq": 9,
+          "computed_crc32": "3e8af52e",
+          "expected_crc32": "3e8af52e",
+          "valid": true
+        },
+        {
+          "bytes": 247267,
+          "capture_seq": 10,
+          "computed_crc32": "bf7e5d23",
+          "expected_crc32": "bf7e5d23",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:9C:C0-if00",
+      "starts": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28672034482703
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28674681268810
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28677310477106
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28679920105630
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28682515265371
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28685118133671
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28687750588547
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28690345149446
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28692935022053
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28695564206891
+        }
+      ]
+    },
+    "E072A1F99CF8": {
+      "completions": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28674422250893,
+          "valid": true
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28677063395589,
+          "valid": true
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28679673215072,
+          "valid": true
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28682264761709,
+          "valid": true
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28684852465891,
+          "valid": true
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28687503820058,
+          "valid": true
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28690071840721,
+          "valid": true
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28692672286057,
+          "valid": true
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28695288334416,
+          "valid": true
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28697892180837,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 3877744901,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F99CF8",
+        "timestamp_us": 1386955
+      },
+      "images": [
+        {
+          "bytes": 244092,
+          "capture_seq": 1,
+          "computed_crc32": "0aa1093a",
+          "expected_crc32": "0aa1093a",
+          "valid": true
+        },
+        {
+          "bytes": 252872,
+          "capture_seq": 2,
+          "computed_crc32": "a4986924",
+          "expected_crc32": "a4986924",
+          "valid": true
+        },
+        {
+          "bytes": 251589,
+          "capture_seq": 3,
+          "computed_crc32": "a93f24cc",
+          "expected_crc32": "a93f24cc",
+          "valid": true
+        },
+        {
+          "bytes": 250057,
+          "capture_seq": 4,
+          "computed_crc32": "4cb675ed",
+          "expected_crc32": "4cb675ed",
+          "valid": true
+        },
+        {
+          "bytes": 244959,
+          "capture_seq": 5,
+          "computed_crc32": "4cadea4f",
+          "expected_crc32": "4cadea4f",
+          "valid": true
+        },
+        {
+          "bytes": 255038,
+          "capture_seq": 6,
+          "computed_crc32": "a726f988",
+          "expected_crc32": "a726f988",
+          "valid": true
+        },
+        {
+          "bytes": 247625,
+          "capture_seq": 7,
+          "computed_crc32": "5daea2b9",
+          "expected_crc32": "5daea2b9",
+          "valid": true
+        },
+        {
+          "bytes": 242993,
+          "capture_seq": 8,
+          "computed_crc32": "2fcde830",
+          "expected_crc32": "2fcde830",
+          "valid": true
+        },
+        {
+          "bytes": 246687,
+          "capture_seq": 9,
+          "computed_crc32": "0d35b0d0",
+          "expected_crc32": "0d35b0d0",
+          "valid": true
+        },
+        {
+          "bytes": 245253,
+          "capture_seq": 10,
+          "computed_crc32": "7e3de1fe",
+          "expected_crc32": "7e3de1fe",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:9C:F8-if00",
+      "starts": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28672034580109
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28674683150811
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28677309312406
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28679919894652
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28682515024596
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28685117908266
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28687750896025
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28690347893135
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28692932917876
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28695564109633
+        }
+      ]
+    },
+    "E072A1F9A190": {
+      "completions": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28674487890114,
+          "valid": true
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28677116804379,
+          "valid": true
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28679723829675,
+          "valid": true
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28682322546810,
+          "valid": true
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28684926146403,
+          "valid": true
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28687555661562,
+          "valid": true
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28690154267583,
+          "valid": true
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28692741173956,
+          "valid": true
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28695371861927,
+          "valid": true
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28697973483614,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 1943507395,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F9A190",
+        "timestamp_us": 1386966
+      },
+      "images": [
+        {
+          "bytes": 285323,
+          "capture_seq": 1,
+          "computed_crc32": "5490d395",
+          "expected_crc32": "5490d395",
+          "valid": true
+        },
+        {
+          "bytes": 286717,
+          "capture_seq": 2,
+          "computed_crc32": "71607552",
+          "expected_crc32": "71607552",
+          "valid": true
+        },
+        {
+          "bytes": 287194,
+          "capture_seq": 3,
+          "computed_crc32": "5dd83edf",
+          "expected_crc32": "5dd83edf",
+          "valid": true
+        },
+        {
+          "bytes": 286279,
+          "capture_seq": 4,
+          "computed_crc32": "66443bdb",
+          "expected_crc32": "66443bdb",
+          "valid": true
+        },
+        {
+          "bytes": 288058,
+          "capture_seq": 5,
+          "computed_crc32": "b0ec7824",
+          "expected_crc32": "b0ec7824",
+          "valid": true
+        },
+        {
+          "bytes": 289944,
+          "capture_seq": 6,
+          "computed_crc32": "66d54a1b",
+          "expected_crc32": "66d54a1b",
+          "valid": true
+        },
+        {
+          "bytes": 289023,
+          "capture_seq": 7,
+          "computed_crc32": "14ca6753",
+          "expected_crc32": "14ca6753",
+          "valid": true
+        },
+        {
+          "bytes": 286674,
+          "capture_seq": 8,
+          "computed_crc32": "79ec3fa9",
+          "expected_crc32": "79ec3fa9",
+          "valid": true
+        },
+        {
+          "bytes": 292500,
+          "capture_seq": 9,
+          "computed_crc32": "e1d6ed84",
+          "expected_crc32": "e1d6ed84",
+          "valid": true
+        },
+        {
+          "bytes": 293026,
+          "capture_seq": 10,
+          "computed_crc32": "0ec5ef24",
+          "expected_crc32": "0ec5ef24",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:A1:90-if00",
+      "starts": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28672034660348
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28674679029001
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28677308219316
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28679915175873
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28682517991004
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28685116867501
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28687747120813
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28690349745130
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28692936728551
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28695562732428
+        }
+      ]
+    },
+    "E072A1F9B3E4": {
+      "completions": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28674422569460,
+          "valid": true
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28677055605350,
+          "valid": true
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28679666432295,
+          "valid": true
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28682247250222,
+          "valid": true
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28684850262159,
+          "valid": true
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28687496839163,
+          "valid": true
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28690101165004,
+          "valid": true
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28692662349125,
+          "valid": true
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28695308439294,
+          "valid": true
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28697902411579,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 1841753467,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F9B3E4",
+        "timestamp_us": 1385945
+      },
+      "images": [
+        {
+          "bytes": 244323,
+          "capture_seq": 1,
+          "computed_crc32": "2ea2a76c",
+          "expected_crc32": "2ea2a76c",
+          "valid": true
+        },
+        {
+          "bytes": 249396,
+          "capture_seq": 2,
+          "computed_crc32": "0198623c",
+          "expected_crc32": "0198623c",
+          "valid": true
+        },
+        {
+          "bytes": 249951,
+          "capture_seq": 3,
+          "computed_crc32": "4c572c18",
+          "expected_crc32": "4c572c18",
+          "valid": true
+        },
+        {
+          "bytes": 245153,
+          "capture_seq": 4,
+          "computed_crc32": "c05d457e",
+          "expected_crc32": "c05d457e",
+          "valid": true
+        },
+        {
+          "bytes": 244374,
+          "capture_seq": 5,
+          "computed_crc32": "fc907d6a",
+          "expected_crc32": "fc907d6a",
+          "valid": true
+        },
+        {
+          "bytes": 252034,
+          "capture_seq": 6,
+          "computed_crc32": "a9481147",
+          "expected_crc32": "a9481147",
+          "valid": true
+        },
+        {
+          "bytes": 254180,
+          "capture_seq": 7,
+          "computed_crc32": "961ab354",
+          "expected_crc32": "961ab354",
+          "valid": true
+        },
+        {
+          "bytes": 241844,
+          "capture_seq": 8,
+          "computed_crc32": "e1b434f5",
+          "expected_crc32": "e1b434f5",
+          "valid": true
+        },
+        {
+          "bytes": 252566,
+          "capture_seq": 9,
+          "computed_crc32": "6972dfbf",
+          "expected_crc32": "6972dfbf",
+          "valid": true
+        },
+        {
+          "bytes": 248182,
+          "capture_seq": 10,
+          "computed_crc32": "e880eb72",
+          "expected_crc32": "e880eb72",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:B3:E4-if00",
+      "starts": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28672034899047
+        },
+        {
+          "capture_seq": 2,
+          "received_ns": 28674683009647
+        },
+        {
+          "capture_seq": 3,
+          "received_ns": 28677311086724
+        },
+        {
+          "capture_seq": 4,
+          "received_ns": 28679917057225
+        },
+        {
+          "capture_seq": 5,
+          "received_ns": 28682517871746
+        },
+        {
+          "capture_seq": 6,
+          "received_ns": 28685120765416
+        },
+        {
+          "capture_seq": 7,
+          "received_ns": 28687747959858
+        },
+        {
+          "capture_seq": 8,
+          "received_ns": 28690346736945
+        },
+        {
+          "capture_seq": 9,
+          "received_ns": 28692932719712
+        },
+        {
+          "capture_seq": 10,
+          "received_ns": 28695563667342
+        }
+      ]
+    }
+  },
+  "target_count": 10
+}

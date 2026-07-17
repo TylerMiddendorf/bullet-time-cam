@@ -1,0 +1,139 @@
+READY_ALL
+PULSING_GPIO17_100MS
+{
+  "all_exactly_one_started": true,
+  "all_one_completion": true,
+  "all_one_valid_image": true,
+  "duplicate_capture_count": 0,
+  "nodes": {
+    "E072A1F99CC0": {
+      "capture_started": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28457349491956
+        }
+      ],
+      "completions": [
+        {
+          "capture_seq": 1,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 1049575498,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F99CC0",
+        "timestamp_us": 1387945
+      },
+      "images": [
+        {
+          "bytes": 229150,
+          "capture_seq": 1,
+          "computed_crc32": "793ed50e",
+          "expected_crc32": "793ed50e",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:9C:C0-if00"
+    },
+    "E072A1F99CF8": {
+      "capture_started": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28457349063890
+        }
+      ],
+      "completions": [
+        {
+          "capture_seq": 1,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 3932253807,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F99CF8",
+        "timestamp_us": 1386971
+      },
+      "images": [
+        {
+          "bytes": 240549,
+          "capture_seq": 1,
+          "computed_crc32": "5e9ee49f",
+          "expected_crc32": "5e9ee49f",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:9C:F8-if00"
+    },
+    "E072A1F9A190": {
+      "capture_started": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28457351378994
+        }
+      ],
+      "completions": [
+        {
+          "capture_seq": 1,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 3408424910,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F9A190",
+        "timestamp_us": 1386961
+      },
+      "images": [
+        {
+          "bytes": 286761,
+          "capture_seq": 1,
+          "computed_crc32": "70607d59",
+          "expected_crc32": "70607d59",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:A1:90-if00"
+    },
+    "E072A1F9B3E4": {
+      "capture_started": [
+        {
+          "capture_seq": 1,
+          "received_ns": 28457348083594
+        }
+      ],
+      "completions": [
+        {
+          "capture_seq": 1,
+          "valid": true
+        }
+      ],
+      "errors": [],
+      "hello": {
+        "boot_id": 2535373465,
+        "capture_seq": 0,
+        "firmware_version": "0.2.0",
+        "node_uid": "E072A1F9B3E4",
+        "timestamp_us": 1385972
+      },
+      "images": [
+        {
+          "bytes": 228034,
+          "capture_seq": 1,
+          "computed_crc32": "cfb142e4",
+          "expected_crc32": "cfb142e4",
+          "valid": true
+        }
+      ],
+      "port": "/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_E0:72:A1:F9:B3:E4-if00"
+    }
+  },
+  "port_count": 4
+}

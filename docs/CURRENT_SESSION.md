@@ -10,7 +10,7 @@ Objective: implement and verify the one-node trigger-to-touchscreen path through
 
 Overall: in progress
 
-Current phase: simplified firmware is flashed and startup-verified on four nodes; Raspberry Pi GPIO code is implemented and fake-backend tested, but Git deployment, unpowered circuit inspection, and both real trigger demonstrations remain open
+Current phase: simplified firmware and GPIO17 runtime are deployed; one-node physical/Pi trigger-to-screen and four-node single/repeated trigger functions are verified, while the skipped unpowered electrical inspection remains an unresolved Checkpoint 4 gate
 
 ## Progress Log
 
@@ -68,6 +68,13 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - Reran the Pi test suite at `e365a0a`: 13 passed, 0 failed. Shell syntax checks for the installer, verifier, and session launcher also passed.
 - Ran the pinned installer successfully. It preserved backup `/var/lib/bullet-time-boot-backups/20260717T194902Z`, found `python3-lgpio` 0.2.2 already installed, and changed the application venv to expose system packages. The venv now imports `/usr/lib/python3/dist-packages/lgpio.py`.
 - The persistent verifier passed 30 configuration checks; its sole expected failure was `camera app is active` because the service remains deliberately stopped pending the circuit check. Read-only `pinctrl get 17` showed GPIO17 as an input with pull-down and LOW; the application has not claimed or pulsed it.
+- Pushed documentation commit `0144180` to `origin/main` and fast-forwarded the Pi checkout to the same commit. The normal service was then started; `pinctrl get 17` showed output/pull-down/LOW, and the unchanged count of 61 manifests proved initialization did not create a capture.
+- The product owner reported connecting Pi ground/trigger and all four cameras while powered and explicitly declined the prescribed unpowered multimeter inspection. Functional tests proceeded, but the missed continuity/resistance/transistor-pinout check remains an unresolved electrical gate.
+- One physical press through the normal Camera 1 service produced exactly one committed/displayed capture (`20260717T201911Z_e47521f8`, source `physical_shared_bus`, UID `E072A1F9A190`, sequence 2, 294,614 bytes, CRC32 `a63e9f12`, no errors, 2,073.317 ms event-to-display).
+- One normal touchscreen tap produced exactly one committed/displayed capture (`20260717T202133Z_c08c476d`, source `pi_gpio17`, sequence 3, 299,828 bytes, CRC32 `83b39e3c`, no errors, 2,065.389 ms event-to-display). The path used one 100 ms GPIO17 pulse and no USB `CAPTURE_REQUEST`.
+- A bounded four-port observer verified one physical press and, separately, one real 100 ms GPIO17 pulse. Each action produced exactly one `CAPTURE_STARTED`, one CRC/length/SOI/EOI-valid JPEG, and one `TRANSFER_COMPLETE` on all four stable UIDs, with zero errors and zero duplicates.
+- The first repeated GPIO probe pulsed again immediately after the last transfer completed. Only the node that had already spent over 40 ms back in its trigger loop rearmed; the other three correctly ignored the pulse. This measured the existing release-debounce boundary, so the firmware debounce was preserved and the probe added a 150 ms post-completion rearm interval.
+- The final 10-cycle four-node GPIO17 run passed 40/40 starts, valid JPEGs, and completions with zero errors and zero duplicates. Pulse-to-all-completions was 2,455.029 ms median and 2,496.740 ms p95/maximum; four-node start spread was 3.837 ms median and 4.930 ms p95/maximum. Every UID completed sequences 1-10. The service was restored active and GPIO17 output LOW.
 
 ## Evidence Collected
 
@@ -75,26 +82,25 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - Current Pi/protocol/fake-GPIO test result: 13 tests passed, 0 failed.
 - Revised firmware compile, four-node non-erase upload, flash hashes, camera startup, BTC1 protocol/stable identity, and trigger-ready verification passed.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
-- USB-request-to-screen behavior and recovery are verified. Physical-button behavior is not verified because the button is not connected.
-- Literal hub unplug/replug, general missing-node UI recovery, and the live corrupt-payload/NACK/no-commit/recovery path are verified. Electrical power and concurrent four-node behavior were not measured.
+- USB-diagnostic, physical-button, and Pi-GPIO trigger-to-screen behavior are verified on Camera 1. Literal hub unplug/replug, missing-node UI recovery, and live corrupt-payload/NACK/no-commit/recovery are also verified.
+- Concurrent four-node physical, Pi, and 10-cycle repeated trigger/protocol/integrity behavior is verified by bounded observers. Raw logs are `docs/evidence/four-node-physical-trigger-2026-07-17.txt`, `four-node-pi-trigger-2026-07-17.txt`, `four-node-immediate-rearm-boundary-2026-07-17.txt`, and `four-node-repeated-gpio-2026-07-17.txt`.
 - Live NACK evidence is retained in `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
 
 ## Active Work
 
-- Keep the installed Pi user service stopped until the unpowered circuit checks are confirmed.
-- After those checks, start the service and verify GPIO17 initializes output LOW before allowing a pulse.
-- Then demonstrate physical-button and Pi-initiated capture separately and run the repeated integrity/timing/duplicate test.
+- Keep the normal Pi user service active; it currently owns GPIO17 as output LOW while idle.
+- Resolve or formally waive the skipped unpowered electrical inspection before closing Checkpoint 4.
+- Continue next with four-image grouping/atomic commit/display and consolidated central removable storage; the temporary observers are not the product four-camera workflow.
 
 ## Blockers and Limitations
 
-- Unpowered multimeter validation and a physical trigger press require the product owner at the bench.
+- The product owner skipped the required unpowered multimeter validation. Successful powered functional tests do not prove the documented resistance, continuity, isolation, or transistor-pinout checks.
 - Electrical power analytics require suitable measurement hardware and are outside this software-only session unless such hardware is already attached and accessible.
-- One-node measurements cannot validate four-node USB contention or aggregate power behavior.
+- The four-node observers validate concurrent USB transfer integrity, but the checked-in UI still processes one configured node and does not yet atomically group four images or create/display the final animation.
 
 ## Next Actions
 
-1. Record the unpowered circuit measurements, then start the revised service and confirm GPIO17 is claimed output LOW.
-2. Validate the physical shared button plus one Pi hardware pulse without duplicates.
-3. Run repeated captures and record timing, integrity, node identity, failures, and duplicate count.
-4. Use suitable external instrumentation for electrical power measurements when available.
-5. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.
+1. Record the omitted unpowered circuit measurements, or record an explicit product-owner waiver of that Checkpoint 4 safety gate.
+2. Build the checked-in four-node capture grouping, atomic persistence, animation, and touchscreen review path using the validated shared-trigger/protocol behavior.
+3. Use suitable external instrumentation for electrical power measurements when available.
+4. Optimize the measured acquisition and USB-transfer bottlenecks; the repeated four-node run remains above the soft two-second target.

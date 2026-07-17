@@ -148,7 +148,7 @@ Work:
 
 - Refactor the node firmware so capture and USB transfer are separate operations; remove all node microSD code, messages, card checks, backup behavior, and deployment requirements.
 - Remove the node status LED pin, self-test, timing, messages, and writes so `D0 / GPIO1` is unused.
-- Until the physical button is wired for this bench setup, accept a framed Pi-to-node USB capture request. Treat this as test scaffolding and retain the physical-trigger path for later validation.
+- Retain the framed Pi-to-node USB capture request only as explicitly selected diagnostic scaffolding; it is not a normal touchscreen/Pi capture path.
 - Add Pi BCM GPIO17 output support and move normal touchscreen/Pi-initiated captures to a 100 ms hardware-trigger pulse. Do not send a USB `CAPTURE_REQUEST` for the same action; retain it only as explicitly selected test scaffolding if it remains useful.
 - Emit framed, binary-safe messages containing protocol version, hardware UID, local capture sequence, event type, dimensions, byte length, payload checksum, and explicit completion/error status.
 - Map the node UID to logical Camera 1 in Pi configuration.
@@ -178,6 +178,8 @@ Validation sequence:
 Exit gate:
 
 - One physical button press repeatedly produces one verified, preserved JPEG on the Pi without reading node microSD and displays the result on the touchscreen.
+- One normal touchscreen action produces exactly one 100 ms GPIO17 pulse, no USB `CAPTURE_REQUEST`, and the same `CAPTURE_STARTED` through display workflow.
+- The prescribed unpowered circuit checks and both powered trigger-source gates are recorded; unresolved electrical exceptions keep this checkpoint open.
 - The node remains logically Camera 1 after reconnect, and interrupted transfers fail safely.
 - The manifest/log artifacts contain enough stage timing, size, integrity, resource, and failure data to project likely four-node bottlenecks and guide transport, processing, storage, timeout/retry, hub, and later power-test decisions.
 - The results and limitations are recorded before Checkpoint 5 begins.
@@ -216,8 +218,8 @@ Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 - Two physical hub disconnect/reconnect cycles were completed. Kernel enumeration advanced from device 7 to 8 to 9 with the same serial number and `/dev/ttyACM0`; the same service process rediscovered logical Camera 1 without configuration edits or a Pi reboot.
 - A later live disconnect visibly produced `No camera node found`, then returned to `Camera 1 connected` after reconnect. Its tapped capture completed before cable removal, so it demonstrates missing-node error presentation and recovery rather than a mid-payload interruption.
 - On July 11, a test-only one-shot command deliberately changed one byte of the next live USB IMAGE payload while retaining the original CRC. The Pi independently detected `JPEG metadata checksum mismatch`, sent a targeted NACK, kept the touchscreen UI alive with a visible error, and committed neither a manifest/JPEG nor a `.part` file. Counts remained 44 manifests, 44 Camera 1 originals, and zero partials. The immediately following normal request succeeded as capture 45 with zero partials, and the normal UI service was restored active. Evidence: `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
-- At the end of the July 10-11 run, the node simplification, physical shared shutter, and Raspberry Pi GPIO17 initiation were still required. The node simplification was implemented and startup-verified on July 17; both hardware-trigger demonstrations remain open. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
-- Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
+- At the end of the July 10-11 run, node simplification and both hardware-trigger sources were still required. Those later passed functional validation on July 17 as recorded below. The deliberately corrupted transfer requirement is satisfied.
+- Electrical power was not measured; suitable instrumentation is still required. The later four-node observers validate concurrent protocol integrity, but not aggregate power or the product's four-image atomic grouping/display workflow.
 
 Evidence recorded July 16, 2026:
 
@@ -234,8 +236,12 @@ Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
 - Flashed the same non-erase image set with esptool 5.3.1 to `E072A1F99CF8`, `E072A1F99CC0`, `E072A1F9A190`, and `E072A1F9B3E4`; every image write passed hash verification and every board reported 8 MB PSRAM.
 - Bounded serial reads on all four nodes passed camera-ready (2048x1536 JPEG quality 8), BTC1 v1 protocol/matching eFuse UID, and shared-trigger-ready gates. No card marker was required or emitted.
 - Detailed commands and hashes are in `docs/evidence/milestone1-trigger-refactor-2026-07-17.md`.
-- Product-owner approval was received to push through `e365a0a`; `origin/main` and the Pi checkout match that revision. The Pi reran 13 tests successfully, the pinned installer completed with backup `20260717T194902Z`, and 30 persistent setup checks passed with only the intentionally stopped service reported inactive.
-- Still required: unpowered circuit measurements, service startup/LOW claim verification, one physical-button capture, one Pi-pulse capture, and repeated timing/integrity/duplicate evidence. Startup verification is not capture or four-node concurrency proof.
+- Product-owner approval was received to push through `0144180`; `origin/main` and the Pi checkout matched that revision. The Pi reran 13 tests successfully, the pinned installer completed with backup `20260717T194902Z`, and the persistent verifier later passed all 30 checks with the service active.
+- Service startup claimed GPIO17 output LOW and did not create a capture. One physical press and one normal touchscreen/GPIO17 pulse each produced exactly one Camera 1 `CAPTURE_STARTED -> validated JPEG -> atomic commit -> display` workflow, with event-to-display times of 2,073.317 ms and 2,065.389 ms and zero errors.
+- Separate four-port observers proved one physical press and one real 100 ms GPIO17 pulse each produced exactly one start, one CRC/length/SOI/EOI-valid JPEG, and one completion on all four stable UIDs, with zero duplicates and zero errors.
+- A 10-cycle repeated GPIO17 observer, with a measured 150 ms post-completion rearm interval for the unchanged 40 ms release debounce, passed 40/40 starts, valid images, and completions with zero duplicates/errors. Pulse-to-all-completions was 2,455.029 ms median and 2,496.740 ms p95/maximum; start spread was 3.837 ms median and 4.930 ms p95/maximum.
+- Raw evidence: `docs/evidence/four-node-physical-trigger-2026-07-17.txt`, `four-node-pi-trigger-2026-07-17.txt`, and `four-node-repeated-gpio-2026-07-17.txt`. Full commands, sizes, CRCs, identities, and limitations are in `docs/evidence/milestone1-trigger-refactor-2026-07-17.md`.
+- The product owner explicitly skipped the required unpowered multimeter checks and connected the circuit while powered. Functional trigger gates passed, but the continuity/resistance/isolation/transistor-pinout gate has no evidence; Checkpoint 4 remains active unless that inspection is completed or explicitly waived as a milestone gate.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
@@ -358,11 +364,8 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Complete and record the unpowered multimeter checks in `TRIGGER_CIRCUIT.md`, then start the installed service and verify GPIO17 is output LOW without pulsing it.
-2. Verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures, with exactly one `CAPTURE_STARTED` and one JPEG per connected node and no duplicate USB request.
-3. Record timing and integrity evidence for both trigger sources before closing Checkpoint 4.
-4. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
-5. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
-6. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.
-7. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
-8. Defer electrical power conclusions until suitable instrumentation is available; one-node software resource measurements are not a substitute for aggregate power data.
+1. Complete the omitted unpowered multimeter checks in `TRIGGER_CIRCUIT.md`, or obtain an explicit product-owner waiver of that Checkpoint 4 gate.
+2. Optimize or deliberately accept the measured acquisition/USB latency; the four-node repeated result remains above the soft two-second target.
+3. Register Cameras 2 through 4 by stable UID in the product coordinator and implement concurrent capture grouping, partial sets, atomic persistence, and camera-specific errors.
+4. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
+5. Defer electrical power conclusions until suitable instrumentation is available; concurrent data integrity is not a substitute for aggregate power data.

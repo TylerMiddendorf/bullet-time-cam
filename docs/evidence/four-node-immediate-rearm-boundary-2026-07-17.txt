@@ -1,0 +1,31 @@
+Four-node immediate-rearm boundary observation - 2026-07-17
+
+Purpose: attempt 10 repeated real GPIO17 pulses after all four nodes completed each
+transfer, without an additional post-completion delay.
+
+GPIO state after cleanup:
+17: op -- pd | lo // GPIO17 = output
+
+Service state after cleanup:
+active
+
+Cycle 1:
+capture_started_spread_ms=1.342789
+pulse_to_all_completions_ms=2606.779799
+all four nodes produced one CRC-valid JPEG and TRANSFER_COMPLETE
+
+Cycle 2:
+timeout
+E072A1F99CC0 produced capture_seq=2, one CRC-valid 250541-byte JPEG,
+CRC32=48db3026, and TRANSFER_COMPLETE.
+E072A1F99CF8, E072A1F9A190, and E072A1F9B3E4 produced no second
+CAPTURE_STARTED event.
+duplicate_capture_count=0
+error_count=0
+
+Interpretation:
+The next 100 ms pulse was issued immediately after the last cycle-1 completion.
+E072A1F99CC0 had completed earlier than the other three nodes and had enough time
+to observe the released trigger for the existing 40 ms debounce. The other three
+nodes had not. Firmware debounce was preserved. The successful final repeated
+probe waits 150 ms after all four completions before issuing the next pulse.

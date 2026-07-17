@@ -1,6 +1,6 @@
 # Shared Trigger and Raspberry Pi Control Circuit
 
-Status: approved hardware design; camera-node simplification is deployed and startup-verified on four nodes, and Raspberry Pi GPIO control is installed and fake-backend tested but intentionally stopped pending unpowered circuit checks and electrical bench validation.
+Status: approved hardware design; node simplification and Raspberry Pi GPIO control are deployed, with separate physical/Pi four-node and repeated functional tests passing. The product owner skipped the prescribed unpowered multimeter inspection, so the electrical-inspection gate remains unresolved.
 
 ## Design Intent
 
@@ -18,7 +18,7 @@ The Raspberry Pi does not need a separate GPIO input to observe the shutter. Eac
 | Each XIAO ESP32S3 Sense | `D1 / GPIO2` | Input with internal pull-up | Shared active-low trigger |
 | Each XIAO ESP32S3 Sense | `GND` | Ground | Common trigger reference |
 | Raspberry Pi 4 | BCM `GPIO17`, physical pin 11 | Output | Drives the transistor base through 4.7 kOhm |
-| Raspberry Pi 4 | Physical pin 6 or another `GND` pin | Ground | Common trigger reference |
+| Raspberry Pi 4 | Physical pin 25 (`GND`; used on the bench), or another `GND` pin | Ground | Common trigger reference |
 | Each XIAO `D0 / GPIO1` | Unused | - | No camera-node function |
 
 ## Components
@@ -61,7 +61,7 @@ flowchart LR
   GND --- C2G["Camera 2 GND"]
   GND --- C3G["Camera 3 GND"]
   GND --- C4G["Camera 4 GND"]
-  GND --- PIG["Raspberry Pi GND<br/>physical pin 6"]
+  GND --- PIG["Raspberry Pi GND<br/>physical pin 25 on bench"]
 ```
 
 Each camera remains connected to the powered USB hub for protocol messages and JPEG transfer. USB is the notification/data path; the shared bus is the simultaneous hardware capture path.
@@ -98,4 +98,8 @@ Then validate in stages:
 
 ## Validation Record
 
-On July 17, 2026, firmware 0.2.0 was flashed to all four nodes and each node passed the camera-ready, BTC1 protocol/stable-UID, and trigger-ready startup gates without initializing or accessing a node card. Pi GPIO tests use an injected fake backend and passed initialization LOW, one 100 ms pulse, repeated pulses, and exception/shutdown cleanup LOW. These are software/startup results only. The unpowered circuit measurements and stages 1-5 above remain pending, so GPIO17 must not be pulsed yet and Checkpoint 4 remains open. See [`evidence/milestone1-trigger-refactor-2026-07-17.md`](evidence/milestone1-trigger-refactor-2026-07-17.md).
+On July 17, 2026, firmware 0.2.0 was flashed to all four nodes and each node passed camera-ready, BTC1 protocol/stable-UID, and trigger-ready startup gates without initializing or accessing a node card. Injected GPIO tests passed initialization LOW, one 100 ms pulse, repeated pulses, and exception/shutdown cleanup LOW.
+
+The product owner then reported wiring Pi physical pin 25 ground and the trigger circuit to all four powered cameras and explicitly declined the required unpowered multimeter inspection. The application claimed GPIO17 output LOW without causing a capture. One physical press and one normal touchscreen/GPIO17 action separately completed the Camera 1 `CAPTURE_STARTED -> JPEG validation -> atomic commit -> display` path exactly once. Four-port observers then verified stages 2, 4, and the USB-event/transfer portion of stage 5: each source produced exactly one valid JPEG per UID, with zero duplicates/errors. A 10-cycle Pi run passed 40/40 captures; median pulse-to-all-completions was 2,455.029 ms and maximum start spread was 4.930 ms. GPIO17 returned output LOW and the normal UI service was active after testing.
+
+The powered functional stages pass, but the unpowered resistance/continuity/isolation/transistor-pinout evidence does not exist. Checkpoint 4 therefore remains open unless that inspection is completed or the product owner explicitly waives it as a milestone gate. Full four-image product grouping/display remains Checkpoint 5 work. See [`evidence/milestone1-trigger-refactor-2026-07-17.md`](evidence/milestone1-trigger-refactor-2026-07-17.md) and the four named `four-node-*-2026-07-17.txt` raw logs in `docs/evidence/`.

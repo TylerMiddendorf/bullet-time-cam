@@ -1,6 +1,6 @@
 # Bullet-Time Camera Rig Roadmap
 
-This roadmap reflects product decisions through July 17, 2026, capture-path bench evidence through July 11, and product-boot hardware evidence through July 17. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
+This roadmap reflects product decisions and capture/trigger/product-boot hardware evidence through July 17, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
 
 The project has no fixed completion date. Milestones advance when their exit criteria are satisfied.
 
@@ -20,7 +20,7 @@ The node microSD cards and GPIO-driven status LEDs are historical prototype feat
 
 ## Milestone 1 - Bench-Top End-to-End Capture
 
-Status: active - Checkpoint 4 physical and Pi hardware-trigger validation remains open
+Status: active - Checkpoint 4 functional trigger gates passed; skipped unpowered electrical inspection remains open
 
 Goal: use bench/USB power to prove the entire software and data path before investing in the battery system or enclosure.
 
@@ -39,8 +39,8 @@ End-to-end path after the approved trigger/node simplification:
 
 Work:
 
-- Camera-node simplification is implemented, flashed, and startup-verified on all four nodes; capture validation remains open.
-- Raspberry Pi BCM GPIO17 hardware-trigger output is installed and fake-backend tested with a boot-safe low idle and 100 ms high pulse; the service is stopped pending unpowered circuit checks and electrical validation.
+- Camera-node simplification is implemented, flashed, startup-verified, and functionally capture-tested on all four nodes.
+- Raspberry Pi BCM GPIO17 hardware-trigger output is installed and fake/hardware tested with boot-safe LOW idle, one 100 ms HIGH pulse per action, and LOW cleanup. The service is active and idles output LOW.
 - Use USB `CAPTURE_STARTED` as the Pi notification path for both physical and Pi-initiated captures; do not add a direct trigger-sense GPIO.
 - Identify and configure the available touchscreen.
 - Establish Raspberry Pi OS and application development environment.
@@ -49,7 +49,7 @@ Work:
 - Prototype direct JPEG transfer from one ESP32S3 frame buffer.
 - Select USB or Wi-Fi from measured latency, reliability, power, and complexity.
 - If USB leads, validate the available powered hub first and acquire only the hub/cabling still needed for the bench prototype.
-- Scale transfer from one node to all four nodes.
+- Integrate the validated concurrent four-node transfers into the product coordinator and capture-set workflow.
 - Implement capture-set grouping, partial-set handling, and diagnostics.
 - Preserve originals and generate the version 1 GIF.
 - Implement the loading/result/error display states.
@@ -68,7 +68,7 @@ Intermediary checkpoints:
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes; 13 Pi/protocol tests passed for the hardware-only normal action and GPIO safety behavior. It remains active for the unpowered circuit inspection plus physical-button and Pi-GPIO capture demonstrations. The measured earlier 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
+Checkpoint 4 has demonstrated the temporary diagnostic USB-request path, a clean 20-capture instrumented run, reconnect/error/NACK recovery, and the normal physical/Pi hardware-trigger-to-touchscreen paths. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes; 13 Pi/protocol tests passed. One physical press and one normal Pi pulse each produced exactly one Camera 1 atomic-commit/display workflow. Separate four-port observers showed one physical press, one GPIO17 pulse, and 10 repeated GPIO17 cycles produced 48/48 valid four-node captures in total with zero errors or duplicates; repeated pulse-to-all-completions was 2.455 seconds median and maximum start spread was 4.930 ms. Checkpoint 4 remains active only because the product owner skipped the prescribed unpowered multimeter inspection after wiring while powered; functional success does not supply that electrical evidence. The checked-in product coordinator still needs four-image grouping/display in Checkpoint 5. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
 Exit criteria:
 

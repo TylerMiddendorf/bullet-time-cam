@@ -42,7 +42,7 @@ The long-term product goal and current decisions are maintained in:
 
 ## Current Project State
 
-As of July 17, 2026, with capture-path bench evidence recorded July 11, product-boot evidence recorded July 17, and revised four-node firmware startup evidence recorded July 17:
+As of July 17, 2026, with one-node vertical-slice, product-boot, revised firmware, and four-node hardware-trigger evidence recorded:
 
 The original four-camera breadboard prototype demonstrated local card capture with individual node LEDs. Those features are historical and superseded by the July 17 node simplification; the earlier result remains valid prototype evidence but is not the current operating design.
 
@@ -54,19 +54,19 @@ The original four-camera breadboard prototype demonstrated local card capture wi
 - Touch input on the intended display works.
 - The accepted product boot path is visually verified: blank early boot, product logo, then the full-screen camera application, with no visible OS/debug text, desktop chrome, login prompt, or pointer.
 - The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
-- A powered USB hub is available for bench testing and has identified one ESP32 camera node as expected from the Raspberry Pi, confirming that the hub carries USB data for at least one node.
+- A powered USB hub is carrying four concurrent ESP32 camera data links; four-node observers validated CRC-protected transfers from every stable UID.
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is installed on the Pi and covered by fake-backend tests, but the service remains stopped and the pin has not been claimed or pulsed by the application. The unpowered circuit measurements, physical-button capture, Pi-trigger capture, and repeated four-node trigger tests remain pending; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
+The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is installed and hardware-tested; the active service idles the pin output LOW. A physical press and normal touchscreen pulse each completed the Camera 1 storage/display workflow and produced exactly one valid capture on all four nodes. A 10-cycle Pi-trigger run completed 40/40 four-node captures with zero errors or duplicates. The product owner skipped the prescribed unpowered multimeter checks after wiring while powered, so that electrical-inspection gate remains unresolved; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
 
-The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, seven passing protocol tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
+The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, 13 passing Pi/protocol/fake-GPIO tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node physical/Pi-trigger-to-touchscreen path works through the powered hub. Multi-image GIF generation, product-level four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 
-The active Milestone 1 checkpoint remains the trigger-to-screen bench test. Normal touchscreen capture is now implemented as one configured 100 ms GPIO17 pulse and does not send a USB capture request; the USB command remains explicit diagnostic scaffolding only. The shared physical-trigger path remains in firmware and still requires hardware validation. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
+The active Milestone 1 checkpoint remains the trigger-to-screen bench test only because its unpowered electrical-inspection gate was skipped. Normal touchscreen capture is one configured 100 ms GPIO17 pulse and sends no USB capture request; the USB command remains explicit diagnostic scaffolding only. Both physical and Pi hardware-trigger functional gates passed separately on four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
 
-The latest one-node evidence includes a clean 20-capture run with zero checksum failures or partial files, plus a live deliberately corrupted payload that produced a targeted NACK, visible touchscreen error, no committed/partial image, and an immediately successful normal recovery capture. Median normal capture-event-to-display callback was 2.494 seconds. Camera acquisition and USB transfer account for most of that latency. See [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) and the evidence recorded in [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md).
+The latest evidence includes a clean 20-capture one-node run, live corrupt-payload NACK/recovery, separate physical and Pi one-node display captures, and a 10-cycle four-node GPIO17 run with zero errors/duplicates. Repeated pulse-to-all-completions was 2.455 seconds median and 2.497 seconds maximum; maximum four-node start spread was 4.930 ms. Camera acquisition and USB transfer remain the main latency costs. See [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) and [`docs/evidence/milestone1-trigger-refactor-2026-07-17.md`](docs/evidence/milestone1-trigger-refactor-2026-07-17.md).
 
 ## Raspberry Pi Development Access
 
@@ -151,7 +151,7 @@ flowchart LR
   R100 --- GND
   EMITTER["2N3904 emitter"] --- GND
   COLLECTOR["2N3904 collector"] --- TRIG
-  PIG["Pi GND / physical pin 6"] --- GND
+  PIG["Pi GND / physical pin 25 on bench"] --- GND
 ```
 
 - Trigger unpressed reads `HIGH`.
