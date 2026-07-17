@@ -11,7 +11,11 @@ def main() -> None:
     parser.add_argument("--port", default="/dev/ttyACM0")
     parser.add_argument("--seconds", type=float, default=15)
     args = parser.parse_args()
-    markers = [b"Camera ready: 2048x1536 JPEG", b"microSD ready:", b"Ready. Pull the shared trigger LOW"]
+    markers = [
+        b"Camera ready: 2048x1536 JPEG",
+        b"USB protocol ready: BTC1 v1, node UID ",
+        b"Ready. Pull the shared trigger LOW",
+    ]
     collected = bytearray()
     with serial.Serial(args.port, 115200, timeout=0.2) as stream:
         stream.dtr = False
@@ -28,7 +32,7 @@ def main() -> None:
         raise SystemExit("Missing startup markers: " + ", ".join(missing))
     if b"Stopped." in collected:
         raise SystemExit("Firmware entered stopped state")
-    print("Startup verification passed: camera, microSD, and trigger ready.")
+    print("Startup verification passed: camera, USB protocol/identity, and trigger ready.")
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ LOGO_PNG="${REPO_ROOT}/assets/Logo_800x480.png"
 SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/checkpoint4-ui.service"
 SESSION_SOURCE="${REPO_ROOT}/pi_app/session"
 REQUIREMENTS_FILE="${REPO_ROOT}/pi_app/requirements.txt"
+SYSTEM_REQUIREMENTS_FILE="${REPO_ROOT}/pi_app/system-requirements.txt"
 VENV_DIR="${TARGET_HOME}/esp32cam-tools"
 CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
@@ -45,7 +46,7 @@ if [ "$(realpath "${REPO_ROOT}")" != "$(realpath -m "${EXPECTED_REPO_ROOT}")" ];
   exit 1
 fi
 
-for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" "${REQUIREMENTS_FILE}" \
+for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" "${REQUIREMENTS_FILE}" "${SYSTEM_REQUIREMENTS_FILE}" \
   "${SESSION_SOURCE}/bullet-time-session" "${SESSION_SOURCE}/bullet-time.desktop" \
   "${CMDLINE_FILE}" "${CONFIG_FILE}"; do
   if [ ! -f "${required}" ]; then
@@ -84,6 +85,8 @@ apt-get install --no-upgrade -y \
   git kanshi labwc lightdm network-manager plymouth python3 python3-pil \
   python3-tk python3-venv raspi-config-core rpd-common rpd-plym-splash \
   swaybg x11-apps
+mapfile -t system_requirements <"${SYSTEM_REQUIREMENTS_FILE}"
+apt-get install --no-upgrade -y "${system_requirements[@]}"
 
 if [ ! -f "${LIGHTDM_FILE}" ]; then
   echo "LightDM configuration was not created at ${LIGHTDM_FILE}." >&2
@@ -95,9 +98,9 @@ for supplemental_group in dialout input render video; do
     usermod -aG "${supplemental_group}" "${TARGET_USER}"
   fi
 done
-if [ ! -x "${VENV_DIR}/bin/python" ]; then
-  runuser -u "${TARGET_USER}" -- python3 -m venv --system-site-packages "${VENV_DIR}"
-fi
+# The GPIO binding is supplied and maintained by Raspberry Pi OS. Ensure the
+# app venv can see that system package even when upgrading an older venv.
+runuser -u "${TARGET_USER}" -- python3 -m venv --upgrade --system-site-packages "${VENV_DIR}"
 runuser -u "${TARGET_USER}" -- "${VENV_DIR}/bin/pip" install -r "${REQUIREMENTS_FILE}"
 
 # Raspberry Pi Imager provisioning is complete. Disable cloud-init so its

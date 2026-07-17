@@ -9,10 +9,12 @@ WorkingDirectory=%h/bullet-time-cam
 Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=%t
 Environment=WAYLAND_DISPLAY=wayland-0
+Environment=PYTHONUNBUFFERED=1
 ExecStartPre=/usr/bin/test -S %t/wayland-0
 ExecStart=%h/esp32cam-tools/bin/python -m pi_app.bullettime.main --config pi_app/config.json
 Restart=on-failure
 RestartSec=2
+TimeoutStopSec=3
 
 [Install]
 WantedBy=graphical-session.target

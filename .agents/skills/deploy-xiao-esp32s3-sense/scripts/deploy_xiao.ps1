@@ -149,7 +149,8 @@ function Test-FirmwareStartup {
     $serial.RtsEnable = $false
 
     $cameraReady = $false
-    $sdReady = $false
+    $protocolReady = $false
+    $nodeUid = $null
     $triggerReady = $false
     $fatalMessage = $null
 
@@ -175,17 +176,18 @@ function Test-FirmwareStartup {
                 if ($line -match "^Camera ready:") {
                     $cameraReady = $true
                 }
-                if ($line -match "^microSD ready:") {
-                    $sdReady = $true
+                if ($line -match "^USB protocol ready: BTC1 v1, node UID ([0-9A-F]{12})\.$") {
+                    $protocolReady = $true
+                    $nodeUid = $Matches[1]
                 }
                 if ($line -match "^Ready\. Pull the shared trigger LOW to capture\.$") {
                     $triggerReady = $true
                 }
-                if ($line -match "Stopped\.|PSRAM was not found|Camera init failed|Camera initialization failed|Card Mount Failed|No SD card attached") {
+                if ($line -match "Stopped\.|PSRAM was not found|Camera init failed|Camera initialization failed") {
                     $fatalMessage = $line
                     break
                 }
-                if ($cameraReady -and $sdReady -and $triggerReady) {
+                if ($cameraReady -and $protocolReady -and $triggerReady) {
                     break
                 }
             }
@@ -207,11 +209,13 @@ function Test-FirmwareStartup {
 
     $missing = @()
     if (-not $cameraReady) { $missing += "camera ready" }
-    if (-not $sdReady) { $missing += "microSD ready" }
+    if (-not $protocolReady) { $missing += "USB protocol and node identity ready" }
     if (-not $triggerReady) { $missing += "trigger ready" }
     if ($missing.Count) {
         throw "Firmware startup was not verified within $TimeoutSeconds seconds. Missing: $($missing -join ', ')."
     }
+
+    Write-Host "Verified node UID: $nodeUid"
 }
 
 $script:CliPath = Resolve-ArduinoCli -RequestedPath $ArduinoCli
@@ -281,7 +285,7 @@ try {
 
     Write-Host "Verifying startup on $selectedPort..."
     Test-FirmwareStartup -Address $selectedPort -TimeoutSeconds $VerifyTimeoutSeconds
-    Write-Host "Deployment verified: camera, microSD, and trigger startup all passed on $selectedPort."
+    Write-Host "Deployment verified: camera, USB protocol/identity, and trigger startup all passed on $selectedPort."
 }
 finally {
     if ($KeepBuild) {

@@ -1,6 +1,6 @@
 ---
 name: deploy-xiao-esp32s3-sense
-description: Build, flash, and verify this repository's Arduino camera firmware on a connected Seeed Studio XIAO ESP32S3 Sense. Use when Codex is asked to deploy, upload, flash, reinstall, or smoke-test `button_capture` firmware; diagnose board/port discovery; or confirm PSRAM, OV3660 camera, and microSD startup over serial after an upload.
+description: Build, flash, and verify this repository's Arduino camera firmware on a connected Seeed Studio XIAO ESP32S3 Sense. Use when Codex is asked to deploy, upload, flash, reinstall, or smoke-test `button_capture` firmware; diagnose board/port discovery; or confirm PSRAM, OV3660 camera, BTC1 USB identity, and shared-trigger startup over serial after an upload.
 ---
 
 # Deploy XIAO ESP32S3 Sense
@@ -38,9 +38,9 @@ Use `-CompileOnly` to validate firmware without touching hardware. Use `-SkipVer
 - Keep OPI PSRAM enabled. High-resolution capture depends on it.
 - Pin the XIAO FQBN; do not replace it with the generic FQBN reported by USB discovery.
 - Do not update or install the ESP32 core automatically. If compilation reports a missing core, explain the exact prerequisite and ask before using the network.
-- Do not erase flash, alter partitions, clear microSD contents, or deploy to multiple boards unless the user explicitly asks.
+- Do not erase flash, alter partitions, or deploy to multiple boards unless the user explicitly asks.
 - Expect the upload port to disappear and return during reset.
-- Verify all three startup markers: camera ready, microSD ready, and trigger ready. Treat `Stopped.`, PSRAM errors, camera initialization errors, and card errors as failures.
+- Verify all three startup gates: camera ready, BTC1 USB protocol plus stable eFuse UID ready, and shared trigger ready. Treat `Stopped.`, PSRAM errors, and camera initialization errors as failures. Camera-node microSD and status-LED evidence are not deployment gates and must not be expected.
 - If no port appears, ask the user to enter bootloader mode: unplug USB, hold `BOOT`, reconnect USB, release `BOOT`, then retry discovery.
 
 ## Troubleshooting
@@ -50,4 +50,4 @@ Use `-CompileOnly` to validate firmware without touching hardware. Use `-SkipVer
 - Compile failure: preserve the full compiler diagnostic; verify the ESP32 core and exact FQBN before changing source.
 - Upload failure after connecting: retry once in bootloader mode. Do not start changing camera code to solve a transport problem.
 - Serial timeout: press reset once and rerun verification; report whether upload was successful but runtime startup was not observed.
-- Camera or card failure: preserve the exact serial message and inspect hardware seating, FAT32 card presence, and power before modifying firmware.
+- Camera failure: preserve the exact serial message and inspect sensor seating and power before modifying firmware.

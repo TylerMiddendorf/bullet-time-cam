@@ -9,6 +9,8 @@
   "hide_pointer": true,
   "corrupt_next_payload": false,
   "trigger_count": 0,
+  "trigger_gpio_bcm": 17,
+  "trigger_pulse_ms": 100,
   "display_width": 800,
   "display_height": 480,
   "reconnect_seconds": 1.0

@@ -27,7 +27,10 @@ check "required tty1 console is retained" grep -Eq '(^| )console=tty1( |$)' "${C
 check "repository uses the stable service path" test "$(pwd -P)" = "${EXPECTED_REPO_ROOT}"
 check "camera runtime is installed" test -x "${APP_PYTHON}"
 check "camera runtime imports succeed" "${APP_PYTHON}" -c 'import PIL, psutil, serial, tkinter'
+check "pinned lgpio package is installed" test "$(dpkg-query -W -f='${Version}' python3-lgpio 2>/dev/null || true)" = "0.2.2-1~rpt1+trixie"
+check "camera runtime can import lgpio" "${APP_PYTHON}" -c 'import lgpio'
 check "camera user has serial access" bash -c "id -nG | tr ' ' '\n' | grep -qx dialout"
+check "camera user has GPIO access" bash -c "id -nG | tr ' ' '\n' | grep -qx gpio"
 check "kernel command line contains no carriage returns" bash -c "tr -d '\r' < '${CMDLINE_FILE}' | cmp -s - '${CMDLINE_FILE}'"
 check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
 check "cloud-init console output is disabled" grep -Eq '(^| )cloud-init=disabled( |$)' "${CMDLINE_FILE}"

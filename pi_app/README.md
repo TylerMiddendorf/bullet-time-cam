@@ -1,6 +1,6 @@
 # Raspberry Pi Checkpoint 4 Application
 
-This application receives one camera node's framed JPEG stream over USB CDC, validates and atomically preserves the original, records timing/resource evidence, and displays the result on the Raspberry Pi touchscreen.
+This application receives one camera node's framed JPEG stream over USB CDC, validates and atomically preserves the original, records timing/resource evidence, and displays the result on the Raspberry Pi touchscreen. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
 
 Run tests from the repository root:
 
@@ -15,6 +15,10 @@ python3 -m pi_app.bullettime.main --config pi_app/config.json
 ```
 
 Use `--headless` for receiver/storage testing without the fullscreen UI. The application searches `/dev/serial/by-id`, `/dev/ttyACM*`, and `/dev/ttyUSB*`; the node UID in the protocol, not the Linux device number, controls logical camera identity.
+
+GPIO17 is claimed as an output LOW before the receiver starts, remains LOW while idle, and is returned LOW during pulse-error and application-shutdown cleanup. The backend is the Raspberry Pi OS Trixie `python3-lgpio` package pinned in `system-requirements.txt`. Do not connect GPIO17 directly to the trigger bus; follow [`docs/TRIGGER_CIRCUIT.md`](../docs/TRIGGER_CIRCUIT.md) and complete its unpowered multimeter checks before allowing a pulse.
+
+`--trigger-once` and `--trigger-count N` use hardware pulses. The legacy USB command remains only as explicit test scaffolding: add `--diagnostic-usb-trigger` to one of those options when a diagnostic `CAPTURE_REQUEST` is specifically intended. Never use both paths for one capture action.
 
 ## Product Boot Experience
 

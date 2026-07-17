@@ -8,6 +8,7 @@ import io
 import json
 import os
 import queue
+import signal
 import threading
 import time
 from pathlib import Path
@@ -17,7 +18,9 @@ import serial
 from PIL import Image, ImageOps, ImageTk
 
 from . import APP_VERSION
-from .protocol import (ACK, CAPTURE_REQUEST, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK,
+from .capture_control import initiate_capture
+from .gpio_trigger import HardwareTrigger
+from .protocol import (ACK, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK,
                        PING, TEST_CORRUPT_NEXT_IMAGE, TRANSFER_COMPLETE, encode_frame, read_frame)
 from .storage import atomic_json, commit_capture
 
@@ -57,14 +60,17 @@ def response_metadata(metadata: dict, status: str, error: str | None = None) -> 
 
 
 class Receiver(threading.Thread):
-    def __init__(self, config: dict, events: queue.Queue, commands: queue.Queue, stop: threading.Event):
+    def __init__(self, config: dict, events: queue.Queue, commands: queue.Queue,
+                 stop: threading.Event, trigger: HardwareTrigger):
         super().__init__(daemon=True)
         self.config, self.events, self.commands, self.stop = config, events, commands, stop
+        self.trigger = trigger
         self.capture = {}
         self.pending_images = {}
         self.rejected_images = set()
         self.automatic_triggers_remaining = int(config.get("trigger_count", 0))
         self.automatic_trigger_in_flight = False
+        self.diagnostic_usb_trigger = bool(config.get("diagnostic_usb_trigger", False))
         self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
 
     def send_status(self, state: str, **values) -> None:
@@ -121,16 +127,12 @@ class Receiver(threading.Thread):
                         }))
                         stream.flush()
                         self.corrupt_next_payload = False
-                    request = {
-                        "host": "camerapi",
-                        "requested_monotonic_ns": time.monotonic_ns(),
-                        "reason": "checkpoint4_usb_trigger",
-                    }
-                    stream.write(encode_frame(CAPTURE_REQUEST, request))
-                    stream.flush()
+                    loading_message = initiate_capture(
+                        stream, self.trigger, self.diagnostic_usb_trigger
+                    )
                     if automatic_request:
                         self.automatic_trigger_in_flight = True
-                    self.send_status("LOADING", message="USB capture requested…")
+                    self.send_status("LOADING", message=loading_message)
                 frame_read_started_ns = time.monotonic_ns()
                 try:
                     # The receiver verifies IMAGE payload CRC itself so it retains the
@@ -148,7 +150,7 @@ class Receiver(threading.Thread):
                 key = (meta.get("node_uid"), meta.get("boot_id"), meta.get("capture_seq"))
                 if frame.message_type == CAPTURE_STARTED:
                     self.capture[key] = {"capture_event_received_ns": now, "resource_samples": [resource_sample("capture_started")]}
-                    self.send_status("LOADING", message="Capturing image…")
+                    self.send_status("LOADING", message="Capturing image...")
                 elif frame.message_type == IMAGE:
                     state = self.capture.setdefault(key, {"capture_event_received_ns": now, "resource_samples": []})
                     state["payload_receive_started_ns"] = frame.payload_started_ns
@@ -183,8 +185,8 @@ class Receiver(threading.Thread):
                 elif frame.message_type == ERROR:
                     self.send_status("ERROR", message=meta.get("message", "Node error"))
                 elif frame.message_type == LOG:
-                    # Diagnostics such as optional SD-backup completion must not
-                    # replace the latest REVIEW image on the touchscreen.
+                    # Diagnostic protocol messages must not replace the latest
+                    # REVIEW image on the touchscreen.
                     continue
                 elif frame.message_type == TRANSFER_COMPLETE:
                     if key in self.rejected_images:
@@ -233,9 +235,9 @@ class Receiver(threading.Thread):
                         raise
 
 
-def run_headless(config: dict) -> None:
+def run_headless(config: dict, trigger: HardwareTrigger) -> None:
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
-    Receiver(config, events, commands, stop).start()
+    Receiver(config, events, commands, stop, trigger).start()
     try:
         while True:
             print(json.dumps(events.get(), sort_keys=True), flush=True)
@@ -243,7 +245,7 @@ def run_headless(config: dict) -> None:
         stop.set()
 
 
-def run_ui(config: dict) -> None:
+def run_ui(config: dict, trigger: HardwareTrigger) -> None:
     import tkinter as tk
 
     root = tk.Tk()
@@ -266,6 +268,7 @@ def run_ui(config: dict) -> None:
     )
     label.pack(fill="both", expand=True)
     image_ref = {"value": None}
+    ui_state = {"value": "STARTING"}
 
     startup_logo = config.get("startup_logo")
     if startup_logo:
@@ -289,13 +292,14 @@ def run_ui(config: dict) -> None:
     root.update()
 
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
-    Receiver(config, events, commands, stop).start()
+    Receiver(config, events, commands, stop, trigger).start()
 
     def poll() -> None:
         try:
             while True:
                 event = events.get_nowait()
                 state = event["state"]
+                ui_state["value"] = state
                 if state == "REVIEW":
                     source = Image.open(event["image"])
                     source.thumbnail((config.get("display_width", 800), config.get("display_height", 480)))
@@ -316,7 +320,13 @@ def run_ui(config: dict) -> None:
         root.after(50, poll)
 
     root.protocol("WM_DELETE_WINDOW", lambda: (stop.set(), root.destroy()))
-    label.bind("<Button-1>", lambda _event: commands.put("CAPTURE"))
+
+    def request_capture(_event) -> None:
+        if ui_state["value"] in {"READY", "REVIEW", "REVIEW_WITH_ERROR", "ERROR"}:
+            ui_state["value"] = "LOADING"
+            commands.put("CAPTURE")
+
+    label.bind("<Button-1>", request_capture)
     poll()
     root.mainloop()
 
@@ -325,8 +335,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="pi_app/config.json")
     parser.add_argument("--headless", action="store_true")
-    parser.add_argument("--trigger-once", action="store_true", help="request one USB capture after connecting")
-    parser.add_argument("--trigger-count", type=int, default=0, help="request N sequential USB captures for bench testing")
+    parser.add_argument("--trigger-once", action="store_true", help="issue one GPIO hardware-trigger pulse after connecting")
+    parser.add_argument("--trigger-count", type=int, default=0, help="issue N sequential GPIO hardware-trigger pulses")
+    parser.add_argument(
+        "--diagnostic-usb-trigger",
+        action="store_true",
+        help="use explicit USB CAPTURE_REQUEST test scaffolding instead of GPIO pulses",
+    )
     parser.add_argument("--corrupt-next-payload", action="store_true",
                         help="arm test-only corruption of the next requested USB image")
     args = parser.parse_args()
@@ -336,12 +351,25 @@ def main() -> None:
     config["trigger_count"] = max(args.trigger_count, 1 if args.trigger_once else 0,
                                   int(config.get("trigger_count", 0)))
     config["corrupt_next_payload"] = args.corrupt_next_payload or bool(config.get("corrupt_next_payload", False))
+    config["diagnostic_usb_trigger"] = args.diagnostic_usb_trigger
     config["storage_root"] = str((config_dir / config["storage_root"]).resolve())
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str((logo_path if logo_path.is_absolute() else config_dir / logo_path).resolve())
     (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
-    (run_headless if args.headless else run_ui)(config)
+    trigger_pin = int(config["trigger_gpio_bcm"])
+    pulse_seconds = float(config["trigger_pulse_ms"]) / 1000
+
+    def request_shutdown(_signal_number, _frame) -> None:
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, request_shutdown)
+    signal.signal(signal.SIGINT, request_shutdown)
+    try:
+        with HardwareTrigger(trigger_pin, pulse_seconds) as trigger:
+            (run_headless if args.headless else run_ui)(config, trigger)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

@@ -1,7 +1,4 @@
 #include "esp_camera.h"
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
 #include "esp_mac.h"
 #include "esp_system.h"
 
@@ -17,9 +14,6 @@ static const uint8_t CAMERA_COUNT = 4;
 // Wire this pin from all four XIAO boards together. The shared trigger bus is
 // idle HIGH and a normally-open button pulls it to the common GND rail.
 static const int TRIGGER_PIN = 2;  // XIAO D1 / GPIO2
-static const int STATUS_LED_PIN = 1;  // XIAO D0 / GPIO1
-static const int SD_CS_PIN = 21;  // Onboard Sense microSD chip-select
-static const char *PHOTO_DIR = "/photos";
 
 static const uint16_t CAPTURE_WIDTH = 2048;
 static const uint16_t CAPTURE_HEIGHT = 1536;
@@ -32,7 +26,6 @@ static const gainceiling_t SENSOR_GAIN_CEILING = GAINCEILING_4X;
 static const int SENSOR_SHARPNESS = 1;
 static const int SENSOR_DENOISE = 1;
 static const unsigned long TRIGGER_DEBOUNCE_MS = 40;
-static const unsigned long MIN_STATUS_LED_ON_MS = 1000;
 static const unsigned long HOST_ACK_TIMEOUT_MS = 10000;
 static const size_t USB_CHUNK_SIZE = 4096;
 static const uint8_t PROTOCOL_VERSION = 1;
@@ -54,12 +47,10 @@ static const uint8_t MSG_NACK = 0x81;
 static bool lastRawTriggerState = HIGH;
 static bool stableTriggerState = HIGH;
 static unsigned long lastTriggerChangeMs = 0;
-static uint16_t nextPhotoNumber = 1;
 static uint32_t captureSequence = 0;
 static uint32_t bootId = 0;
 static char nodeUid[13] = {};
 static uint8_t idleMagicMatched = 0;
-static bool sdReady = false;
 static bool corruptNextUsbImage = false;
 
 void sendHelloFrame();
@@ -255,7 +246,7 @@ void initializeNodeIdentity() {
 void sendHelloFrame() {
   char helloMetadata[320];
   snprintf(helloMetadata, sizeof(helloMetadata),
-           "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":%lu,\"firmware_version\":\"0.1.0\",\"timestamp_us\":%llu}",
+           "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":%lu,\"firmware_version\":\"0.2.0\",\"timestamp_us\":%llu}",
            nodeUid, static_cast<unsigned long>(bootId), static_cast<unsigned long>(captureSequence),
            static_cast<unsigned long long>(esp_timer_get_time()));
   sendFrame(MSG_HELLO, helloMetadata);
@@ -267,65 +258,6 @@ void halt(const char *message) {
   while (true) {
     delay(1000);
   }
-}
-
-bool ensurePhotoDirectory() {
-  if (SD.exists(PHOTO_DIR)) {
-    File dir = SD.open(PHOTO_DIR);
-    if (!dir) {
-      return false;
-    }
-
-    bool ok = dir.isDirectory();
-    dir.close();
-    return ok;
-  }
-
-  return SD.mkdir(PHOTO_DIR);
-}
-
-uint16_t findNextPhotoNumber() {
-  char path[40];
-
-  for (uint16_t number = 1; number < 10000; number++) {
-    snprintf(path, sizeof(path), "%s/photo_%04u.jpg", PHOTO_DIR, static_cast<unsigned int>(number));
-    if (!SD.exists(path)) {
-      return number;
-    }
-  }
-
-  return 0;
-}
-
-bool writeJpegToSd(const char *path, const uint8_t *data, size_t len) {
-  File file = SD.open(path, FILE_WRITE);
-  if (!file) {
-    Serial.printf("Failed to open %s for writing.\n", path);
-    return false;
-  }
-
-  size_t written = file.write(data, len);
-  file.flush();
-  file.close();
-
-  if (written != len) {
-    Serial.printf("Write failed for %s: wrote %u of %u bytes.\n",
-                  path,
-                  static_cast<unsigned int>(written),
-                  static_cast<unsigned int>(len));
-    return false;
-  }
-
-  return true;
-}
-
-void finishStatusLed(unsigned long ledStartedAt) {
-  unsigned long elapsed = millis() - ledStartedAt;
-  if (elapsed < MIN_STATUS_LED_ON_MS) {
-    delay(MIN_STATUS_LED_ON_MS - elapsed);
-  }
-
-  digitalWrite(STATUS_LED_PIN, LOW);
 }
 
 bool discardWarmupFrames() {
@@ -350,21 +282,17 @@ bool capturePhoto() {
            nodeUid, static_cast<unsigned long>(bootId), static_cast<unsigned long>(sequence),
            static_cast<unsigned long long>(triggerAcceptedUs));
   sendFrame(MSG_CAPTURE_STARTED, captureMetadata);
-  digitalWrite(STATUS_LED_PIN, HIGH);
-  unsigned long ledStartedAt = millis();
 
   const uint64_t acquisitionStartedUs = esp_timer_get_time();
   delay(LIGHT_SETTLE_MS);
   if (!discardWarmupFrames()) {
     sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "CAMERA_SETTLE_FAILED");
-    finishStatusLed(ledStartedAt);
     return false;
   }
 
   camera_fb_t *fb = esp_camera_fb_get();
   if (!fb) {
     sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "FRAME_BUFFER_FAILED");
-    finishStatusLed(ledStartedAt);
     return false;
   }
 
@@ -402,27 +330,9 @@ bool capturePhoto() {
     bool acknowledged = transferred && waitForHostAck(sequence);
 
     ok = acknowledged;
-    if (sdReady && nextPhotoNumber != 0) {
-      const uint64_t backupStartedUs = esp_timer_get_time();
-      char path[40];
-      snprintf(path, sizeof(path), "%s/photo_%04u.jpg", PHOTO_DIR, static_cast<unsigned int>(nextPhotoNumber));
-      if (writeJpegToSd(path, fb->buf, fb->len)) {
-        nextPhotoNumber = findNextPhotoNumber();
-        char backupMetadata[448];
-        snprintf(backupMetadata, sizeof(backupMetadata),
-                 "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":%lu,\"backup_started_us\":%llu,\"backup_completed_us\":%llu,\"message\":\"SD_BACKUP_SAVED\"}",
-                 nodeUid, static_cast<unsigned long>(bootId), static_cast<unsigned long>(sequence),
-                 static_cast<unsigned long long>(backupStartedUs),
-                 static_cast<unsigned long long>(esp_timer_get_time()));
-        sendFrame(MSG_LOG, backupMetadata);
-      } else {
-        sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "SD_BACKUP_FAILED");
-      }
-    }
   }
 
   esp_camera_fb_return(fb);
-  finishStatusLed(ledStartedAt);
   return ok;
 }
 
@@ -538,44 +448,6 @@ void initializeCamera() {
                 JPEG_QUALITY);
 }
 
-void initializeSdCard() {
-  Serial.println("Initializing microSD...");
-
-  if (!SD.begin(SD_CS_PIN)) {
-    Serial.println("microSD unavailable: card mount failed; USB capture remains enabled.");
-    return;
-  }
-
-  uint8_t cardType = SD.cardType();
-  if (cardType == CARD_NONE) {
-    Serial.println("microSD unavailable: no card; USB capture remains enabled.");
-    return;
-  }
-
-  if (!ensurePhotoDirectory()) {
-    Serial.println("microSD unavailable: /photos could not be opened; USB capture remains enabled.");
-    return;
-  }
-
-  nextPhotoNumber = findNextPhotoNumber();
-  if (nextPhotoNumber == 0) {
-    Serial.println("microSD backup disabled: no filename below photo_9999.jpg; USB capture remains enabled.");
-    return;
-  }
-
-  Serial.printf("microSD ready: %s, next file photo_%04u.jpg.\n",
-                PHOTO_DIR,
-                static_cast<unsigned int>(nextPhotoNumber));
-  sdReady = true;
-}
-
-void runStatusLedSelfTest() {
-  Serial.println("Testing status LED...");
-  digitalWrite(STATUS_LED_PIN, HIGH);
-  delay(1500);
-  digitalWrite(STATUS_LED_PIN, LOW);
-}
-
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -585,9 +457,6 @@ void setup() {
                 static_cast<unsigned int>(CAMERA_COUNT));
 
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
-  pinMode(STATUS_LED_PIN, OUTPUT);
-  digitalWrite(STATUS_LED_PIN, LOW);
-  runStatusLedSelfTest();
   initializeNodeIdentity();
 
   lastRawTriggerState = digitalRead(TRIGGER_PIN);
@@ -595,8 +464,8 @@ void setup() {
   lastTriggerChangeMs = millis();
 
   initializeCamera();
-  initializeSdCard();
 
+  Serial.printf("USB protocol ready: BTC1 v%u, node UID %s.\n", PROTOCOL_VERSION, nodeUid);
   Serial.println("Ready. Pull the shared trigger LOW to capture.");
   sendHelloFrame();
 }
