@@ -6,6 +6,7 @@ CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
 EXPECTED_LOGO="assets/Logo_800x480.png"
 LABWC_AUTOSTART="${HOME}/.config/bullet-time-labwc/autostart"
+LABWC_ENVIRONMENT="${HOME}/.config/bullet-time-labwc/environment"
 
 failures=0
 
@@ -37,6 +38,8 @@ check "TTY1 getty is masked" test "$(systemctl is-enabled getty@tty1.service 2>/
 check "dedicated LightDM session is selected" grep -Eq '^autologin-session=bullet-time$' /etc/lightdm/lightdm.conf
 check "labwc omits the desktop panel" bash -c "! grep -q 'wf-panel-pi' '${LABWC_AUTOSTART}'"
 check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${LABWC_AUTOSTART}"
+check "labwc selects the invisible cursor theme" grep -Eq '^XCURSOR_THEME=BulletTimeInvisible$' "${LABWC_ENVIRONMENT}"
+check "invisible cursor theme is installed" test -s /usr/share/icons/BulletTimeInvisible/cursors/left_ptr
 check "camera app is active" systemctl --user is-active --quiet checkpoint4-ui.service
 
 if [ "${failures}" -ne 0 ]; then

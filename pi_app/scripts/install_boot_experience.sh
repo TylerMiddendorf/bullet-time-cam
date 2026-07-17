@@ -24,8 +24,10 @@ BACKUP_DIR="${BACKUP_ROOT}/$(date -u +%Y%m%dT%H%M%SZ)"
 USER_LABWC_DIR="${TARGET_HOME}/.config/bullet-time-labwc"
 USER_SYSTEMD_DIR="${TARGET_HOME}/.config/systemd/user"
 USER_AUTOSTART="${USER_LABWC_DIR}/autostart"
+USER_ENVIRONMENT="${USER_LABWC_DIR}/environment"
 USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
 CLOUD_INIT_DISABLED_FILE="/etc/cloud/cloud-init.disabled"
+CURSOR_THEME_DIR="/usr/share/icons/BulletTimeInvisible"
 
 for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" \
   "${SESSION_SOURCE}/bullet-time-session" "${SESSION_SOURCE}/bullet-time.desktop" \
@@ -48,6 +50,9 @@ cp -a "${LIGHTDM_FILE}" "${BACKUP_DIR}/lightdm.conf"
 if [ -e "${USER_AUTOSTART}" ]; then
   cp -a "${USER_AUTOSTART}" "${BACKUP_DIR}/labwc-autostart"
 fi
+if [ -e "${USER_ENVIRONMENT}" ]; then
+  cp -a "${USER_ENVIRONMENT}" "${BACKUP_DIR}/labwc-environment"
+fi
 if [ -e "${USER_SERVICE}" ]; then
   cp -a "${USER_SERVICE}" "${BACKUP_DIR}/checkpoint4-ui.service"
 fi
@@ -57,7 +62,7 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y swaybg
+apt-get install -y swaybg x11-apps
 
 # Raspberry Pi Imager provisioning is complete. Disable cloud-init so its
 # per-boot stage helper cannot tee status messages directly to /dev/console.
@@ -77,6 +82,22 @@ fi
 
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEMP_DIR}"' EXIT
+
+# Install a fully transparent cursor theme before labwc starts. Tk also hides
+# its own pointer, but the compositor exists first and otherwise exposes its
+# default cursor over the logo background.
+install -d -m 0755 "${CURSOR_THEME_DIR}/cursors"
+printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNgYGBgAAAABQABeqhXUAAAAABJRU5ErkJggg==' \
+  | base64 -d >"${TEMP_DIR}/transparent-cursor.png"
+printf '24 0 0 %s\n' "${TEMP_DIR}/transparent-cursor.png" >"${TEMP_DIR}/cursor.conf"
+/usr/bin/xcursorgen "${TEMP_DIR}/cursor.conf" "${CURSOR_THEME_DIR}/cursors/left_ptr"
+for system_cursor in /usr/share/icons/PiXtrix/cursors/*; do
+  cursor_name="$(basename "${system_cursor}")"
+  if [ "${cursor_name}" != "left_ptr" ]; then
+    ln -sfn left_ptr "${CURSOR_THEME_DIR}/cursors/${cursor_name}"
+  fi
+done
+printf '[Icon Theme]\nName=Bullet-Time Invisible Cursor\n' >"${CURSOR_THEME_DIR}/index.theme"
 
 # Keep the distro's proven theme selected even though Plymouth is disabled for
 # this product path. Hardware trials showed that both custom Plymouth and the
@@ -124,6 +145,8 @@ install -d -m 0755 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${USER_LABWC_DIR}" 
   printf '/usr/bin/systemctl --user restart checkpoint4-ui.service &\n'
 } >"${TEMP_DIR}/labwc-autostart"
 install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${TEMP_DIR}/labwc-autostart" "${USER_AUTOSTART}"
+printf 'XCURSOR_THEME=BulletTimeInvisible\nXCURSOR_SIZE=24\n' >"${TEMP_DIR}/labwc-environment"
+install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${TEMP_DIR}/labwc-environment" "${USER_ENVIRONMENT}"
 install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${SERVICE_SOURCE}" "${USER_SERVICE}"
 install -m 0755 "${SESSION_SOURCE}/bullet-time-session" "/usr/local/bin/bullet-time-session"
 install -m 0644 "${SESSION_SOURCE}/bullet-time.desktop" "/usr/share/wayland-sessions/bullet-time.desktop"
