@@ -107,8 +107,8 @@ new_tokens+=(
 printf '%s\n' "${new_tokens[*]}" >"${TEMP_DIR}/cmdline.txt"
 install -m 0644 "${TEMP_DIR}/cmdline.txt" "${CMDLINE_FILE}"
 
-awk '!/^disable_splash=/' "${CONFIG_FILE}" >"${TEMP_DIR}/config.txt"
-printf '\n[all]\n# Bullet-Time product boot presentation\ndisable_splash=1\n' >>"${TEMP_DIR}/config.txt"
+awk '!/^disable_splash=/ && !/^auto_initramfs=/' "${CONFIG_FILE}" >"${TEMP_DIR}/config.txt"
+printf '\n[all]\n# Bullet-Time product boot presentation\nauto_initramfs=0\ndisable_splash=1\n' >>"${TEMP_DIR}/config.txt"
 install -m 0644 "${TEMP_DIR}/config.txt" "${CONFIG_FILE}"
 
 install -d -m 0755 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${USER_LABWC_DIR}" "${USER_SYSTEMD_DIR}"
@@ -139,8 +139,9 @@ if [ -S "/run/user/${TARGET_UID}/bus" ]; then
     systemctl --user daemon-reload
 fi
 
-# Rebuild without the retired early-logo hook and payload.
-update-initramfs -u -k all
+# Do not regenerate initramfs on this product image. Hardware trials showed
+# that a freshly generated image prevents this Pi from reaching userspace;
+# config.txt explicitly boots the kernel directly instead.
 
 echo "Installed the Bullet-Time logo boot experience."
 echo "Backup: ${BACKUP_DIR}"

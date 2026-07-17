@@ -27,6 +27,7 @@ check "unstable early fullscreen logo is disabled" bash -c "! grep -Eq '(^| )ful
 check "early splash hook is absent" test ! -e /etc/initramfs-tools/hooks/splash-screen-hook.sh
 check "early splash package is absent" bash -c "! dpkg-query -W rpi-splash-screen-support >/dev/null 2>&1"
 check "boot cursor is disabled" grep -Eq '(^| )vt.global_cursor_default=0( |$)' "${CMDLINE_FILE}"
+check "regenerated initramfs is bypassed" grep -Eq '^auto_initramfs=0$' "${CONFIG_FILE}"
 check "firmware rainbow splash is disabled" grep -Eq '^disable_splash=1$' "${CONFIG_FILE}"
 check "distro Plymouth theme is restored" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "pix"
 check "TTY1 getty is masked" test "$(systemctl is-enabled getty@tty1.service 2>/dev/null || true)" = "masked"
