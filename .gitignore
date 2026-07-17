@@ -12,8 +12,23 @@
 
 # Arduino/ESP32 build output.
 .build/
+button_capture/build/
+
+# Local camera application output.
 pi_app/captures/
+
+# Python environments, bytecode, and tool caches.
+.venv/
+venv/
 __pycache__/
 *.pyc
-.build/
-button_capture/build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Operating-system metadata.
+.DS_Store
+Thumbs.db
+Desktop.ini
