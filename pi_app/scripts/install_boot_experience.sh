@@ -25,6 +25,7 @@ USER_LABWC_DIR="${TARGET_HOME}/.config/bullet-time-labwc"
 USER_SYSTEMD_DIR="${TARGET_HOME}/.config/systemd/user"
 USER_AUTOSTART="${USER_LABWC_DIR}/autostart"
 USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
+CLOUD_INIT_DISABLED_FILE="/etc/cloud/cloud-init.disabled"
 
 for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" \
   "${SESSION_SOURCE}/bullet-time-session" "${SESSION_SOURCE}/bullet-time.desktop" \
@@ -58,6 +59,10 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y swaybg
 
+# Raspberry Pi Imager provisioning is complete. Disable cloud-init so its
+# per-boot stage helper cannot tee status messages directly to /dev/console.
+install -m 0644 /dev/null "${CLOUD_INIT_DISABLED_FILE}"
+
 # Remove the early-logo initramfs integration that hung this OS/kernel when
 # tty1 was absent. Preserve the generated files in the timestamped backup.
 install -d -m 0755 "${BACKUP_DIR}/retired-early-splash"
@@ -85,7 +90,7 @@ IFS=' ' read -r -a current_tokens <<<"${cmdline_text}"
 new_tokens=()
 for token in "${current_tokens[@]}"; do
   case "${token}" in
-    console=tty1|quiet|splash|plymouth.ignore-serial-consoles|plymouth.enable=*|rd.plymouth=*|vt.global_cursor_default=*|fullscreen_logo=*|fullscreen_logo_name=*|loglevel=*|systemd.show_status=*|rd.systemd.show_status=*|udev.log_level=*|consoleblank=*)
+    console=tty1|quiet|splash|plymouth.ignore-serial-consoles|plymouth.enable=*|rd.plymouth=*|vt.global_cursor_default=*|fullscreen_logo=*|fullscreen_logo_name=*|loglevel=*|systemd.show_status=*|rd.systemd.show_status=*|udev.log_level=*|consoleblank=*|ds=nocloud*|cloud-init=*)
       ;;
     *)
       new_tokens+=("${token}")
@@ -103,6 +108,7 @@ new_tokens+=(
   "rd.systemd.show_status=false"
   "udev.log_level=0"
   "consoleblank=0"
+  "cloud-init=disabled"
 )
 printf '%s\n' "${new_tokens[*]}" >"${TEMP_DIR}/cmdline.txt"
 install -m 0644 "${TEMP_DIR}/cmdline.txt" "${CMDLINE_FILE}"

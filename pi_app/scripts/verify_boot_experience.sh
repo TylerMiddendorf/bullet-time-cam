@@ -23,6 +23,9 @@ check() {
 check "required tty1 console is retained" grep -Eq '(^| )console=tty1( |$)' "${CMDLINE_FILE}"
 check "kernel command line contains no carriage returns" bash -c "tr -d '\r' < '${CMDLINE_FILE}' | cmp -s - '${CMDLINE_FILE}'"
 check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
+check "cloud-init console output is disabled" grep -Eq '(^| )cloud-init=disabled( |$)' "${CMDLINE_FILE}"
+check "cloud-init marker is installed" test -e /etc/cloud/cloud-init.disabled
+check "Raspberry Pi Imager datasource is retired" bash -c "! grep -Eq '(^| )ds=nocloud' '${CMDLINE_FILE}'"
 check "unstable early fullscreen logo is disabled" bash -c "! grep -Eq '(^| )fullscreen_logo=1( |$)' '${CMDLINE_FILE}'"
 check "early splash hook is absent" test ! -e /etc/initramfs-tools/hooks/splash-screen-hook.sh
 check "early splash package is absent" bash -c "! dpkg-query -W rpi-splash-screen-support >/dev/null 2>&1"
