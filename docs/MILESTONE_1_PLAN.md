@@ -261,16 +261,16 @@ Work:
 - Overlay or accompany partial results with the failed camera number and useful details.
 - Keep the loading state active while progress continues beyond two seconds.
 - Avoid an automatic recapture of a missed moment; transfer retries may reuse the retained frame buffer when safe.
-- Show `assets/Logo_800x480.png` throughout boot and application startup, then hand directly to the full-screen camera UI without exposing Raspberry Pi firmware artwork, the desktop, a console/login prompt, a cursor, or startup diagnostics.
+- Keep the screen free of operating-system content during early boot, show `assets/Logo_800x480.png` throughout graphical/application startup, then hand directly to the full-screen camera UI without exposing Raspberry Pi firmware artwork, the desktop, a console/login prompt, a cursor, or startup diagnostics.
 
 Exit gate:
 
 - A real button press completes the full node-to-screen path without manual file movement.
 - Complete and partial captures behave as defined.
 - The user never needs to interact with the Pi desktop during normal capture.
-- A filmed cold boot shows only the product logo before the camera application becomes visible; no operating-system or diagnostic frame appears.
+- A filmed cold boot shows no operating-system or diagnostic frame; after an accepted blank early phase, only the product logo appears before the camera application.
 
-Boot-presentation evidence recorded July 16, 2026 (exit gate remains open):
+Boot-presentation evidence recorded July 16-17, 2026 (visual sub-gate satisfied; integrated real-button flow remains open):
 
 - The first hardware trial used Raspberry Pi's supported early fullscreen image helper, a custom static Plymouth script theme, a logo compositor background, and an app-owned logo first frame.
 - Plymouth 24.004.60 crashed in `libply-splash-core`/`libply` before normal root startup; the display showed its backtrace and the Pi never reached networking or the application.
@@ -282,6 +282,7 @@ Boot-presentation evidence recorded July 16, 2026 (exit gate remains open):
 - The masked/silenced `tty1` recovery boot reached networking, LightDM, and an isolated labwc session containing only the logo background and camera application. Re-running the installer then regenerated an already-clean initramfs; the following boot again remained blank and never reached networking. Setting `auto_initramfs=0` produced a successful direct-kernel cold boot (boot ID `a8e32deb-1d79-4964-831a-abe4d1d63197`): system, networking, LightDM, and camera service were active, the 15 automated boot checks passed, and the process list contained only labwc, the logo background, Xwayland, and the camera app. Physical confirmation of the displayed boot sequence remains required before closing the visual exit gate.
 - Physical observation of that successful boot found two remaining console lines: `Completed socket interaction for boot stage local` and `... network`. The boot journal traced both to Raspberry Pi Imager's completed NoCloud/cloud-init provisioning pipeline, which tees stage output directly to `/dev/console`. The next trial disables cloud-init through its marker file and kernel-command-line switch and removes the retired `ds=nocloud` selector; visual verification remains open.
 - The cloud-init-suppressed reboot showed no operating-system or diagnostic text and the user described the boot presentation as perfect through the application logo. One compositor pointer remained visible over that logo before Tk's cursor setting took control. The next trial installs a transparent Xcursor theme loaded by labwc before its autostart clients; cursor-only visual verification remains open.
+- Final cold boot `3b377b08-599e-434e-bc40-948f24710254` loaded the transparent cursor theme into the logo background, Xwayland, and application processes. All 20 then-current automated boot checks passed, the application was active, and the product owner confirmed the result looked good with no remaining pointer or OS/debug frame. The accepted behavior and replacement-Pi procedure are recorded in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
 ## Checkpoint 7 - Performance and Reliability Pass
 

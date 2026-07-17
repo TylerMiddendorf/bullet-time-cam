@@ -226,3 +226,12 @@ Implementation status:
 - The logo transitions directly into the full-screen camera application.
 - Raspberry Pi firmware artwork, desktop UI, boot logs, loading diagnostics, login prompts, and cursors must not be visible during normal startup.
 - SSH and the serial console may remain available as non-display recovery and diagnostic paths.
+
+### 2026-07-17 - Accepted Raspberry Pi boot implementation
+
+- The product owner visually accepted the final cold-boot presentation after the remaining cloud-init text and compositor pointer were removed.
+- On the validated Raspberry Pi OS Trixie/kernel combination, the accepted reliable sequence is a blank/black early boot, then `assets/Logo_800x480.png`, then the full-screen camera application.
+- No operating-system text, firmware artwork, desktop, login prompt, loading diagnostics, or cursor may be visible.
+- A logo during the pre-userspace kernel phase is no longer required on this exact platform because both attempted early-logo mechanisms prevented the Pi from reaching userspace or networking.
+- Reliable startup takes priority over showing the logo earlier. The non-display SSH and serial recovery paths remain available.
+- The accepted state and its rejected alternatives must be reproducible from the repository on a replacement Pi; `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`, the installer, and the verifier are the canonical deployment path.

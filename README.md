@@ -14,7 +14,7 @@ The longer-term ideal is a scalable 12+ camera system. A larger array will use a
 
 Version 1 deliberately performs no alignment or appearance normalization: it transfers the four original JPEGs, preserves them, creates the simple animated GIF, and preserves that GIF as well. Image-quality processing begins after the complete capture-to-display system works reliably.
 
-The version 1 display shows only `assets/Logo_800x480.png` while the Raspberry Pi boots, then hands directly to the full-screen camera application without exposing firmware artwork, boot logs, a desktop, login prompt, cursor, or startup diagnostics. The application shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
+The accepted version 1 display remains blank during the early Raspberry Pi kernel phase, then shows only `assets/Logo_800x480.png` and hands directly to the full-screen camera application without exposing firmware artwork, boot logs, a desktop, login prompt, cursor, or startup diagnostics. The application shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
 
 The Raspberry Pi will boot from a protected internal card. Original JPEGs and generated GIFs will be written to a separate user-removable media card, keeping the operating system isolated from normal media handling.
 
@@ -36,10 +36,11 @@ The long-term product goal and current decisions are maintained in:
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
 - [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) - live status for the active Checkpoint 4 implementation session
 - [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md)
+- [`docs/RASPBERRY_PI_BOOT_RUNBOOK.md`](docs/RASPBERRY_PI_BOOT_RUNBOOK.md) - reproduce, verify, recover, or roll back the accepted product boot state
 
 ## Current Project State
 
-As of July 16, 2026, with the latest hardware and bench evidence recorded July 11:
+As of July 17, 2026, with capture-path bench evidence recorded July 11 and product-boot evidence recorded July 17:
 
 The four-camera capture subsystem is working as a breadboard prototype:
 
@@ -50,6 +51,7 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - One button press causes each node to capture and save its own image to its local microSD card.
 - The Raspberry Pi 4 Model B with 2 GB RAM has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input on the intended display works.
+- The accepted product boot path is visually verified: blank early boot, product logo, then the full-screen camera application, with no visible OS/debug text, desktop chrome, login prompt, or pointer.
 - The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
 - A powered USB hub is available for bench testing and has identified one ESP32 camera node as expected from the Raspberry Pi, confirming that the hub carries USB data for at least one node.
 - A 3D printer is available for a later enclosure stage.

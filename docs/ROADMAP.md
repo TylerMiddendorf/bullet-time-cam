@@ -1,6 +1,6 @@
 # Bullet-Time Camera Rig Roadmap
 
-This roadmap reflects product decisions through July 10, 2026 and verified bench evidence through July 11, 2026; checkpoint status was reviewed on July 16, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
+This roadmap reflects product decisions through July 17, 2026, capture-path bench evidence through July 11, and product-boot hardware evidence through July 17. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
 
 The project has no fixed completion date. Milestones advance when their exit criteria are satisfied.
 
@@ -48,7 +48,7 @@ Work:
 - Implement capture-set grouping, partial-set handling, and diagnostics.
 - Preserve originals and generate the version 1 GIF.
 - Implement the loading/result/error display states.
-- Configure a product boot path that shows only the product logo before handing directly to the full-screen application, with no visible desktop, console, cursor, or boot diagnostics.
+- Configure the accepted product boot path: no visible OS content during early boot, then the product logo handing directly to the full-screen application, with no desktop, console, cursor, or boot diagnostics.
 - Measure normal shutter-to-review time against the soft two-second target.
 
 Intermediary checkpoints:
@@ -63,7 +63,7 @@ Intermediary checkpoints:
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. It remains active for physical-button validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. No newer hardware validation was recorded between July 11 and the July 16 documentation review.
+Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. It remains active for physical-button validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
 Exit criteria:
 

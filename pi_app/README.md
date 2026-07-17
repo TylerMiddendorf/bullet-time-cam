@@ -36,3 +36,5 @@ pi_app/scripts/verify_boot_experience.sh
 ```
 
 The installer keeps timestamped copies of the previous boot and session files under `/var/lib/bullet-time-boot-backups/`. HDMI console output and the TTY1 login prompt are suppressed, while SSH and the serial console remain available for recovery.
+
+For a fresh card, exact validated software baseline, camera-identity setup, installer ownership, rejected alternatives, visual acceptance test, rollback, and offline SD-card recovery, follow [`docs/RASPBERRY_PI_BOOT_RUNBOOK.md`](../docs/RASPBERRY_PI_BOOT_RUNBOOK.md).

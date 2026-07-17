@@ -9,13 +9,24 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-TARGET_USER="${SUDO_USER:-username}"
+TARGET_USER="${SUDO_USER:-}"
+if [ -z "${TARGET_USER}" ] || [ "${TARGET_USER}" = "root" ]; then
+  echo "Run this script with sudo from the desktop user that will run the camera application." >&2
+  exit 1
+fi
 TARGET_HOME="$(getent passwd "${TARGET_USER}" | cut -d: -f6)"
+if [ -z "${TARGET_HOME}" ]; then
+  echo "Could not resolve the home directory for ${TARGET_USER}." >&2
+  exit 1
+fi
 TARGET_UID="$(id -u "${TARGET_USER}")"
 TARGET_GROUP="$(id -gn "${TARGET_USER}")"
+EXPECTED_REPO_ROOT="${TARGET_HOME}/bullet-time-cam"
 LOGO_PNG="${REPO_ROOT}/assets/Logo_800x480.png"
 SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/checkpoint4-ui.service"
 SESSION_SOURCE="${REPO_ROOT}/pi_app/session"
+REQUIREMENTS_FILE="${REPO_ROOT}/pi_app/requirements.txt"
+VENV_DIR="${TARGET_HOME}/esp32cam-tools"
 CMDLINE_FILE="/boot/firmware/cmdline.txt"
 CONFIG_FILE="/boot/firmware/config.txt"
 LIGHTDM_FILE="/etc/lightdm/lightdm.conf"
@@ -29,9 +40,14 @@ USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
 CLOUD_INIT_DISABLED_FILE="/etc/cloud/cloud-init.disabled"
 CURSOR_THEME_DIR="/usr/share/icons/BulletTimeInvisible"
 
-for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" \
+if [ "$(realpath "${REPO_ROOT}")" != "$(realpath -m "${EXPECTED_REPO_ROOT}")" ]; then
+  echo "Clone this repository at ${EXPECTED_REPO_ROOT}; the service intentionally uses that stable path." >&2
+  exit 1
+fi
+
+for required in "${LOGO_PNG}" "${SERVICE_SOURCE}" "${REQUIREMENTS_FILE}" \
   "${SESSION_SOURCE}/bullet-time-session" "${SESSION_SOURCE}/bullet-time.desktop" \
-  "${CMDLINE_FILE}" "${CONFIG_FILE}" "${LIGHTDM_FILE}"; do
+  "${CMDLINE_FILE}" "${CONFIG_FILE}"; do
   if [ ! -f "${required}" ]; then
     echo "Required file not found: ${required}" >&2
     exit 1
@@ -46,7 +62,9 @@ fi
 install -d -m 0755 "${BACKUP_DIR}"
 cp -a "${CMDLINE_FILE}" "${BACKUP_DIR}/cmdline.txt"
 cp -a "${CONFIG_FILE}" "${BACKUP_DIR}/config.txt"
-cp -a "${LIGHTDM_FILE}" "${BACKUP_DIR}/lightdm.conf"
+if [ -e "${LIGHTDM_FILE}" ]; then
+  cp -a "${LIGHTDM_FILE}" "${BACKUP_DIR}/lightdm.conf"
+fi
 if [ -e "${USER_AUTOSTART}" ]; then
   cp -a "${USER_AUTOSTART}" "${BACKUP_DIR}/labwc-autostart"
 fi
@@ -62,7 +80,25 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y swaybg x11-apps
+apt-get install -y \
+  git kanshi labwc lightdm network-manager plymouth python3 python3-pil \
+  python3-tk python3-venv raspi-config-core rpd-common rpd-plym-splash \
+  swaybg x11-apps
+
+if [ ! -f "${LIGHTDM_FILE}" ]; then
+  echo "LightDM configuration was not created at ${LIGHTDM_FILE}." >&2
+  exit 1
+fi
+
+for supplemental_group in dialout input render video; do
+  if getent group "${supplemental_group}" >/dev/null; then
+    usermod -aG "${supplemental_group}" "${TARGET_USER}"
+  fi
+done
+if [ ! -x "${VENV_DIR}/bin/python" ]; then
+  runuser -u "${TARGET_USER}" -- python3 -m venv --system-site-packages "${VENV_DIR}"
+fi
+runuser -u "${TARGET_USER}" -- "${VENV_DIR}/bin/pip" install -r "${REQUIREMENTS_FILE}"
 
 # Raspberry Pi Imager provisioning is complete. Disable cloud-init so its
 # per-boot stage helper cannot tee status messages directly to /dev/console.
@@ -151,10 +187,41 @@ install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${SERVICE_SOURCE}" "${
 install -m 0755 "${SESSION_SOURCE}/bullet-time-session" "/usr/local/bin/bullet-time-session"
 install -m 0644 "${SESSION_SOURCE}/bullet-time.desktop" "/usr/share/wayland-sessions/bullet-time.desktop"
 
-sed -i -E \
-  -e 's/^user-session=.*/user-session=bullet-time/' \
-  -e 's/^autologin-session=.*/autologin-session=bullet-time/' \
-  "${LIGHTDM_FILE}"
+awk -v target_user="${TARGET_USER}" '
+  function emit_camera_seat() {
+    print "user-session=bullet-time"
+    print "autologin-user=" target_user
+    print "autologin-user-timeout=0"
+    print "autologin-session=bullet-time"
+    inserted = 1
+  }
+  /^\[/ {
+    if (in_seat && !inserted) {
+      emit_camera_seat()
+    }
+    in_seat = ($0 == "[Seat:*]")
+    if (in_seat) {
+      seat_found = 1
+    }
+    print
+    next
+  }
+  in_seat && /^(user-session|autologin-user|autologin-user-timeout|autologin-session)=/ {
+    next
+  }
+  { print }
+  END {
+    if (in_seat && !inserted) {
+      emit_camera_seat()
+    }
+    if (!seat_found) {
+      print ""
+      print "[Seat:*]"
+      emit_camera_seat()
+    }
+  }
+' "${LIGHTDM_FILE}" >"${TEMP_DIR}/lightdm.conf"
+install -m 0644 "${TEMP_DIR}/lightdm.conf" "${LIGHTDM_FILE}"
 
 # The HDMI virtual console must never clear the logo with a login prompt.
 # Serial console and SSH remain available as recovery paths.

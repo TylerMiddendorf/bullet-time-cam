@@ -2,7 +2,7 @@
 
 Implementation dates: July 10-11, 2026
 
-Status reviewed: July 16, 2026
+Status reviewed: July 17, 2026
 
 Objective: implement and verify the one-node trigger-to-touchscreen path through the powered USB hub, using the approved temporary USB request while the physical shutter is disconnected, and collect the evidence required by Checkpoint 4.
 
@@ -52,6 +52,7 @@ Current phase: connect and validate the physical shutter to close the remaining 
 - Built the updated XIAO firmware for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi` at 428,965 bytes flash and 33,632 bytes dynamic memory. Flashed the 429,120-byte application image only at `0x10000`; the write hash verified. Post-flash camera, microSD, and shared-trigger startup checks passed with 8 MB PSRAM detected.
 - Ran the live fault test through the powered hub. The Pi reported `NACK sent: JPEG metadata checksum mismatch`, the touchscreen visibly displayed the error, and counts remained 44 manifests, 44 Camera 1 originals, and zero `.part` files.
 - Ran an immediate normal recovery request. It committed and displayed capture 45 with zero `.part` files. Stopped the transient test unit and restored the normal `checkpoint4-ui.service` active.
+- Independently completed and visually accepted the product-boot presentation on July 17: reliable direct-kernel boot, cloud-init disabled after provisioning, isolated labwc session, matched compositor/application logo frames, no visible OS/debug content, and a transparent compositor cursor. The replacement-Pi process is recorded in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
 ## Evidence Collected
 

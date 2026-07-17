@@ -7,6 +7,8 @@ CONFIG_FILE="/boot/firmware/config.txt"
 EXPECTED_LOGO="assets/Logo_800x480.png"
 LABWC_AUTOSTART="${HOME}/.config/bullet-time-labwc/autostart"
 LABWC_ENVIRONMENT="${HOME}/.config/bullet-time-labwc/environment"
+APP_PYTHON="${HOME}/esp32cam-tools/bin/python"
+EXPECTED_REPO_ROOT="${HOME}/bullet-time-cam"
 
 failures=0
 
@@ -22,6 +24,10 @@ check() {
 }
 
 check "required tty1 console is retained" grep -Eq '(^| )console=tty1( |$)' "${CMDLINE_FILE}"
+check "repository uses the stable service path" test "$(pwd -P)" = "${EXPECTED_REPO_ROOT}"
+check "camera runtime is installed" test -x "${APP_PYTHON}"
+check "camera runtime imports succeed" "${APP_PYTHON}" -c 'import PIL, psutil, serial, tkinter'
+check "camera user has serial access" bash -c "id -nG | tr ' ' '\n' | grep -qx dialout"
 check "kernel command line contains no carriage returns" bash -c "tr -d '\r' < '${CMDLINE_FILE}' | cmp -s - '${CMDLINE_FILE}'"
 check "Plymouth is disabled" grep -Eq '(^| )plymouth.enable=0( |$)' "${CMDLINE_FILE}"
 check "cloud-init console output is disabled" grep -Eq '(^| )cloud-init=disabled( |$)' "${CMDLINE_FILE}"
@@ -35,8 +41,12 @@ check "regenerated initramfs is bypassed" grep -Eq '^auto_initramfs=0$' "${CONFI
 check "firmware rainbow splash is disabled" grep -Eq '^disable_splash=1$' "${CONFIG_FILE}"
 check "distro Plymouth theme is restored" test "$(/usr/sbin/plymouth-set-default-theme 2>/dev/null || true)" = "pix"
 check "TTY1 getty is masked" test "$(systemctl is-enabled getty@tty1.service 2>/dev/null || true)" = "masked"
+check "LightDM autologin user is selected" grep -Eq "^autologin-user=$(id -un)$" /etc/lightdm/lightdm.conf
+check "LightDM autologin has no delay" grep -Eq '^autologin-user-timeout=0$' /etc/lightdm/lightdm.conf
+check "dedicated LightDM user session is selected" grep -Eq '^user-session=bullet-time$' /etc/lightdm/lightdm.conf
 check "dedicated LightDM session is selected" grep -Eq '^autologin-session=bullet-time$' /etc/lightdm/lightdm.conf
 check "labwc omits the desktop panel" bash -c "! grep -q 'wf-panel-pi' '${LABWC_AUTOSTART}'"
+check "desktop chrome is not running" bash -c "! ps -eo comm= | grep -Eq '^(wf-panel-pi|pcmanfm|lxpanel)$'"
 check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${LABWC_AUTOSTART}"
 check "labwc selects the invisible cursor theme" grep -Eq '^XCURSOR_THEME=BulletTimeInvisible$' "${LABWC_ENVIRONMENT}"
 check "invisible cursor theme is installed" test -s /usr/share/icons/BulletTimeInvisible/cursors/left_ptr
