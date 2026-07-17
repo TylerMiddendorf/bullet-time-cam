@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "logical_cameras": {
+    "REPLACE_WITH_CAMERA_1_UID": 1,
+    "REPLACE_WITH_CAMERA_2_UID": 2,
+    "REPLACE_WITH_CAMERA_3_UID": 3,
+    "REPLACE_WITH_CAMERA_4_UID": 4
+  },
+  "normal_capture_ids": [
+    "REPLACE_NORMAL_01",
+    "REPLACE_NORMAL_02",
+    "REPLACE_NORMAL_03",
+    "REPLACE_NORMAL_04",
+    "REPLACE_NORMAL_05",
+    "REPLACE_NORMAL_06",
+    "REPLACE_NORMAL_07",
+    "REPLACE_NORMAL_08",
+    "REPLACE_NORMAL_09",
+    "REPLACE_NORMAL_10",
+    "REPLACE_NORMAL_11",
+    "REPLACE_NORMAL_12",
+    "REPLACE_NORMAL_13",
+    "REPLACE_NORMAL_14",
+    "REPLACE_NORMAL_15",
+    "REPLACE_NORMAL_16",
+    "REPLACE_NORMAL_17",
+    "REPLACE_NORMAL_18",
+    "REPLACE_NORMAL_19",
+    "REPLACE_NORMAL_20",
+    "REPLACE_NORMAL_21",
+    "REPLACE_NORMAL_22",
+    "REPLACE_NORMAL_23",
+    "REPLACE_NORMAL_24",
+    "REPLACE_NORMAL_25"
+  ],
+  "disconnect_capture_ids": {
+    "1": "REPLACE_DISCONNECT_CAMERA_1",
+    "2": "REPLACE_DISCONNECT_CAMERA_2",
+    "3": "REPLACE_DISCONNECT_CAMERA_3",
+    "4": "REPLACE_DISCONNECT_CAMERA_4"
+  },
+  "corrupt_transfer": {
+    "capture_id": "REPLACE_CORRUPT_TRANSFER_CAPTURE",
+    "failed_camera_id": 2
+  },
+  "truncated_transfer": {
+    "capture_id": "REPLACE_TRUNCATED_TRANSFER_CAPTURE",
+    "failed_camera_id": 3
+  },
+  "reboot_between_captures": {
+    "before_capture_id": "REPLACE_BEFORE_REBOOT_CAPTURE",
+    "after_capture_id": "REPLACE_AFTER_REBOOT_CAPTURE",
+    "logical_camera_id": 4,
+    "node_uid": "REPLACE_WITH_CAMERA_4_UID"
+  }
+}

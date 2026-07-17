@@ -1,5 +1,9 @@
 {
-  "storage_root": "captures",
+  "usb_storage": {
+    "capture_directory": "BulletTime",
+    "preferred_mount_name": "USB DISK",
+    "auto_mount": true
+  },
   "logical_cameras": {
     "E072A1F9A190": 1
   },

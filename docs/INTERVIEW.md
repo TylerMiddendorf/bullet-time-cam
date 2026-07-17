@@ -247,4 +247,21 @@ Implementation status:
 - Keep GPIO17 low while idle and pulse it high for approximately 100 ms to produce the active-low trigger pulse.
 - Do not connect a Raspberry Pi output directly to the shared trigger bus and never drive the bus high.
 - Do not add a separate Pi trigger-sense input. Camera nodes continue reporting `CAPTURE_STARTED` over USB so physical-button and Pi-initiated captures enter the same Pi workflow.
-- Implementation status: firmware 0.2.0 removed the superseded node behavior and passed revised startup plus powered functional capture gates on all four nodes on July 17. Normal Pi capture is a single 100 ms GPIO17 pulse with the USB request explicit diagnostic scaffolding only. Separate physical and Pi actions produced one Camera 1 commit/display and exactly one valid capture per node in four-port observers; a 10-cycle run completed 40/40 captures with zero errors/duplicates. The product owner explicitly skipped the prescribed unpowered multimeter inspection after wiring while powered, so functional behavior is bench-validated but the electrical-inspection gate remains unresolved.
+- Implementation status at that point: firmware 0.2.0 removed the superseded node behavior and passed revised startup plus powered functional capture gates on all four nodes on July 17. Normal Pi capture is a single 100 ms GPIO17 pulse with the USB request explicit diagnostic scaffolding only. Separate physical and Pi actions produced one Camera 1 commit/display and exactly one valid capture per node in four-port observers; a 10-cycle run completed 40/40 captures with zero errors/duplicates. The multimeter inspection had initially been skipped; the later July 17 entry below records its subsequent completion and supersedes that open-gate status.
+
+### 2026-07-17 - Removable USB media replaces removable media-card direction
+
+- The product owner added a USB drive to the Raspberry Pi for storage of original JPEGs and generated GIFs.
+- This supersedes the June 26 separate user-removable media-card decision; the Raspberry Pi still boots from a protected internal microSD card.
+- The Pi application automatically discovers writable mounted filesystems whose backing block device is on the USB bus and asks `udisks2` to mount detected USB block media when necessary.
+- Capture sets are stored below `BulletTime/` on the selected USB drive. If multiple writable USB drives are connected, configuration may prefer the drive's mount-directory name; otherwise selection is deterministic.
+- The application must not silently write user captures to the protected boot microSD when removable USB storage is unavailable.
+- Touchscreen-initiated capture is blocked with a visible error when no writable USB drive is available. Physical captures that still arrive are rejected rather than committed to internal storage.
+- The implementation and failure path have automated test coverage. Pi inspection confirmed the added 231 GB FAT partition as `/dev/sda1`, label `USB DISK`; automatic mounting succeeded from the same user-service context as the camera application and produced a writable `/media/username/USB DISK` mount. Deployment of the new application plus actual JPEG persistence, unplug/replug, full-drive, read-only/corrupt-filesystem, and removal-during-write behavior still require evidence.
+
+### 2026-07-17 - Trigger inspection, final USB chain, and display inventory
+
+- The product owner completed the prescribed unpowered trigger-circuit multimeter checklist and reported that it passed fully. This supersedes the earlier same-day status in which the inspection had been skipped; individual readings were not retained in the repository.
+- The product owner confirmed that the hub and cabling currently installed on the Raspberry Pi are the final V1 selection rather than temporary bench hardware.
+- Read-only SSH inspection confirmed that the installed chain enumerates VIA Labs hub `2109:3431`, downstream Terminus hub `1a40:0101`, all four stable ESP32 identities, touchscreen controller `8888:6666`, and the removable USB drive.
+- The running compositor reports the installed HDMI display at 800x480, 65.681 Hz, with a 150x100 mm physical area and generic EDID identity `Addi-Data GmbH`, model `0x0004`. The USB interface declares 5 V / 100 mA maximum. This descriptor is not an electrical measurement of the entire panel/backlight, and Linux cannot report the enclosure-facing bezel/depth.

@@ -6,7 +6,7 @@ Prove the complete version 1 data path on the bench:
 
 `shared shutter -> four ESP32S3 nodes -> Raspberry Pi -> preserved JPEGs -> GIF -> touchscreen`
 
-Battery integration, removable user media, and enclosure work are intentionally outside this milestone. Milestone 1 may temporarily store capture sets on the Raspberry Pi boot filesystem.
+Battery integration, removable-media hardware qualification, and enclosure work are intentionally outside this milestone. By product-owner direction on July 17, the Pi application no longer stores new capture sets on the Raspberry Pi boot filesystem: it requires writable removable USB storage. Full removable-media validation remains Milestone 2 work.
 
 ## Working Technical Direction
 
@@ -19,6 +19,7 @@ Battery integration, removable user media, and enclosure work are intentionally 
 - Do not reserve or drive a camera-node GPIO for a status LED.
 - Preserve original JPEG bytes without image normalization.
 - Generate a separate display/export GIF from the available camera images.
+- Resolve the capture root from a writable USB-backed filesystem for every commit; automatically request a `udisks2` mount when needed and never fall back to the boot microSD.
 - Keep the physical button connected directly to the shared ESP32S3 trigger line.
 - Drive the same shared active-low trigger from Raspberry Pi BCM GPIO17 through the approved 2N3904 open-collector circuit; idle GPIO17 low and pulse it high for 100 ms.
 - Treat USB `CAPTURE_STARTED` as the Pi notification path for either trigger source; do not add a Pi trigger-sense input.
@@ -56,11 +57,11 @@ Evidence recorded June 27 and July 8, 2026 (partial; checkpoint remains open):
 - A bounded 115200-baud serial smoke test observed the 2048x1536 camera-ready, microSD-ready, and shared-trigger-ready messages.
 - The repository skill at `.agents/skills/deploy-xiao-esp32s3-sense` repeats the guarded compile, upload, and startup verification workflow.
 - The Raspberry Pi 4 was imaged successfully and boots to Raspberry Pi OS with its HDMI display working.
-- The intended display is confirmed at 800x480 resolution, with HDMI for video and a micro-USB connection for touch and/or display-side power.
+- The intended display is confirmed at 800x480 resolution, with HDMI for video and a micro-USB connection for touch and display-side power. A July 17 live Pi query reports HDMI-A-2 at 800x480, 65.681 Hz, a 150x100 mm physical area, EDID make `Addi-Data GmbH`, model `0x0004`, and serial `0x00000001`. Its USB touch controller is `8888:6666`, runs at 12 Mb/s, and advertises USB 5 V / 100 mA maximum (0.5 W) in its device descriptor. This is the interface's declared maximum, not a measured whole-display/backlight load.
 - Touch input on the intended display now works on the Raspberry Pi.
-- One XIAO ESP32S3 camera node was identified by the Raspberry Pi as expected through the powered USB hub, confirming that the hub carries USB data for at least one node.
+- The product owner's final V1 hub and cabling are installed. A July 17 live Pi query reports a VIA Labs `2109:3431` upstream four-port hub feeding a Terminus `1a40:0101` four-port hub; all four stable ESP32 identities enumerate concurrently through the downstream hub at 12 Mb/s. The touchscreen and removable USB drive also enumerate on the installed chain, and the earlier 40/40 four-node run used this topology.
 - On July 10, 2026, the Pi was verified on the bench LAN as `camerapi` at `10.0.0.136` with OpenSSH available. A dedicated ED25519 development key was installed and a fresh key-only login succeeded as user `username`; the verified Pi host-key fingerprint and non-secret operating instructions are in `RASPBERRY_PI_SSH.md`.
-- Still unresolved for this checkpoint: touchscreen manufacturer/model/physical size, exact display power requirements, exact Raspberry Pi enumeration output for the connected XIAO, and whether a direct-to-Pi comparison should also be recorded.
+- Linux reports the display's generic EDID identity, 150x100 mm physical area, and the USB interface's declared 5 V / 100 mA maximum. The enclosure-facing outer bezel/depth and actual display/backlight current cannot be measured over SSH and still need a manual caliper/load measurement if the enclosure or battery calculation requires them. A direct-to-Pi camera comparison is no longer required because the installed final hub/cabling has demonstrated four concurrent links. Raw inventory interpretation and limitations are recorded in [`evidence/pi-display-usb-inventory-2026-07-17.md`](evidence/pi-display-usb-inventory-2026-07-17.md).
 
 ## Checkpoint 2 - Offline Media and UI Vertical Slice
 
@@ -130,9 +131,9 @@ Exit gate:
 - The node is identified consistently after reconnect.
 - Measured transfer time is recorded.
 
-## Checkpoint 4 - Active One-Node Full-System Bench Test
+## Checkpoint 4 - Complete One-Node Full-System Bench Test
 
-Status: active by product-owner decision on July 10, 2026
+Status: complete July 17, 2026
 
 Cost gate: no purchase; use one node, the available powered data hub, Raspberry Pi, and touchscreen
 
@@ -142,7 +143,7 @@ Build the narrowest real vertical slice before completing the broader offline an
 
 End-to-end path:
 
-`physical shutter or Pi GPIO17 pulse -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
+`physical shutter or Pi GPIO17 pulse -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original on removable USB storage -> display artifact -> touchscreen`
 
 Work:
 
@@ -241,11 +242,12 @@ Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
 - Separate four-port observers proved one physical press and one real 100 ms GPIO17 pulse each produced exactly one start, one CRC/length/SOI/EOI-valid JPEG, and one completion on all four stable UIDs, with zero duplicates and zero errors.
 - A 10-cycle repeated GPIO17 observer, with a measured 150 ms post-completion rearm interval for the unchanged 40 ms release debounce, passed 40/40 starts, valid images, and completions with zero duplicates/errors. Pulse-to-all-completions was 2,455.029 ms median and 2,496.740 ms p95/maximum; start spread was 3.837 ms median and 4.930 ms p95/maximum.
 - Raw evidence: `docs/evidence/four-node-physical-trigger-2026-07-17.txt`, `four-node-pi-trigger-2026-07-17.txt`, and `four-node-repeated-gpio-2026-07-17.txt`. Full commands, sizes, CRCs, identities, and limitations are in `docs/evidence/milestone1-trigger-refactor-2026-07-17.md`.
-- The product owner explicitly skipped the required unpowered multimeter checks and connected the circuit while powered. Functional trigger gates passed, but the continuity/resistance/isolation/transistor-pinout gate has no evidence; Checkpoint 4 remains active unless that inspection is completed or explicitly waived as a milestone gate.
+- The product owner initially connected the circuit while powered before performing the prescribed unpowered checks. Later on July 17, the product owner completed the full multimeter checklist and reported that all continuity, resistance, button, isolation, and no-direct-short checks passed. Individual meter readings were not retained. Together with the powered trigger gates, this closes Checkpoint 4.
+- After the capture/trigger evidence above, the product owner added a USB storage drive and replaced the separate removable-card direction. The Pi application now discovers USB-backed mounts, requests automatic mounting through `udisks2`, writes under `BulletTime/`, records storage details in manifests, and fails closed when USB media is absent. Nineteen application tests pass, including mount parsing, USB selection, preferred-drive behavior, automatic-mount rescan, path confinement, and no-boot-storage fallback. The Pi enumerated the added 231 GB FAT partition as `/dev/sda1`, label `USB DISK`; the exact non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, was writable by user `username`, and had confirmed USB sysfs ancestry. The code and a real media commit have not yet been Git-deployed/demonstrated, so the earlier boot-filesystem capture evidence remains historical rather than proof of the new storage path. See `docs/evidence/usb-storage-bringup-2026-07-17.md`.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
-Cost gate: use the available powered data hub for initial four-node validation. Acquire a replacement hub or cabling only if measured four-node reliability, topology, or power behavior shows the bench hardware is inadequate.
+Cost gate: no hub/cabling purchase. The product owner confirms the currently installed chain is the final V1 hub/cabling, and the Pi enumerates all four nodes through it. Retain it unless later aggregate power or reliability evidence exposes a concrete defect.
 
 Work:
 
@@ -266,6 +268,8 @@ Proposed grouping tests:
 - One corrupted or truncated transfer test
 - One node reboot between captures
 - No images assigned to the wrong capture set
+
+The executable acceptance contract and live scenario procedure are in [`FOUR_NODE_E2E_TEST_PLAN.md`](FOUR_NODE_E2E_TEST_PLAN.md). The deterministic validator tests cover complete and partial sets, corrupt/truncated artifacts, stable UID mapping through a reboot, leftover partials, and duplicate transactions across sets. The physical-rig test is environment-gated until live capture IDs and a completed scenario ledger exist.
 
 Exit gate:
 
@@ -353,7 +357,7 @@ Exit gate:
 ## Recommended Build Order
 
 1. Checkpoint 1: Pi and display bring-up (substantially demonstrated; documentation details remain)
-2. Checkpoint 4: active one-node full-system bench test
+2. Checkpoint 4: complete one-node full-system bench test
 3. Deferred Checkpoint 2 coverage needed for four-image GIF and partial-set behavior
 4. Deferred Checkpoint 3 coverage not already proven by Checkpoint 4
 5. Checkpoint 5: four-node grouping and failure handling
@@ -364,8 +368,9 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Complete the omitted unpowered multimeter checks in `TRIGGER_CIRCUIT.md`, or obtain an explicit product-owner waiver of that Checkpoint 4 gate.
-2. Optimize or deliberately accept the measured acquisition/USB latency; the four-node repeated result remains above the soft two-second target.
-3. Register Cameras 2 through 4 by stable UID in the product coordinator and implement concurrent capture grouping, partial sets, atomic persistence, and camera-specific errors.
-4. Implement and measure the live four-image back-and-forth GIF/touchscreen path, then complete the performance and reliability pass.
-5. Defer electrical power conclusions until suitable instrumentation is available; concurrent data integrity is not a substitute for aggregate power data.
+1. Validate automatic detection/mounting and a real capture against the added USB drive, then test unplug/replug and the visible missing-drive failure on the Raspberry Pi.
+2. Register Cameras 2 through 4 by stable UID in the product coordinator and implement concurrent capture grouping, partial sets, atomic persistence, and camera-specific errors.
+3. Implement and measure the live four-image back-and-forth GIF/touchscreen path.
+4. Execute the physical-rig scenarios in `FOUR_NODE_E2E_TEST_PLAN.md`, retain the ledger/evidence, and run the artifact validator.
+5. Optimize or deliberately accept the measured acquisition/USB latency; the four-node repeated result remains above the soft two-second target.
+6. Defer electrical power conclusions until suitable instrumentation is available; USB descriptors and concurrent data integrity are not substitutes for aggregate power data.

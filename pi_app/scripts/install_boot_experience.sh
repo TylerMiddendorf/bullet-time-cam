@@ -84,7 +84,7 @@ apt-get update
 apt-get install --no-upgrade -y \
   git kanshi labwc lightdm network-manager plymouth python3 python3-pil \
   python3-tk python3-venv raspi-config-core rpd-common rpd-plym-splash \
-  swaybg x11-apps
+  swaybg udisks2 x11-apps
 mapfile -t system_requirements <"${SYSTEM_REQUIREMENTS_FILE}"
 apt-get install --no-upgrade -y "${system_requirements[@]}"
 

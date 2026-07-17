@@ -1,6 +1,6 @@
 # Milestone 1 Node Simplification and Trigger Refactor - July 17, 2026
 
-Status: firmware implementation, compile, four-node flash/startup smoke verification, Raspberry Pi deployment, one-node trigger-to-screen demonstrations, and four-node physical/Pi/repeated functional trigger tests complete. The required unpowered multimeter inspection was skipped by product-owner choice, so the electrical-inspection gate remains unresolved.
+Status: firmware implementation, compile, four-node flash/startup smoke verification, Raspberry Pi deployment, one-node trigger-to-screen demonstrations, four-node physical/Pi/repeated functional trigger tests, and the required unpowered multimeter inspection are complete. Checkpoint 4 is closed; four-image product grouping remains Checkpoint 5 work.
 
 ## Implementation
 
@@ -106,6 +106,6 @@ Named raw artifacts:
 
 ## Remaining Limitations
 
-- The required unpowered multimeter inspection was not performed. Functional success does not substitute for that electrical-safety evidence, so Checkpoint 4 remains open on this explicit gate.
+- The required unpowered multimeter inspection was initially skipped. Later on July 17, the product owner completed the full checklist in `TRIGGER_CIRCUIT.md` and reported that all continuity, resistance, button, isolation, and no-direct-short checks passed. Individual readings were not retained in the repository.
 - The checked-in UI still commits/displays one configured camera. The four-node probes validate concurrent trigger/protocol/integrity behavior, not four-image atomic grouping, consolidated storage, animation creation, or four-image display; those remain later checkpoint work.
 - No aggregate electrical power measurement was taken.

@@ -8,9 +8,9 @@ Objective: implement and verify the one-node trigger-to-touchscreen path through
 
 ## Status
 
-Overall: in progress
+Overall: Checkpoint 4 complete; handoff to Checkpoint 5 prepared
 
-Current phase: simplified firmware and GPIO17 runtime are deployed; one-node physical/Pi trigger-to-screen and four-node single/repeated trigger functions are verified, while the skipped unpowered electrical inspection remains an unresolved Checkpoint 4 gate
+Current phase: simplified firmware and GPIO17 runtime are deployed; one-node physical/Pi trigger-to-screen, four-node single/repeated trigger functions, and the prescribed unpowered multimeter inspection are verified. Four-node product grouping is next.
 
 ## Progress Log
 
@@ -69,17 +69,22 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - Ran the pinned installer successfully. It preserved backup `/var/lib/bullet-time-boot-backups/20260717T194902Z`, found `python3-lgpio` 0.2.2 already installed, and changed the application venv to expose system packages. The venv now imports `/usr/lib/python3/dist-packages/lgpio.py`.
 - The persistent verifier passed 30 configuration checks; its sole expected failure was `camera app is active` because the service remains deliberately stopped pending the circuit check. Read-only `pinctrl get 17` showed GPIO17 as an input with pull-down and LOW; the application has not claimed or pulsed it.
 - Pushed documentation commit `0144180` to `origin/main` and fast-forwarded the Pi checkout to the same commit. The normal service was then started; `pinctrl get 17` showed output/pull-down/LOW, and the unchanged count of 61 manifests proved initialization did not create a capture.
-- The product owner reported connecting Pi ground/trigger and all four cameras while powered and explicitly declined the prescribed unpowered multimeter inspection. Functional tests proceeded, but the missed continuity/resistance/transistor-pinout check remains an unresolved electrical gate.
+- The product owner initially connected Pi ground/trigger and all four cameras while powered before the prescribed multimeter inspection. Functional tests proceeded; later on July 17 the product owner completed the full unpowered checklist and reported all continuity, resistance, button, isolation, and no-direct-short checks passing. Individual readings were not retained.
 - One physical press through the normal Camera 1 service produced exactly one committed/displayed capture (`20260717T201911Z_e47521f8`, source `physical_shared_bus`, UID `E072A1F9A190`, sequence 2, 294,614 bytes, CRC32 `a63e9f12`, no errors, 2,073.317 ms event-to-display).
 - One normal touchscreen tap produced exactly one committed/displayed capture (`20260717T202133Z_c08c476d`, source `pi_gpio17`, sequence 3, 299,828 bytes, CRC32 `83b39e3c`, no errors, 2,065.389 ms event-to-display). The path used one 100 ms GPIO17 pulse and no USB `CAPTURE_REQUEST`.
 - A bounded four-port observer verified one physical press and, separately, one real 100 ms GPIO17 pulse. Each action produced exactly one `CAPTURE_STARTED`, one CRC/length/SOI/EOI-valid JPEG, and one `TRANSFER_COMPLETE` on all four stable UIDs, with zero errors and zero duplicates.
 - The first repeated GPIO probe pulsed again immediately after the last transfer completed. Only the node that had already spent over 40 ms back in its trigger loop rearmed; the other three correctly ignored the pulse. This measured the existing release-debounce boundary, so the firmware debounce was preserved and the probe added a 150 ms post-completion rearm interval.
 - The final 10-cycle four-node GPIO17 run passed 40/40 starts, valid JPEGs, and completions with zero errors and zero duplicates. Pulse-to-all-completions was 2,455.029 ms median and 2,496.740 ms p95/maximum; four-node start spread was 3.837 ms median and 4.930 ms p95/maximum. Every UID completed sequences 1-10. The service was restored active and GPIO17 output LOW.
+- Replaced the planned separate removable media-card path with the product owner's added USB drive. The application now parses mountinfo/sysfs to require a writable USB-backed filesystem, can request an automatic `udisks2` mount, creates `BulletTime/`, records storage details in manifests, supports a preferred mount name, and never falls back to the boot microSD. Local tests now pass 19/19.
+- Read-only Pi inspection found `/dev/sda1`, a removable 231 GB FAT partition labeled `USB DISK`, initially unmounted. A direct SSH `udisksctl` call was denied as expected for a non-local session; the exact non-interactive command then succeeded from the camera user-service context, mounting at `/media/username/USB DISK`. The mount is writable by `username`, and `/sys/dev/block/8:1` resolves through the Pi's USB topology. No application JPEG/GIF commit has yet been deployed or run against it.
+- A later live SSH inventory confirmed the product owner's final V1 hub/cabling is installed: VIA Labs `2109:3431` feeds Terminus `1a40:0101`, with all four stable ESP32 identities on the downstream hub at 12 Mb/s. The touchscreen and removable USB drive also enumerate on this chain.
+- The same inventory reports HDMI-A-2 at 800x480 and 65.681 Hz, a 150x100 mm physical area, generic EDID make/model `Addi-Data GmbH 0x0004`, and USB touch controller `8888:6666`. The USB interface advertises 5 V / 100 mA maximum; this is not a measured whole-display/backlight load.
+- Added the four-node persisted-evidence validator, CLI, ledger template, deterministic scenario tests, environment-gated physical-rig test, and `FOUR_NODE_E2E_TEST_PLAN.md`. The full local suite passes 23 tests with the one live-hardware test skipped until capture-root and ledger paths are supplied.
 
 ## Evidence Collected
 
 - Pi environment and USB topology evidence is listed in the progress log above.
-- Current Pi/protocol/fake-GPIO test result: 13 tests passed, 0 failed.
+- Current local Pi/protocol/fake-GPIO/storage/E2E-validator result: 23 tests passed, 0 failed, with one physical-rig evidence test skipped until live paths are supplied.
 - Revised firmware compile, four-node non-erase upload, flash hashes, camera startup, BTC1 protocol/stable identity, and trigger-ready verification passed.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
 - USB-diagnostic, physical-button, and Pi-GPIO trigger-to-screen behavior are verified on Camera 1. Literal hub unplug/replug, missing-node UI recovery, and live corrupt-payload/NACK/no-commit/recovery are also verified.
@@ -89,18 +94,20 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 ## Active Work
 
 - Keep the normal Pi user service active; it currently owns GPIO17 as output LOW while idle.
-- Resolve or formally waive the skipped unpowered electrical inspection before closing Checkpoint 4.
-- Continue next with four-image grouping/atomic commit/display and consolidated central removable storage; the temporary observers are not the product four-camera workflow.
+- Git-deploy and validate the USB-only storage implementation against the mounted drive, including a real capture and removal/failure behavior.
+- Continue next with four-image grouping/atomic commit/display; the temporary observers are not the product four-camera workflow.
+- Use `FOUR_NODE_E2E_TEST_PLAN.md` and its ledger after the four-node coordinator exists.
 
 ## Blockers and Limitations
 
-- The product owner skipped the required unpowered multimeter validation. Successful powered functional tests do not prove the documented resistance, continuity, isolation, or transistor-pinout checks.
 - Electrical power analytics require suitable measurement hardware and are outside this software-only session unless such hardware is already attached and accessible.
 - The four-node observers validate concurrent USB transfer integrity, but the checked-in UI still processes one configured node and does not yet atomically group four images or create/display the final animation.
+- The USB drive's enumeration, service-context mount, and write permission are verified, but the new code has not been deployed to the Pi and no JPEG/GIF application commit, unplug/replug, full, read-only, corrupt, or mid-write removal test has been recorded.
 
 ## Next Actions
 
-1. Record the omitted unpowered circuit measurements, or record an explicit product-owner waiver of that Checkpoint 4 safety gate.
+1. Git-deploy the USB storage code and record one real capture plus missing-drive/unplug-replug behavior on the Pi.
 2. Build the checked-in four-node capture grouping, atomic persistence, animation, and touchscreen review path using the validated shared-trigger/protocol behavior.
-3. Use suitable external instrumentation for electrical power measurements when available.
-4. Optimize the measured acquisition and USB-transfer bottlenecks; the repeated four-node run remains above the soft two-second target.
+3. Run the comprehensive physical-rig E2E sequence and validator, then retain its ledger and evidence.
+4. Use suitable external instrumentation for electrical power measurements when available.
+5. Optimize the measured acquisition and USB-transfer bottlenecks; the repeated four-node run remains above the soft two-second target.

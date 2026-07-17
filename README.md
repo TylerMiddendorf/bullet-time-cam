@@ -4,7 +4,7 @@
   <img src="assets/Logo_800x480.png" alt="Bullet-time camera project logo" width="480">
 </p>
 
-This project is building a production-like, self-contained bullet-time camera: a fairly compact handheld device with four camera viewpoints, an integrated screen, a physical shutter button, a central processor, removable media storage, and an internal rechargeable battery.
+This project is building a production-like, self-contained bullet-time camera: a fairly compact handheld device with four camera viewpoints, an integrated screen, a physical shutter button, a central processor, removable USB media storage, and an internal rechargeable battery.
 
 Each camera is managed by its own Seeed Studio XIAO ESP32S3 Sense and OV3660 sensor. A central computer—currently expected to be a Raspberry Pi 4 Model B or similar—will collect each four-image capture, improve and align the images, and create an animated GIF that moves through the viewpoints. The central computer will also run the on-device interface and may eventually host a Wi-Fi hotspot for browsing and downloading finished media.
 
@@ -14,9 +14,9 @@ The longer-term ideal is a scalable 12+ camera system. A larger array will use a
 
 Version 1 deliberately performs no alignment or appearance normalization: it transfers the four original JPEGs, preserves them, creates the simple animated GIF, and preserves that GIF as well. Image-quality processing begins after the complete capture-to-display system works reliably.
 
-The accepted version 1 display remains blank during the early Raspberry Pi kernel phase, then shows only `assets/Logo_800x480.png` and hands directly to the full-screen camera application without exposing firmware artwork, boot logs, a desktop, login prompt, cursor, or startup diagnostics. The application shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. A touchscreen is likely, but the project will use whichever Raspberry Pi-compatible display/control option is simplest to integrate.
+The accepted version 1 display remains blank during the early Raspberry Pi kernel phase, then shows only `assets/Logo_800x480.png` and hands directly to the full-screen camera application without exposing firmware artwork, boot logs, a desktop, login prompt, cursor, or startup diagnostics. The application shows a capture/loading screen while a shot is in progress, then displays the completed animation until the next shot begins. It has no gallery, deletion controls, live preview, or user-adjustable camera settings. Live preview is the first planned follow-up; camera settings are deferred to version 2. The installed HDMI touchscreen runs at 800x480; the Pi reports a 150x100 mm physical area, while its micro-USB touch/power interface advertises 5 V / 100 mA maximum. This descriptor is not a measured whole-display load.
 
-The Raspberry Pi will boot from a protected internal card. Original JPEGs and generated GIFs will be written to a separate user-removable media card, keeping the operating system isolated from normal media handling.
+The Raspberry Pi boots from a protected internal microSD card. Original JPEGs, manifests, and generated GIFs are written below `BulletTime/` on a separate user-removable USB drive, keeping the operating system isolated from normal media handling. The application detects USB-backed filesystems and can request automatic mounting; it does not fall back to the boot card when USB storage is missing.
 
 Version 1 requires an internal rechargeable battery and USB-C charging, but it does not need to operate while charging. One power button must safely boot and shut down the complete device. A low battery must initiate the same orderly shutdown before a brownout can corrupt storage or interrupt writes. Final battery capacity will be chosen after measuring the assembled system, with the goal of long runtime and many captures per charge.
 
@@ -34,11 +34,12 @@ The long-term product goal and current decisions are maintained in:
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md)
 - [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md)
-- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) - live status for the active Checkpoint 4 implementation session
+- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) - Checkpoint 4 evidence and handoff to four-node product grouping
 - [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md) - approved shared-shutter and Raspberry Pi GPIO17 circuit
 - [`docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md`](docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md) - paste-ready implementation handoff
 - [`docs/RASPBERRY_PI_SSH.md`](docs/RASPBERRY_PI_SSH.md)
 - [`docs/RASPBERRY_PI_BOOT_RUNBOOK.md`](docs/RASPBERRY_PI_BOOT_RUNBOOK.md) - reproduce, verify, recover, or roll back the accepted product boot state
+- [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](docs/FOUR_NODE_E2E_TEST_PLAN.md) - executable four-node acceptance contract, fault matrix, live ledger, and evidence gate
 
 ## Current Project State
 
@@ -54,15 +55,16 @@ The original four-camera breadboard prototype demonstrated local card capture wi
 - Touch input on the intended display works.
 - The accepted product boot path is visually verified: blank early boot, product logo, then the full-screen camera application, with no visible OS/debug text, desktop chrome, login prompt, or pointer.
 - The display uses HDMI video and a micro-USB connection for touch and/or display-side power.
-- A powered USB hub is carrying four concurrent ESP32 camera data links; four-node observers validated CRC-protected transfers from every stable UID.
+- The running Pi reports the display at 800x480, 65.681 Hz, and 150x100 mm, with USB touch controller `8888:6666` declaring 5 V / 100 mA maximum. Outer bezel/depth and real panel current are not available through software inventory.
+- The final V1 USB hub/cabling is installed on the Pi and carries four concurrent ESP32 camera data links; four-node observers validated CRC-protected transfers from every stable UID. The enumerated chain is VIA Labs `2109:3431` feeding Terminus `1a40:0101`.
 - A 3D printer is available for a later enclosure stage.
-- The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
+- The final integrated USB hub/cabling is selected and installed. The integrated battery system has not yet been selected. A USB storage drive has been added to the Raspberry Pi for user media.
 
-The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is installed and hardware-tested; the active service idles the pin output LOW. A physical press and normal touchscreen pulse each completed the Camera 1 storage/display workflow and produced exactly one valid capture on all four nodes. A 10-cycle Pi-trigger run completed 40/40 four-node captures with zero errors or duplicates. The product owner skipped the prescribed unpowered multimeter checks after wiring while powered, so that electrical-inspection gate remains unresolved; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
+The Pi application now selects writable USB-backed storage, asks `udisks2` to mount detected USB media when necessary, and fails visibly instead of writing captures to the boot microSD. The added 231 GB FAT drive enumerates as `/dev/sda1`, label `USB DISK`; the exact automatic-mount command succeeded from the camera user-service context and produced a writable `/media/username/USB DISK` mount. The new code has automated coverage but still needs Git deployment plus real JPEG/GIF capture and removal/failure testing on the Raspberry Pi. Raspberry Pi GPIO17 support for the 2N3904 circuit is installed and hardware-tested; the active service idles the pin output LOW. A physical press and normal touchscreen pulse each completed the earlier Camera 1 storage/display workflow and produced exactly one valid capture on all four nodes. A 10-cycle Pi-trigger run completed 40/40 four-node captures with zero errors or duplicates. The product owner subsequently completed the prescribed unpowered multimeter checklist and reported every check passing, closing that electrical gate; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
 
-The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, 13 passing Pi/protocol/fake-GPIO tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node physical/Pi-trigger-to-touchscreen path works through the powered hub. Multi-image GIF generation, product-level four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
+The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, USB-media discovery and atomic-storage path, instrumentation, 23 passing local Pi/protocol/fake-GPIO/storage/E2E-validator tests, an environment-gated physical-rig acceptance test, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node physical/Pi-trigger-to-touchscreen path works through the installed final hub. Multi-image GIF generation, product-level four-node grouping, execution of the live E2E ledger, real-drive removable-storage validation, internal power, and the handheld enclosure remain.
 
-The active Milestone 1 checkpoint remains the trigger-to-screen bench test only because its unpowered electrical-inspection gate was skipped. Normal touchscreen capture is one configured 100 ms GPIO17 pulse and sends no USB capture request; the USB command remains explicit diagnostic scaffolding only. Both physical and Pi hardware-trigger functional gates passed separately on four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
+Milestone 1 Checkpoint 4 is complete. Normal touchscreen capture is one configured 100 ms GPIO17 pulse and sends no USB capture request; the USB command remains explicit diagnostic scaffolding only. Both physical and Pi hardware-trigger functional gates and the electrical inspection pass. Checkpoint 5 four-node product grouping and partial-failure handling are next. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
 
@@ -89,7 +91,7 @@ Local Codex agents running under the same Windows account can use the alias, sub
 | Central computer | Collect captures and coordinate the complete device | Raspberry Pi 4B validated for one-node vertical slice; four-node suitability remains provisional |
 | Processing pipeline | Preserve originals and create the version 1 animation | One-image representative processing implemented; four-image GIF pending |
 | Integrated screen and UI | V1 status and post-capture review; preview/settings later | One-node loading/review/error flow implemented; four-node integration pending |
-| Central removable storage | Store user-accessible photos and GIFs | Atomic Pi-side capture persistence implemented; separate removable media pending |
+| Central removable storage | Store user-accessible photos and GIFs | USB auto-detection/mount request and USB-only atomic persistence implemented; real-drive Pi validation pending |
 | Internal battery system | Power and recharge the complete device | Planned |
 | Wi-Fi media access | Let phones and laptops browse/download results | Optional later stage |
 | Compact handheld enclosure | Turn the prototype into one finished physical product | Planned |

@@ -22,7 +22,7 @@ from .capture_control import initiate_capture
 from .gpio_trigger import HardwareTrigger
 from .protocol import (ACK, CAPTURE_STARTED, ERROR, HELLO, IMAGE, LOG, NACK,
                        PING, TEST_CORRUPT_NEXT_IMAGE, TRANSFER_COMPLETE, encode_frame, read_frame)
-from .storage import atomic_json, commit_capture
+from .storage import StorageUnavailable, UsbStorageResolver, atomic_json, commit_capture
 
 
 def discover_ports() -> list[str]:
@@ -30,11 +30,12 @@ def discover_ports() -> list[str]:
     return list(dict.fromkeys(os.path.realpath(path) for path in candidates))
 
 
-def resource_sample(phase: str) -> dict:
+def resource_sample(phase: str, storage_path: Path | None = None) -> dict:
     process = psutil.Process()
     process_cpu = process.cpu_times()
     memory = psutil.virtual_memory()
-    disk = psutil.disk_usage("/")
+    disk_path = storage_path if storage_path and storage_path.exists() else Path("/")
+    disk = psutil.disk_usage(disk_path)
     return {
         "phase": phase,
         "pi_monotonic_ns": time.monotonic_ns(),
@@ -43,6 +44,7 @@ def resource_sample(phase: str) -> dict:
         "process_rss_bytes": process.memory_info().rss,
         "available_memory_bytes": memory.available,
         "storage_free_bytes": disk.free,
+        "storage_sample_path": str(disk_path),
         "system_load_average_1m": psutil.getloadavg()[0],
     }
 
@@ -61,10 +63,11 @@ def response_metadata(metadata: dict, status: str, error: str | None = None) -> 
 
 class Receiver(threading.Thread):
     def __init__(self, config: dict, events: queue.Queue, commands: queue.Queue,
-                 stop: threading.Event, trigger: HardwareTrigger):
+                 stop: threading.Event, trigger: HardwareTrigger, storage: UsbStorageResolver):
         super().__init__(daemon=True)
         self.config, self.events, self.commands, self.stop = config, events, commands, stop
         self.trigger = trigger
+        self.storage = storage
         self.capture = {}
         self.pending_images = {}
         self.rejected_images = set()
@@ -112,7 +115,14 @@ class Receiver(threading.Thread):
             node_uid = hello.metadata.get("node_uid")
             if self.config.get("logical_cameras", {}).get(node_uid) != 1:
                 raise RuntimeError(f"Unregistered node UID: {node_uid}")
-            self.send_status("READY", message=f"Camera 1 connected: {port}\nTap to capture")
+            try:
+                storage_root = self.storage.resolve()
+                self.send_status(
+                    "READY",
+                    message=f"Camera 1 connected: {port}\nUSB storage: {storage_root}\nTap to capture",
+                )
+            except StorageUnavailable as exc:
+                self.send_status("ERROR", message=str(exc))
             while not self.stop.is_set():
                 automatic_request = self.automatic_triggers_remaining > 0 and not self.automatic_trigger_in_flight
                 request_capture = automatic_request
@@ -121,6 +131,12 @@ class Receiver(threading.Thread):
                         request_capture = True
                 except queue.Empty:
                     pass
+                if request_capture:
+                    try:
+                        self.storage.resolve()
+                    except StorageUnavailable as exc:
+                        self.send_status("ERROR", message=str(exc))
+                        request_capture = False
                 if request_capture:
                     if self.corrupt_next_payload:
                         stream.write(encode_frame(TEST_CORRUPT_NEXT_IMAGE, {
@@ -163,14 +179,14 @@ class Receiver(threading.Thread):
                     self.capture[key] = {
                         "capture_event_received_ns": now,
                         "trigger_source": trigger_source,
-                        "resource_samples": [resource_sample("capture_started")],
+                        "resource_samples": [resource_sample("capture_started", self.storage.active_root)],
                     }
                     self.send_status("LOADING", message="Capturing image...")
                 elif frame.message_type == IMAGE:
                     state = self.capture.setdefault(key, {"capture_event_received_ns": now, "resource_samples": []})
                     state["payload_receive_started_ns"] = frame.payload_started_ns
                     state["payload_received_ns"] = frame.payload_completed_ns
-                    state["resource_samples"].append(resource_sample("payload_received"))
+                    state["resource_samples"].append(resource_sample("payload_received", self.storage.active_root))
                     try:
                         if meta.get("jpeg_bytes") != len(frame.payload):
                             raise RuntimeError("JPEG metadata length mismatch")
@@ -234,7 +250,9 @@ class Receiver(threading.Thread):
                             "app_version": APP_VERSION,
                             "serial_port": pending["serial_port"],
                         }
-                        path, manifest = commit_capture(Path(self.config["storage_root"]), image_meta, pending["payload"], metrics)
+                        capture_root = self.storage.resolve()
+                        metrics["storage"] = self.storage.manifest_details()
+                        path, manifest = commit_capture(capture_root, image_meta, pending["payload"], metrics)
                         committed_ns = time.monotonic_ns()
                         manifest["metrics"]["pi_monotonic_ns"]["original_committed_ns"] = committed_ns
                         manifest["metrics"]["durations_ms"]["payload_to_commit"] = (committed_ns - state["payload_received_ns"]) / 1_000_000
@@ -251,9 +269,9 @@ class Receiver(threading.Thread):
                         raise
 
 
-def run_headless(config: dict, trigger: HardwareTrigger) -> None:
+def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
-    Receiver(config, events, commands, stop, trigger).start()
+    Receiver(config, events, commands, stop, trigger, storage).start()
     try:
         while True:
             print(json.dumps(events.get(), sort_keys=True), flush=True)
@@ -261,7 +279,7 @@ def run_headless(config: dict, trigger: HardwareTrigger) -> None:
         stop.set()
 
 
-def run_ui(config: dict, trigger: HardwareTrigger) -> None:
+def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:
     import tkinter as tk
 
     root = tk.Tk()
@@ -308,7 +326,7 @@ def run_ui(config: dict, trigger: HardwareTrigger) -> None:
     root.update()
 
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
-    Receiver(config, events, commands, stop, trigger).start()
+    Receiver(config, events, commands, stop, trigger, storage).start()
 
     def poll() -> None:
         try:
@@ -368,11 +386,15 @@ def main() -> None:
                                   int(config.get("trigger_count", 0)))
     config["corrupt_next_payload"] = args.corrupt_next_payload or bool(config.get("corrupt_next_payload", False))
     config["diagnostic_usb_trigger"] = args.diagnostic_usb_trigger
-    config["storage_root"] = str((config_dir / config["storage_root"]).resolve())
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str((logo_path if logo_path.is_absolute() else config_dir / logo_path).resolve())
-    (Path(config["storage_root"])).mkdir(parents=True, exist_ok=True)
+    storage_config = config.get("usb_storage", {})
+    storage = UsbStorageResolver(
+        capture_directory=storage_config.get("capture_directory", "BulletTime"),
+        preferred_mount_name=storage_config.get("preferred_mount_name"),
+        auto_mount=bool(storage_config.get("auto_mount", True)),
+    )
     trigger_pin = int(config["trigger_gpio_bcm"])
     pulse_seconds = float(config["trigger_pulse_ms"]) / 1000
 
@@ -383,7 +405,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, request_shutdown)
     try:
         with HardwareTrigger(trigger_pin, pulse_seconds) as trigger:
-            (run_headless if args.headless else run_ui)(config, trigger)
+            (run_headless if args.headless else run_ui)(config, trigger, storage)
     except KeyboardInterrupt:
         pass
 

@@ -4,10 +4,201 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import subprocess
 import time
 import uuid
 import zlib
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable, Iterable
+
+
+class StorageUnavailable(RuntimeError):
+    """Raised when no writable USB-backed filesystem is available."""
+
+
+@dataclass(frozen=True)
+class UsbMount:
+    mountpoint: Path
+    source: str
+    filesystem: str
+    major_minor: str
+
+
+_MOUNT_ESCAPE = re.compile(r"\\([0-7]{3})")
+
+
+def _unescape_mount_field(value: str) -> str:
+    return _MOUNT_ESCAPE.sub(lambda match: chr(int(match.group(1), 8)), value)
+
+
+def is_usb_block_device(major_minor: str, sys_dev_block: Path = Path("/sys/dev/block")) -> bool:
+    """Return whether a mounted block device descends from a USB sysfs device."""
+    try:
+        resolved = (sys_dev_block / major_minor).resolve(strict=True)
+    except (FileNotFoundError, OSError):
+        return False
+    return any(part.lower().startswith("usb") for part in resolved.parts)
+
+
+def discover_usb_mounts(
+    mountinfo_path: Path = Path("/proc/self/mountinfo"),
+    sys_dev_block: Path = Path("/sys/dev/block"),
+) -> list[UsbMount]:
+    """Find writable, mounted filesystems whose backing block device is USB."""
+    mounts: list[UsbMount] = []
+    try:
+        lines = mountinfo_path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise StorageUnavailable(f"cannot read mounted filesystems: {exc}") from exc
+
+    for line in lines:
+        fields = line.split()
+        try:
+            separator = fields.index("-")
+            major_minor = fields[2]
+            mountpoint = Path(_unescape_mount_field(fields[4]))
+            mount_options = fields[5].split(",")
+            filesystem = fields[separator + 1]
+            source = _unescape_mount_field(fields[separator + 2])
+        except (ValueError, IndexError):
+            continue
+        if "ro" in mount_options or mountpoint == Path("/"):
+            continue
+        if not is_usb_block_device(major_minor, sys_dev_block):
+            continue
+        mounts.append(UsbMount(mountpoint, source, filesystem, major_minor))
+    return mounts
+
+
+def discover_usb_block_devices(sys_class_block: Path = Path("/sys/class/block")) -> list[Path]:
+    """Find USB disks/partitions that udisks can be asked to mount."""
+    try:
+        entries = list(sys_class_block.iterdir())
+    except OSError:
+        return []
+    usb_entries: list[tuple[Path, Path, bool]] = []
+    for entry in entries:
+        try:
+            resolved = entry.resolve(strict=True)
+        except (FileNotFoundError, OSError):
+            continue
+        if not any(part.lower().startswith("usb") for part in resolved.parts):
+            continue
+        if entry.name.startswith(("loop", "ram", "zram")):
+            continue
+        is_partition = (entry / "partition").exists()
+        usb_entries.append((entry, resolved, is_partition))
+    partitioned_disks = {
+        resolved.parent.name for _, resolved, is_partition in usb_entries if is_partition
+    }
+    devices: list[tuple[bool, Path]] = []
+    for entry, _, is_partition in usb_entries:
+        if not is_partition and entry.name in partitioned_disks:
+            continue
+        devices.append((is_partition, Path("/dev") / entry.name))
+    # Prefer partitions. Whole-disk filesystems remain supported when no
+    # partition table exists.
+    return [device for _, device in sorted(devices, key=lambda item: (not item[0], str(item[1])))]
+
+
+def auto_mount_usb_volumes(devices: Iterable[Path] | None = None) -> list[str]:
+    """Ask udisks2 to mount detected USB block devices for the active user."""
+    errors: list[str] = []
+    candidates = list(devices) if devices is not None else discover_usb_block_devices()
+    for device in candidates:
+        try:
+            completed = subprocess.run(
+                ["udisksctl", "mount", "--no-user-interaction", "--block-device", str(device)],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+        except (FileNotFoundError, subprocess.SubprocessError, OSError) as exc:
+            errors.append(f"{device}: {exc}")
+            continue
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout).strip()
+            errors.append(f"{device}: {detail or 'udisksctl mount failed'}")
+    return errors
+
+
+class UsbStorageResolver:
+    """Resolve every capture to a currently mounted, writable USB volume."""
+
+    def __init__(
+        self,
+        capture_directory: str = "BulletTime",
+        preferred_mount_name: str | None = None,
+        auto_mount: bool = True,
+        mount_discovery: Callable[[], list[UsbMount]] | None = None,
+        automounter: Callable[[], list[str]] | None = None,
+    ) -> None:
+        relative = Path(capture_directory)
+        if relative.is_absolute() or ".." in relative.parts or relative == Path("."):
+            raise ValueError("USB capture_directory must be a non-empty relative path")
+        self.capture_directory = relative
+        self.preferred_mount_name = preferred_mount_name
+        self.auto_mount = auto_mount
+        self._mount_discovery = mount_discovery or discover_usb_mounts
+        self._automounter = automounter or auto_mount_usb_volumes
+        self.active_mount: UsbMount | None = None
+        self.active_root: Path | None = None
+
+    def _ordered_mounts(self) -> list[UsbMount]:
+        mounts = self._mount_discovery()
+        return sorted(
+            mounts,
+            key=lambda mount: (
+                0 if self.preferred_mount_name and mount.mountpoint.name == self.preferred_mount_name else 1,
+                str(mount.mountpoint),
+            ),
+        )
+
+    def _select(self, mounts: Iterable[UsbMount]) -> Path | None:
+        for mount in mounts:
+            if not mount.mountpoint.is_dir() or not os.access(mount.mountpoint, os.W_OK):
+                continue
+            root = mount.mountpoint / self.capture_directory
+            try:
+                root.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                continue
+            if not os.access(root, os.W_OK):
+                continue
+            self.active_mount = mount
+            self.active_root = root
+            return root
+        return None
+
+    def resolve(self) -> Path:
+        root = self._select(self._ordered_mounts())
+        mount_errors: list[str] = []
+        if root is None and self.auto_mount:
+            mount_errors = self._automounter()
+            root = self._select(self._ordered_mounts())
+        if root is not None:
+            return root
+        self.active_mount = None
+        self.active_root = None
+        detail = f" Automatic mount errors: {'; '.join(mount_errors)}" if mount_errors else ""
+        raise StorageUnavailable(
+            "No writable USB storage is mounted. Insert a USB drive and try again." + detail
+        )
+
+    def manifest_details(self) -> dict:
+        if self.active_mount is None or self.active_root is None:
+            return {"transport": "usb", "available": False}
+        return {
+            "transport": "usb",
+            "available": True,
+            "mountpoint": str(self.active_mount.mountpoint),
+            "source": self.active_mount.source,
+            "filesystem": self.active_mount.filesystem,
+            "capture_root": str(self.active_root),
+        }
 
 
 def atomic_json(path: Path, value: dict) -> None:
@@ -52,4 +243,3 @@ def commit_capture(root: Path, metadata: dict, jpeg: bytes, metrics: dict) -> tu
     except OSError:
         pass
     return final, manifest
-
