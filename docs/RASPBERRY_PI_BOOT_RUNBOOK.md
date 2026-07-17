@@ -108,7 +108,7 @@ Expected live processes are:
 - the Python camera application
 - Xwayland for the Tk application
 
-`wf-panel-pi`, `pcmanfm`, and other Raspberry Pi desktop components must not be running. `checkpoint4-ui.service` is expected to be active but disabled: the dedicated labwc autostart starts it only after the graphical socket exists.
+`wf-panel-pi`, `pcmanfm`, and other Raspberry Pi desktop components must not be running. `bullet-time-ui.service` is expected to be active but disabled: the dedicated labwc autostart starts it only after the graphical socket exists. The installer removes the retired `checkpoint4-ui.service` during migration.
 
 ## What the Installer Owns
 

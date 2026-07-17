@@ -1,6 +1,8 @@
-# Raspberry Pi Checkpoint 4 Application
+# Raspberry Pi Bullet-Time Application
 
-This application receives one camera node's framed JPEG stream over USB CDC, validates and atomically preserves the original on removable USB storage, records timing/resource evidence, and displays the result on the Raspberry Pi touchscreen. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
+This application receives framed JPEG streams over USB CDC, validates and atomically preserves originals on removable USB storage, records timing/resource evidence, and displays results on the Raspberry Pi touchscreen. The currently validated product coordinator handles Camera 1 while Checkpoint 5 extends grouping across all four registered nodes. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
+
+Runtime responsibilities are split across focused modules under `pi_app/bullettime/`: `main.py` owns CLI/configuration, `receiver.py` owns serial transactions, `ui.py` owns headless/touchscreen presentation, `discovery.py` owns port discovery, and `metrics.py` owns resource observations. Protocol, GPIO, capture control, and storage remain separate modules. Persisted E2E evidence validation lives under `pi_app/evidence/`, outside the device runtime.
 
 Run tests from the repository root:
 
@@ -8,7 +10,7 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently passes 23 tests and skips one environment-gated physical-rig test. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, corrupt and truncated transfers, stable identity across a node reboot, JPEG/GIF integrity, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test after the four-node coordinator is implemented.
+The normal local run currently passes 24 tests and skips one environment-gated physical-rig test. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, corrupt and truncated transfers, stable identity across a node reboot, JPEG/GIF integrity, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test after the four-node coordinator is implemented.
 
 Run the application:
 

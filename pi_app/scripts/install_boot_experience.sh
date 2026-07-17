@@ -23,7 +23,9 @@ TARGET_UID="$(id -u "${TARGET_USER}")"
 TARGET_GROUP="$(id -gn "${TARGET_USER}")"
 EXPECTED_REPO_ROOT="${TARGET_HOME}/bullet-time-cam"
 LOGO_PNG="${REPO_ROOT}/assets/Logo_800x480.png"
-SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/checkpoint4-ui.service"
+SERVICE_NAME="bullet-time-ui.service"
+LEGACY_SERVICE_NAME="checkpoint4-ui.service"
+SERVICE_SOURCE="${REPO_ROOT}/pi_app/systemd/${SERVICE_NAME}"
 SESSION_SOURCE="${REPO_ROOT}/pi_app/session"
 REQUIREMENTS_FILE="${REPO_ROOT}/pi_app/requirements.txt"
 SYSTEM_REQUIREMENTS_FILE="${REPO_ROOT}/pi_app/system-requirements.txt"
@@ -37,7 +39,8 @@ USER_LABWC_DIR="${TARGET_HOME}/.config/bullet-time-labwc"
 USER_SYSTEMD_DIR="${TARGET_HOME}/.config/systemd/user"
 USER_AUTOSTART="${USER_LABWC_DIR}/autostart"
 USER_ENVIRONMENT="${USER_LABWC_DIR}/environment"
-USER_SERVICE="${USER_SYSTEMD_DIR}/checkpoint4-ui.service"
+USER_SERVICE="${USER_SYSTEMD_DIR}/${SERVICE_NAME}"
+LEGACY_USER_SERVICE="${USER_SYSTEMD_DIR}/${LEGACY_SERVICE_NAME}"
 CLOUD_INIT_DISABLED_FILE="/etc/cloud/cloud-init.disabled"
 CURSOR_THEME_DIR="/usr/share/icons/BulletTimeInvisible"
 
@@ -73,7 +76,10 @@ if [ -e "${USER_ENVIRONMENT}" ]; then
   cp -a "${USER_ENVIRONMENT}" "${BACKUP_DIR}/labwc-environment"
 fi
 if [ -e "${USER_SERVICE}" ]; then
-  cp -a "${USER_SERVICE}" "${BACKUP_DIR}/checkpoint4-ui.service"
+  cp -a "${USER_SERVICE}" "${BACKUP_DIR}/${SERVICE_NAME}"
+fi
+if [ -e "${LEGACY_USER_SERVICE}" ]; then
+  cp -a "${LEGACY_USER_SERVICE}" "${BACKUP_DIR}/${LEGACY_SERVICE_NAME}"
 fi
 if [ -e /usr/share/plymouth/themes/default.plymouth ]; then
   readlink -f /usr/share/plymouth/themes/default.plymouth >"${BACKUP_DIR}/default-plymouth-theme.txt" || true
@@ -185,7 +191,7 @@ install -d -m 0755 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${USER_LABWC_DIR}" 
 {
   printf '/usr/bin/swaybg -c 000000 -i %q -m fill &\n' "${LOGO_PNG}"
   printf '/usr/bin/kanshi &\n'
-  printf '/usr/bin/systemctl --user restart checkpoint4-ui.service &\n'
+  printf '/usr/bin/systemctl --user restart %s &\n' "${SERVICE_NAME}"
 } >"${TEMP_DIR}/labwc-autostart"
 install -m 0644 -o "${TARGET_USER}" -g "${TARGET_GROUP}" "${TEMP_DIR}/labwc-autostart" "${USER_AUTOSTART}"
 printf 'XCURSOR_THEME=BulletTimeInvisible\nXCURSOR_SIZE=24\n' >"${TEMP_DIR}/labwc-environment"
@@ -237,7 +243,14 @@ systemctl daemon-reload
 
 if [ -S "/run/user/${TARGET_UID}/bus" ]; then
   runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
-    systemctl --user disable checkpoint4-ui.service || true
+    systemctl --user stop "${LEGACY_SERVICE_NAME}" || true
+  runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
+    systemctl --user disable "${LEGACY_SERVICE_NAME}" || true
+  runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
+    systemctl --user disable "${SERVICE_NAME}" || true
+fi
+rm -f "${LEGACY_USER_SERVICE}"
+if [ -S "/run/user/${TARGET_UID}/bus" ]; then
   runuser -u "${TARGET_USER}" -- env "XDG_RUNTIME_DIR=/run/user/${TARGET_UID}" \
     systemctl --user daemon-reload
 fi

@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from pi_app.bullettime.e2e_validation import validate_scenario_ledger
+from pi_app.evidence.validation import validate_scenario_ledger
 
 
 def main() -> None:

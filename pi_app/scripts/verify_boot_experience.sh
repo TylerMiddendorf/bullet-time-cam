@@ -54,7 +54,8 @@ check "desktop chrome is not running" bash -c "! ps -eo comm= | grep -Eq '^(wf-p
 check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${LABWC_AUTOSTART}"
 check "labwc selects the invisible cursor theme" grep -Eq '^XCURSOR_THEME=BulletTimeInvisible$' "${LABWC_ENVIRONMENT}"
 check "invisible cursor theme is installed" test -s /usr/share/icons/BulletTimeInvisible/cursors/left_ptr
-check "camera app is active" systemctl --user is-active --quiet checkpoint4-ui.service
+check "camera app is active" systemctl --user is-active --quiet bullet-time-ui.service
+check "legacy checkpoint service is absent" test ! -e "${HOME}/.config/systemd/user/checkpoint4-ui.service"
 
 if [ "${failures}" -ne 0 ]; then
   echo "${failures} boot-experience check(s) failed." >&2

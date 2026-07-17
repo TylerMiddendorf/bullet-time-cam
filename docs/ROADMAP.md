@@ -59,7 +59,7 @@ Work:
 Intermediary checkpoints:
 
 1. Pi and touchscreen bring-up
-2. Offline GIF/UI vertical slice using existing repository photos
+2. Offline GIF/UI vertical slice using reproducible local-only photos generated under ignored `photos/`
 3. One-node direct USB JPEG transfer
 4. **Complete:** one-node full-system bench test through the powered USB hub, including capture, direct transfer, preservation, representative processing, touchscreen display, stage analytics, and the electrical inspection
 5. **Next:** Four-node capture grouping and partial-failure handling
@@ -88,7 +88,7 @@ Status: implementation started early; Raspberry Pi hardware validation remains a
 - Validate actual JPEG and GIF writes, restart behavior, unplug/replug, and deterministic selection when more than one USB drive is present.
 - Handle missing, full, corrupt, read-only, and prematurely removed USB drives safely and visibly.
 
-Bring-up evidence on July 17, 2026: the Pi enumerated the added removable 231 GB FAT partition as `/dev/sda1`, label `USB DISK`, with USB sysfs ancestry. The exact `udisksctl` non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, and the mount was writable by user `username`. The full local suite passes 23 tests, with the physical-rig E2E test skipped until live evidence exists. The code has not yet been Git-deployed to the Pi, and no real JPEG/GIF application commit or removal/failure test has been recorded, so this milestone remains open.
+Bring-up evidence on July 17, 2026: the Pi enumerated the added removable 231 GB FAT partition as `/dev/sda1`, label `USB DISK`, with USB sysfs ancestry. The exact `udisksctl` non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, and the mount was writable by user `username`. The full local suite passes 24 tests, with the physical-rig E2E test skipped until live evidence exists. The code has not yet been Git-deployed to the Pi, and no real JPEG/GIF application commit or removal/failure test has been recorded, so this milestone remains open.
 
 ## Milestone 3 - Integrated Battery and Safe Power
 

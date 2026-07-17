@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from pi_app.bullettime.e2e_validation import (
+from pi_app.evidence.validation import (
     EvidenceValidationError,
     validate_capture,
     validate_scenario_ledger,

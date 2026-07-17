@@ -1,18 +1,10 @@
-# Local camera captures and generated image artifacts.
-/photos/**/*.[jJ][pP][gG]
-/photos/**/*.[jJ][pP][eE][gG]
-/photos/**/*.[pP][nN][gG]
-/photos/**/*.[gG][iI][fF]
-/photos/**/*.[wW][eE][bB][pP]
-/photos/**/*.[bB][mM][pP]
-/photos/**/*.[tT][iI][fF]
-/photos/**/*.[tT][iI][fF][fF]
-/photos/**/*.[hH][eE][iI][cC]
-/photos/**/*.[dD][nN][gG]
+# Local camera captures and generated image artifacts. Keep only the usage
+# documentation so a fresh clone contains the directory but never its images.
+/photos/**
+!/photos/README.md
 
 # Arduino/ESP32 build output.
 .build/
-button_capture/build/
 
 # Local camera application output.
 pi_app/captures/
