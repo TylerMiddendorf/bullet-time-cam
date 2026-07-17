@@ -16,11 +16,11 @@ Status: complete prototype
 - Common firmware on all four nodes
 - Successful 2048x1536 JPEG capture to each node card
 
-The node microSD cards and GPIO-driven status LEDs are historical prototype features. The approved July 17 target revision removes them from the camera-node firmware and hardware; that revision is pending implementation and does not invalidate the completed prototype evidence.
+The node microSD cards and GPIO-driven status LEDs are historical prototype features. Firmware 0.2.0 removes their behavior from the camera nodes and passed revised four-node startup verification on July 17; this does not invalidate the completed prototype evidence.
 
 ## Milestone 1 - Bench-Top End-to-End Capture
 
-Status: active - Checkpoint 4 physical-shutter validation remains open
+Status: active - Checkpoint 4 physical and Pi hardware-trigger validation remains open
 
 Goal: use bench/USB power to prove the entire software and data path before investing in the battery system or enclosure.
 
@@ -39,8 +39,8 @@ End-to-end path after the approved trigger/node simplification:
 
 Work:
 
-- Remove camera-node status-LED GPIO behavior and node microSD code/requirements while preserving direct frame-buffer USB transfer.
-- Add Raspberry Pi BCM GPIO17 hardware-trigger output with a boot-safe low idle and 100 ms high pulse through the documented transistor circuit.
+- Camera-node simplification is implemented, flashed, and startup-verified on all four nodes; capture validation remains open.
+- Raspberry Pi BCM GPIO17 hardware-trigger output is implemented and fake-backend tested with a boot-safe low idle and 100 ms high pulse; Git deployment and electrical validation remain open.
 - Use USB `CAPTURE_STARTED` as the Pi notification path for both physical and Pi-initiated captures; do not add a direct trigger-sense GPIO.
 - Identify and configure the available touchscreen.
 - Establish Raspberry Pi OS and application development environment.
@@ -68,7 +68,7 @@ Intermediary checkpoints:
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. It remains active for the approved firmware simplification plus physical-button and Pi-GPIO trigger validation. The measured 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
+Checkpoint 4 has demonstrated the temporary USB-request-to-touchscreen path, a clean 20-capture instrumented run, two literal hub reconnects, visible missing-node error/recovery, safe non-commit when the receiver is terminated mid-transfer, and a live deliberately corrupted payload that produced a targeted NACK, visible UI error, no committed/partial image, and immediate successful recovery. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes; 13 Pi/protocol tests passed for the hardware-only normal action and GPIO safety behavior. It remains active for the unpowered circuit inspection plus physical-button and Pi-GPIO capture demonstrations. The measured earlier 2.494-second median result exceeds the soft target; acquisition and USB transfer are the first optimization candidates before four-node scaling. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
 Exit criteria:
 

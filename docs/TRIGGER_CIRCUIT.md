@@ -1,6 +1,6 @@
 # Shared Trigger and Raspberry Pi Control Circuit
 
-Status: approved hardware design; Raspberry Pi GPIO control and the camera-node LED/microSD removal are pending implementation and bench validation.
+Status: approved hardware design; camera-node simplification is deployed and startup-verified on four nodes, and Raspberry Pi GPIO control is implemented and fake-backend tested but not yet deployed or electrically bench-validated.
 
 ## Design Intent
 
@@ -19,7 +19,7 @@ The Raspberry Pi does not need a separate GPIO input to observe the shutter. Eac
 | Each XIAO ESP32S3 Sense | `GND` | Ground | Common trigger reference |
 | Raspberry Pi 4 | BCM `GPIO17`, physical pin 11 | Output | Drives the transistor base through 4.7 kOhm |
 | Raspberry Pi 4 | Physical pin 6 or another `GND` pin | Ground | Common trigger reference |
-| Each XIAO `D0 / GPIO1` | Unused after the pending firmware revision | - | No camera-node status LED |
+| Each XIAO `D0 / GPIO1` | Unused | - | No camera-node function |
 
 ## Components
 
@@ -95,3 +95,7 @@ Then validate in stages:
 3. Connect the Pi GPIO circuit after its software initializes GPIO17 low.
 4. Confirm a 100 ms Pi pulse produces one capture per node without a duplicate USB request.
 5. Confirm physical and Pi-initiated captures both generate USB `CAPTURE_STARTED` events and complete the Pi storage/display path.
+
+## Validation Record
+
+On July 17, 2026, firmware 0.2.0 was flashed to all four nodes and each node passed the camera-ready, BTC1 protocol/stable-UID, and trigger-ready startup gates without initializing or accessing a node card. Pi GPIO tests use an injected fake backend and passed initialization LOW, one 100 ms pulse, repeated pulses, and exception/shutdown cleanup LOW. These are software/startup results only. The unpowered circuit measurements and stages 1-5 above remain pending, so GPIO17 must not be pulsed yet and Checkpoint 4 remains open. See [`evidence/milestone1-trigger-refactor-2026-07-17.md`](evidence/milestone1-trigger-refactor-2026-07-17.md).

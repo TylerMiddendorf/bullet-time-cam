@@ -102,7 +102,7 @@ There are four identical camera nodes. Each currently consists of:
 - Connection to the shared physical trigger
 - The same Arduino camera-node firmware
 
-The existing breadboard prototype and repository firmware still contain 16 GB node microSD cards and individual GPIO-driven status LEDs. By product-owner decision on July 17, 2026, both are removed from the target camera-node design: node firmware will stream the 2048x1536 JPEG directly from the frame buffer to the Pi, will not initialize or write microSD, and will not reserve a GPIO for a status LED. This revision is approved but not yet implemented or bench-validated, so earlier microSD/LED evidence remains historical rather than proof of the revised node design.
+Firmware 0.2.0 implements the July 17 camera-node simplification: it streams the 2048x1536 JPEG directly from the frame buffer to the Pi, does not initialize or access node storage, and leaves `D0 / GPIO1` unused. The same image was flashed to all four nodes on July 17 and each passed camera, BTC1 protocol/stable-identity, and trigger startup gates. Earlier card/LED results remain truthful historical prototype evidence, not evidence for the current design. Capture and electrical trigger validation of the revision is still pending.
 
 ### Central computer - planned
 
@@ -197,9 +197,9 @@ Battery chemistry, capacity, regulators, exact low-battery thresholds, and a num
 
 ### Storage - prototype and planned
 
-Current prototype storage:
+Historical prototype storage:
 
-- Each camera node saves captures to its own 16 GB microSD card.
+- Each camera node saved captures to its own 16 GB card before firmware 0.2.0 superseded that path.
 
 Approved camera-node revision:
 
@@ -215,7 +215,7 @@ Planned product storage:
 - A protected internal boot card dedicated to the Raspberry Pi operating system and application
 - A physically separate user-removable media card containing the original JPEGs and generated GIFs
 
-The camera driver already exposes a captured JPEG in the ESP32S3 frame buffer before it is written to microSD. A future firmware path may transmit directly from that buffer and return it after transfer, avoiding a required intermediate card write. Available memory, sustained transport bandwidth, retries, and the two-second normal-case target must be measured under simultaneous four-node operation.
+Firmware 0.2.0 transmits the captured JPEG directly from the ESP32S3 frame buffer and returns the buffer after the ACK/NACK transfer attempt. Available memory, sustained transport bandwidth, retries, and the two-second normal-case target must still be measured under simultaneous four-node operation.
 
 The Raspberry Pi boot card should not be normally accessible to the user. The removable media card needs its own accessible slot or reader. The exact reader interface, card-removal detection, filesystem, and behavior when the media card is missing, full, corrupt, or removed during a write remain to be designed.
 
@@ -249,14 +249,14 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 As of July 17, 2026 (capture-path bench evidence recorded July 11; product-boot evidence recorded July 17):
 
-- Four XIAO ESP32S3 Sense modules, four OV3660 sensors, and four 16 GB microSD cards are on hand.
+- Four XIAO ESP32S3 Sense modules and four OV3660 sensors are on hand. Four node cards from the superseded prototype remain in inventory but are not used by current firmware.
 - All four modules are assembled on a breadboard.
 - A universal/shared shutter button is wired to all four nodes.
-- Each node has its own status LED.
+- Historical/superseded: each node previously used an individual status LED.
 - The boards are powered by USB from a battery hub.
 - The shared button and all four camera nodes work as expected.
-- Each node captures and saves images to its individual microSD card.
-- The repository contains working camera-node firmware plus wiring and flashing instructions.
+- Historical/superseded: the original prototype saved images to individual node cards.
+- Firmware 0.2.0 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and transfers captures directly through BTC1 without initializing node storage.
 - A Raspberry Pi 4 Model B with 2 GB RAM is on hand.
 - The Raspberry Pi 4 has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input works on the intended display.
@@ -278,9 +278,9 @@ As of July 17, 2026 (capture-path bench evidence recorded July 11; product-boot 
 - A forced receiver interruption left no committed or partial capture, and the app/node recovered without a Pi reboot. Two literal cable unplug/replug cycles preserved logical Camera 1 and service continuity; a live disconnect displayed a missing-node error and recovered visibly. A deliberately corrupted live USB payload produced a targeted NACK and visible checksum error without committing an original or partial file; the next normal capture succeeded. Physical-button validation, electrical power measurement, and concurrent four-node behavior remain unverified.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has both a successful four-camera local-capture prototype and a validated one-node Raspberry Pi vertical slice. The node-to-Pi protocol, direct JPEG transfer, integrity checks, atomic preservation, instrumentation, and touchscreen review work for the temporary USB-request path. It is not yet a four-node end-to-end system or a self-contained handheld product.
+The project now has a successful historical four-camera local-capture prototype, a validated one-node Raspberry Pi vertical slice, and revised firmware startup-verified on four nodes. The node-to-Pi protocol, direct JPEG transfer, integrity checks, atomic preservation, instrumentation, and touchscreen review work for the earlier explicit USB diagnostic path. Raspberry Pi hardware-trigger code is implemented and fake-backend tested but not yet deployed or electrically exercised. It is not yet a four-node end-to-end system or a self-contained handheld product.
 
-The active gate is to connect and validate the physical shared shutter for the one-node path, then scale the proven USB architecture to four nodes and generate the live multi-image GIF. Battery integration and enclosure work follow only after the bench path works and its power/performance requirements have been measured. See `ROADMAP.md` and `MILESTONE_1_PLAN.md`.
+The active gate is the unpowered circuit inspection followed by separate physical-shutter and Pi GPIO17 trigger demonstrations. Each must produce exactly one `CAPTURE_STARTED`/JPEG workflow per connected node without duplicate capture. Repeated four-node capture evidence is still required before scaling into capture grouping and the live multi-image GIF. Battery integration and enclosure work follow only after the bench path works and its power/performance requirements have been measured. See `ROADMAP.md` and `MILESTONE_1_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -313,9 +313,9 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The two-second target is soft and may be exceeded while work is actively progressing.
 - The first version continues to use the shared physical trigger line.
 - The central computer should later be able to activate that trigger for remote and time-lapse capture.
-- Camera-node microSD storage and GPIO-driven status LEDs are removed from the target node design; the current code still requires a cleanup revision before this decision is implemented.
+- Camera-node local storage and GPIO-driven status indication are removed from firmware 0.2.0; all four nodes passed the revised startup gates on July 17, while capture validation remains pending.
 - Live JPEGs transfer directly from each ESP32S3 frame buffer to the central computer.
-- Each node uses `D1 / GPIO2` for the shared active-low physical trigger; `D0 / GPIO1` becomes unused after the pending firmware revision.
+- Each node uses `D1 / GPIO2` for the shared active-low physical trigger; `D0 / GPIO1` is unused.
 - Raspberry Pi BCM GPIO17, physical pin 11, activates the shared trigger through the documented 2N3904 open-collector circuit.
 - The Pi observes capture start through USB `CAPTURE_STARTED` messages rather than a separate trigger-sense GPIO.
 - The final device has an integrated screen and a physical shutter button.
@@ -370,8 +370,7 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 - Scale and benchmark USB image transfer with four nodes; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
 - Test capture, transfer, and initial processing against the two-second normal-case target.
 - Extend the existing `BTC1` capture and transfer protocol for concurrent multi-node grouping and partial sets.
-- Implement and validate Raspberry Pi BCM GPIO17 control of the approved 2N3904 open-collector trigger circuit.
-- Remove the camera-node status-LED GPIO behavior and all node microSD code, messages, deployment requirements, and non-historical documentation.
+- Deploy and electrically validate the implemented Raspberry Pi BCM GPIO17 control of the approved 2N3904 open-collector trigger circuit.
 - Extend the validated one-node transfer and recovery behavior to four concurrent nodes.
 - Assign and persist stable logical numbers for Cameras 2 through 4.
 - Define progress detection, timeout thresholds, retry rules, and the minimum viable partial animation.

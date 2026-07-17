@@ -101,7 +101,7 @@ Cost gate: no purchase
 
 Work:
 
-- Refactor the node firmware so capture, optional node storage, and transfer are separate operations.
+- Keep node capture and USB transfer as separate operations without node-local storage.
 - Emit a capture-start event immediately after the debounced trigger is accepted.
 - Add a binary-safe protocol with, at minimum:
   - Protocol version
@@ -142,7 +142,7 @@ Build the narrowest real vertical slice before completing the broader offline an
 
 End-to-end path:
 
-`temporary touchscreen/USB request (physical trigger when wired) -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
+`physical shutter or Pi GPIO17 pulse -> one ESP32S3 -> frame-buffer JPEG -> USB hub -> Raspberry Pi -> validated original -> display artifact -> touchscreen`
 
 Work:
 
@@ -216,12 +216,25 @@ Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
 - Two physical hub disconnect/reconnect cycles were completed. Kernel enumeration advanced from device 7 to 8 to 9 with the same serial number and `/dev/ttyACM0`; the same service process rediscovered logical Camera 1 without configuration edits or a Pi reboot.
 - A later live disconnect visibly produced `No camera node found`, then returned to `Camera 1 connected` after reconnect. Its tapped capture completed before cable removal, so it demonstrates missing-node error presentation and recovery rather than a mid-payload interruption.
 - On July 11, a test-only one-shot command deliberately changed one byte of the next live USB IMAGE payload while retaining the original CRC. The Pi independently detected `JPEG metadata checksum mismatch`, sent a targeted NACK, kept the touchscreen UI alive with a visible error, and committed neither a manifest/JPEG nor a `.part` file. Counts remained 44 manifests, 44 Camera 1 originals, and zero partials. The immediately following normal request succeeded as capture 45 with zero partials, and the normal UI service was restored active. Evidence: `docs/evidence/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
-- Still required before closing Checkpoint 4: implement the approved LED/microSD removal, connect and validate the physical shared shutter, and validate Raspberry Pi GPIO17 initiation through the 2N3904 circuit without duplicate USB requests. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
+- At the end of the July 10-11 run, the node simplification, physical shared shutter, and Raspberry Pi GPIO17 initiation were still required. The node simplification was implemented and startup-verified on July 17; both hardware-trigger demonstrations remain open. The deliberately corrupted transfer requirement is satisfied. Electrical power and concurrent four-node measurements remain later validation work and are not replaced by this one-node test.
 - Electrical power was not measured; suitable instrumentation is still required. One-node data cannot validate four-node hub contention or aggregate power.
 
 Evidence recorded July 16, 2026:
 
 - Built commit `f9729ea` for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`, then wrote and verified the same firmware image set on all four Pi-attached nodes. All four cameras reached camera-ready and trigger-ready after flashing, but all four reported `microSD unavailable: card mount failed`; therefore deployment is not fully startup-verified and Checkpoint 4 remains open. The Pi receiver service was restored active and all four stable USB identities remained present. See `docs/evidence/four-node-flash-2026-07-16.md` for hashes, node identities, and exact limitations.
+
+The July 16 result above is historical pre-revision evidence. Its card gate was valid for that firmware but is superseded by the July 17 node design.
+
+Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
+
+- Pi inspection confirmed Raspberry Pi OS Trixie, kernel `6.18.34+rpt-rpi-v8`, Python 3.13.5, `/dev/gpiochip0`, application-user membership in `gpio`, and installed Raspberry Pi package `python3-lgpio` 0.2.2. Direct `lgpio` was selected as the smallest installed maintained backend.
+- Implemented GPIO17 ownership behind an injectable abstraction. It claims BCM 17 LOW, pulses HIGH for the configured 100 ms, returns LOW in pulse-error cleanup, and writes LOW again before release/shutdown. Normal capture sends no USB `CAPTURE_REQUEST`; the USB request requires explicit `--diagnostic-usb-trigger` selection.
+- `python -m unittest discover -s pi_app/tests -v` passed 13/13 tests, including initialization, one pulse, repeated pulses, exception cleanup, and mutually exclusive hardware/diagnostic selection.
+- Compiled firmware 0.2.0 for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`: 371,077 bytes flash and 33,368 bytes dynamic memory. Application image SHA-256: `275f9a9c5e18c7383cf1f4b1b4d55280c7070fac40ff1089fcc6f5f20d3f9ab0`.
+- Flashed the same non-erase image set with esptool 5.3.1 to `E072A1F99CF8`, `E072A1F99CC0`, `E072A1F9A190`, and `E072A1F9B3E4`; every image write passed hash verification and every board reported 8 MB PSRAM.
+- Bounded serial reads on all four nodes passed camera-ready (2048x1536 JPEG quality 8), BTC1 v1 protocol/matching eFuse UID, and shared-trigger-ready gates. No card marker was required or emitted.
+- Detailed commands and hashes are in `docs/evidence/milestone1-trigger-refactor-2026-07-17.md`.
+- Still required: explicit approval to push local implementation commit `416cb91` to `origin/main`, Pi checkout/installer deployment, unpowered circuit measurements, one physical-button capture, one Pi-pulse capture, and repeated timing/integrity/duplicate evidence. Startup verification is not capture or four-node concurrency proof.
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
@@ -344,10 +357,10 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Remove camera-node status-LED GPIO behavior and all node microSD code, messages, tests, deployment checks, and current-instructions references while preserving historical evidence.
-2. Add Raspberry Pi BCM GPIO17 control with a safe low idle and 100 ms high pulse for the documented 2N3904 open-collector circuit; make normal Pi-initiated captures use the hardware trigger without also sending a USB capture request.
-3. Connect the physical shared shutter and transistor circuit to the one-node bench setup and verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures.
-4. Record timing and integrity evidence for both trigger sources, including exactly one capture per action, before closing Checkpoint 4.
+1. Obtain explicit approval to push implementation commit `416cb91`, pull it to the Pi, run the pinned installer/runtime verification, and initialize GPIO17 LOW without pulsing it.
+2. Complete and record the unpowered multimeter checks in `TRIGGER_CIRCUIT.md`.
+3. Verify repeated physical-trigger-to-touchscreen and Pi-trigger-to-touchscreen captures, with exactly one `CAPTURE_STARTED` and one JPEG per connected node and no duplicate USB request.
+4. Record timing and integrity evidence for both trigger sources before closing Checkpoint 4.
 5. Optimize or deliberately accept the measured camera-acquisition and USB-transfer latency before projecting the soft two-second target onto four nodes.
 6. Register Cameras 2 through 4 by stable UID and extend the Pi coordinator for concurrent connections, capture grouping, partial sets, and camera-specific errors.
 7. Validate all four nodes through the available powered hub before purchasing replacement hub hardware or integrated cabling.

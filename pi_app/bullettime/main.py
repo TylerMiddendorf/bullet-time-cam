@@ -72,6 +72,7 @@ class Receiver(threading.Thread):
         self.automatic_trigger_in_flight = False
         self.diagnostic_usb_trigger = bool(config.get("diagnostic_usb_trigger", False))
         self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
+        self.pending_trigger = None
 
     def send_status(self, state: str, **values) -> None:
         self.events.put({"state": state, **values})
@@ -127,6 +128,11 @@ class Receiver(threading.Thread):
                         }))
                         stream.flush()
                         self.corrupt_next_payload = False
+                    trigger_issued_ns = time.monotonic_ns()
+                    self.pending_trigger = {
+                        "source": "diagnostic_usb" if self.diagnostic_usb_trigger else "pi_gpio17",
+                        "issued_ns": trigger_issued_ns,
+                    }
                     loading_message = initiate_capture(
                         stream, self.trigger, self.diagnostic_usb_trigger
                     )
@@ -149,7 +155,16 @@ class Receiver(threading.Thread):
                 meta["logical_camera_id"] = logical_id
                 key = (meta.get("node_uid"), meta.get("boot_id"), meta.get("capture_seq"))
                 if frame.message_type == CAPTURE_STARTED:
-                    self.capture[key] = {"capture_event_received_ns": now, "resource_samples": [resource_sample("capture_started")]}
+                    trigger_source = "physical_shared_bus"
+                    association_ns = int(self.config.get("trigger_event_association_ms", 1000)) * 1_000_000
+                    if self.pending_trigger and now - self.pending_trigger["issued_ns"] <= association_ns:
+                        trigger_source = self.pending_trigger["source"]
+                    self.pending_trigger = None
+                    self.capture[key] = {
+                        "capture_event_received_ns": now,
+                        "trigger_source": trigger_source,
+                        "resource_samples": [resource_sample("capture_started")],
+                    }
                     self.send_status("LOADING", message="Capturing image...")
                 elif frame.message_type == IMAGE:
                     state = self.capture.setdefault(key, {"capture_event_received_ns": now, "resource_samples": []})
@@ -205,6 +220,7 @@ class Receiver(threading.Thread):
                         scalar_times = {name: value for name, value in state.items() if name.endswith("_ns")}
                         node_times = {name: value for name, value in image_meta.items() if name.endswith("_us")}
                         metrics = {
+                            "trigger_source": state.get("trigger_source", "unknown"),
                             "pi_monotonic_ns": scalar_times,
                             "node_monotonic_us": node_times,
                             "durations_ms": {

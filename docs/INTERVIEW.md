@@ -247,4 +247,4 @@ Implementation status:
 - Keep GPIO17 low while idle and pulse it high for approximately 100 ms to produce the active-low trigger pulse.
 - Do not connect a Raspberry Pi output directly to the shared trigger bus and never drive the bus high.
 - Do not add a separate Pi trigger-sense input. Camera nodes continue reporting `CAPTURE_STARTED` over USB so physical-button and Pi-initiated captures enter the same Pi workflow.
-- Treat the current LED/microSD firmware and Pi USB `CAPTURE_REQUEST` behavior as the pre-revision implementation until the new code is built, deployed, and bench-validated.
+- Implementation status: firmware 0.2.0 removed the superseded node behavior and passed revised startup gates on all four nodes on July 17. Normal Pi capture is implemented as a GPIO17 pulse with the USB request explicit diagnostic scaffolding only. The Pi deployment, unpowered circuit inspection, and physical/Pi trigger capture demonstrations remain required before the decision is considered bench-validated.

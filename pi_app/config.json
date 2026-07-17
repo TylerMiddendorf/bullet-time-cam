@@ -11,6 +11,7 @@
   "trigger_count": 0,
   "trigger_gpio_bcm": 17,
   "trigger_pulse_ms": 100,
+  "trigger_event_association_ms": 1000,
   "display_width": 800,
   "display_height": 480,
   "reconnect_seconds": 1.0

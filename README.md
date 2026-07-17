@@ -42,15 +42,14 @@ The long-term product goal and current decisions are maintained in:
 
 ## Current Project State
 
-As of July 17, 2026, with capture-path bench evidence recorded July 11 and product-boot evidence recorded July 17:
+As of July 17, 2026, with capture-path bench evidence recorded July 11, product-boot evidence recorded July 17, and revised four-node firmware startup evidence recorded July 17:
 
-The four-camera capture subsystem is working as a breadboard prototype:
+The original four-camera breadboard prototype demonstrated local card capture with individual node LEDs. Those features are historical and superseded by the July 17 node simplification; the earlier result remains valid prototype evidence but is not the current operating design.
 
-- Four XIAO ESP32S3 Sense modules are fitted with OV3660 sensors and 16 GB microSD cards.
+- Four XIAO ESP32S3 Sense modules are fitted with OV3660 sensors.
 - All four nodes share one physical shutter button.
-- Every node has its own status LED.
 - The boards are currently powered over USB from a battery hub.
-- One button press causes each node to capture and save its own image to its local microSD card.
+- Firmware 0.2.0 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and streams the JPEG directly from the camera frame buffer through BTC1 without node-local storage.
 - The Raspberry Pi 4 Model B with 2 GB RAM has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input on the intended display works.
 - The accepted product boot path is visually verified: blank early boot, product logo, then the full-screen camera application, with no visible OS/debug text, desktop chrome, login prompt, or pointer.
@@ -59,11 +58,11 @@ The four-camera capture subsystem is working as a breadboard prototype:
 - A 3D printer is available for a later enclosure stage.
 - The final integrated USB hub/cabling choice, integrated battery system, and separate removable-media card reader have not yet been selected.
 
-The historical prototype facts above describe the currently deployed firmware. A July 17 product decision approves a simplified target node: no GPIO-driven camera status LEDs and no camera-node microSD initialization or storage. JPEGs will transfer directly from each frame buffer to the Pi. The separate central user-removable media card remains required. The same revision adds Pi-initiated hardware capture on BCM GPIO17 through the 2N3904 circuit documented in [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md). These code changes and their hardware validation are still pending.
+The separate central user-removable media card remains required. Raspberry Pi GPIO17 support for the 2N3904 circuit is implemented and covered by fake-backend tests, but it has not been deployed or electrically exercised. The unpowered circuit measurements, physical-button capture, Pi-trigger capture, and repeated four-node trigger tests remain pending; see [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md).
 
 The repository now contains the camera-node firmware plus a Raspberry Pi receiver/UI, CRC-protected USB protocol, manifest and atomic-storage path, instrumentation, seven passing protocol tests, smoke-test and analytics tools, a user-service definition, and project logo assets under `assets/`. The one-node USB-request-to-touchscreen path works through the powered hub. Multi-image GIF generation, four-node grouping, consolidated removable storage, internal power, and the handheld enclosure remain to be built.
 
-The active Milestone 1 checkpoint is now a one-node full-system bench test through the available powered USB hub: capture request, direct frame-buffer JPEG transfer to the Raspberry Pi, verified preservation, representative processing, and touchscreen display. Because the physical button is not presently wired into this one-node setup, the Pi touchscreen temporarily sends a framed USB capture request; the shared physical-trigger path remains in firmware and still requires later validation. The test records per-stage latency, integrity, resource use, reconnect, and failure evidence before scaling the same path to four nodes. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
+The active Milestone 1 checkpoint remains the trigger-to-screen bench test. Normal touchscreen capture is now implemented as one configured 100 ms GPIO17 pulse and does not send a USB capture request; the USB command remains explicit diagnostic scaffolding only. The shared physical-trigger path remains in firmware and still requires hardware validation. Earlier offline and isolated-transfer checkpoints are deferred rather than marked complete. With approximately $200 remaining for version 1, battery and enclosure work remain deferred until the central path is working and measured.
 
 Development is milestone-based with no fixed version 1 deadline.
 
@@ -98,11 +97,11 @@ Local Codex agents running under the same Windows account can use the alias, sub
 
 ## Current Camera-Node Firmware
 
-The same Arduino sketch is flashed to all four camera nodes. The current pre-revision sketch uses `D1 / GPIO2` as the shared active-low trigger, `D0 / GPIO1` for a status LED, and the Sense microSD interface for optional backup. It also streams the captured JPEG directly from the frame buffer to the Pi.
+The same Arduino sketch is flashed to all four camera nodes. It uses `D1 / GPIO2` with `INPUT_PULLUP` as the shared active-low trigger. `D0 / GPIO1` is unused. The firmware does not initialize or access a node card.
 
-For the active one-node bench test, the same capture routine can also be requested by a framed `CAPTURE_REQUEST` over USB. The captured JPEG is streamed directly from the frame buffer to the Pi with CRC protection and Pi-side acknowledgement; microSD saving remains a separate backup path. The USB request is temporary test scaffolding until the physical button is connected to the bench setup.
+Each accepted trigger emits `CAPTURE_STARTED`, captures a 2048x1536 JPEG into the OV3660 frame buffer, and sends the bytes through the CRC-protected BTC1 USB protocol. The Pi validates and atomically preserves the original before ACK; NACK, corruption-test, stable eFuse UID, and reconnect behavior remain supported. A missing node card has no effect.
 
-The approved next revision removes the status LED and all node microSD code and makes the hardware trigger the normal path for both the physical button and Pi-initiated capture. After that revision, `D0 / GPIO1` is unused, node cards are not required, and the Pi pulses BCM GPIO17 through a 2N3904 rather than sending a normal touchscreen `CAPTURE_REQUEST`. The Pi still learns that either type of capture started through USB `CAPTURE_STARTED` messages.
+The legacy framed `CAPTURE_REQUEST` remains only as explicitly selected diagnostic scaffolding. Normal touchscreen capture uses the Pi's GPIO17/2N3904 hardware path, and the Pi learns that physical and Pi-initiated captures began from USB `CAPTURE_STARTED` events.
 
 The Pi receiver/UI, protocol tests, runtime requirements, bounded serial smoke test, and user-service definition are under [`pi_app/`](pi_app/).
 
@@ -162,8 +161,7 @@ flowchart LR
 - Do not tie the `3V3` rails together when boards are powered from separate USB cables.
 - If using one external supply, use a regulated 5V supply sized for all four boards and wire 5V/GND in a star layout rather than daisy-chaining through the boards.
 - Do not connect Raspberry Pi GPIO17 directly to the trigger bus. It connects only to the transistor base through 4.7 kOhm.
-- Do not connect status LEDs to the camera GPIO pins in the revised design; `D0 / GPIO1` will be unused.
-- The revised camera-node firmware will not require microSD cards. Until that code is deployed, the current firmware may still print card-related messages.
+- Leave each camera's `D0 / GPIO1` unconnected; it has no assigned function.
 - Confirm the actual 2N3904 emitter/base/collector pin order for the specific manufacturer before applying power.
 - See [`docs/TRIGGER_CIRCUIT.md`](docs/TRIGGER_CIRCUIT.md) for multimeter checks and staged bench validation.
 
@@ -178,8 +176,6 @@ flowchart LR
 - Connect Pi ground to the common ground bus.
 - Power all four boards before pressing the trigger.
 
-> **Migration note:** The build, deployment, serial-output, and validation sections below still describe the currently committed pre-revision firmware, including its LED and microSD checks. Use [`docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md`](docs/NEXT_SESSION_TRIGGER_REFACTOR_PROMPT.md) to implement the approved revision, then update those sections from verified behavior.
-
 ## Load With Arduino IDE
 
 1. Install Arduino IDE 2.x.
@@ -192,7 +188,7 @@ flowchart LR
 7. Select the XIAO serial port.
 8. Open `button_capture/button_capture.ino`.
 9. Upload the sketch, then open Serial Monitor at `115200`.
-10. Press the shared trigger button. Each board's status LED turns on, the cameras settle briefly, and one image is captured and saved per board. Files are saved as `/photos/photo_0001.jpg`, `/photos/photo_0002.jpg`, and so on. Empty cards in all four boards will produce matching photo numbers.
+10. Start the Pi receiver, then press the shared trigger button. Each board emits `CAPTURE_STARTED`, captures one JPEG, and transfers it directly from the frame buffer over USB. No node card is read or written.
 
 ## Build And Upload With Arduino CLI
 
@@ -262,7 +258,7 @@ $Pio = "$env:LOCALAPPDATA\CodexTools\platformio-venv\Scripts\pio.exe"
 
 ### Deploy With the Repository Skill
 
-Codex can use the repo-scoped `$deploy-xiao-esp32s3-sense` skill to discover one attached ESP32 device, compile with the required OPI PSRAM setting, upload the sketch, and verify camera, microSD, and trigger startup over serial.
+Codex can use the repo-scoped `$deploy-xiao-esp32s3-sense` skill to discover one attached ESP32 device, compile with the required OPI PSRAM setting, upload the sketch, and verify camera readiness, BTC1 protocol/stable identity, and trigger readiness over serial.
 
 The bundled helper can also be run directly from the repository root:
 
@@ -280,7 +276,7 @@ Pass `-Port COM6` when more than one ESP32 serial device is attached. A successf
 - Sensor denoise, mild sharpening, defect correction, gamma, auto white balance, and auto exposure are enabled. Gain is capped at `GAINCEILING_4X` to reduce noise.
 - If photos are too dark after the gain cap, add more steady diffuse light first. If that is not possible, try `GAINCEILING_8X`, but expect more grain.
 - Clean the lens, remove any protective film, and keep the camera rigidly mounted while capturing.
-- Use stable 5V power for all four boards; high-resolution capture plus microSD writes can be current-sensitive.
+- Use stable 5V power for all four boards; high-resolution capture and concurrent USB transfer can be current-sensitive.
 
 ## Expected Serial Output
 
@@ -288,28 +284,18 @@ On successful boot:
 
 ```text
 XIAO ESP32S3 Sense 4-Camera Shared Trigger
-Testing status LED...
 Initializing camera...
 Camera ready: 2048x1536 JPEG, quality 8.
-Initializing microSD...
-microSD ready: /photos, next file photo_0001.jpg.
+USB protocol ready: BTC1 v1, node UID E072A1F9A190.
 Ready. Pull the shared trigger LOW to capture.
-```
-
-On capture:
-
-```text
-Capturing photo...
-Saved /photos/photo_0001.jpg (2048x1536, 123456 bytes)
 ```
 
 ## Validation
 
-- Boot without a card: Serial should report an SD failure.
-- Boot with a FAT32 card: Serial should report ready.
-- Press once: one JPEG should be created on each of the four cards.
-- Hold the trigger: only one JPEG should be created per board for that press.
-- Watch the status LED: it should turn on for at least one second per capture, even if the capture/save finishes quickly.
-- Press repeatedly: filenames should increment without overwriting.
-- Check the files on a computer: each image should open as 2048x1536.
+- On every boot, require camera-ready, BTC1 identity, and trigger-ready evidence.
+- Press once: every connected node must emit exactly one `CAPTURE_STARTED` and transfer exactly one 2048x1536 JPEG.
+- Hold the trigger: the existing debounce must still produce only one capture per board for that press.
+- Use a normal touchscreen capture: GPIO17 must produce one 100 ms pulse and no USB `CAPTURE_REQUEST`.
+- Validate CRC/length/decode before each Pi-side atomic commit; do not accept truncated or corrupt files.
+- Press repeatedly: identities remain stable, no originals are overwritten, and no duplicate capture is observed.
 - If one board misses a trigger, check that its `D1 / GPIO2` pin joins the same trigger bus and that its `GND` pin joins the common ground bus.

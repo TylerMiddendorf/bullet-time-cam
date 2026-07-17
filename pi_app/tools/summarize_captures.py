@@ -6,6 +6,7 @@ import argparse
 import json
 import math
 import statistics
+from collections import Counter
 from pathlib import Path
 
 
@@ -48,6 +49,9 @@ def main() -> None:
         "complete_count": sum(item["status"] == "complete" for item in manifests),
         "checksum_failure_count": sum(not item["metrics"]["integrity"]["checksum_ok"] for item in manifests),
         "error_count": sum(len(item.get("errors", [])) for item in manifests),
+        "trigger_sources": dict(sorted(Counter(
+            item.get("metrics", {}).get("trigger_source", "unknown") for item in manifests
+        ).items())),
         "metrics": {
             name: {
                 "median": round(statistics.median(values), 3),

@@ -100,7 +100,11 @@ for supplemental_group in dialout input render video; do
 done
 # The GPIO binding is supplied and maintained by Raspberry Pi OS. Ensure the
 # app venv can see that system package even when upgrading an older venv.
-runuser -u "${TARGET_USER}" -- python3 -m venv --upgrade --system-site-packages "${VENV_DIR}"
+if [ -x "${VENV_DIR}/bin/python" ]; then
+  runuser -u "${TARGET_USER}" -- python3 -m venv --upgrade --system-site-packages "${VENV_DIR}"
+else
+  runuser -u "${TARGET_USER}" -- python3 -m venv --system-site-packages "${VENV_DIR}"
+fi
 runuser -u "${TARGET_USER}" -- "${VENV_DIR}/bin/pip" install -r "${REQUIREMENTS_FILE}"
 
 # Raspberry Pi Imager provisioning is complete. Disable cloud-init so its

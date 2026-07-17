@@ -4,15 +4,17 @@ Implementation dates: July 10-11, 2026
 
 Status reviewed: July 17, 2026
 
-Objective: implement and verify the one-node trigger-to-touchscreen path through the powered USB hub, using the approved temporary USB request while the physical shutter is disconnected, and collect the evidence required by Checkpoint 4.
+Objective: implement and verify the one-node trigger-to-touchscreen path through the powered USB hub, then replace the temporary normal USB request with the approved shared hardware-trigger path and collect the evidence required by Checkpoint 4.
 
 ## Status
 
 Overall: in progress
 
-Current phase: implement the July 17 node simplification and Pi GPIO17 trigger decision, then connect and validate both physical and Pi-initiated hardware triggering; no newer trigger hardware evidence has been recorded since July 11
+Current phase: simplified firmware is flashed and startup-verified on four nodes; Raspberry Pi GPIO code is implemented and fake-backend tested, but Git deployment, unpowered circuit inspection, and both real trigger demonstrations remain open
 
 ## Progress Log
+
+Entries through the live-NACK work describe the historical pre-revision firmware and its then-valid card/LED deployment gates. They are preserved as dated evidence and superseded by the July 17 implementation entries below.
 
 - Started the Checkpoint 4 implementation session.
 - Read the canonical project documents, Raspberry Pi SSH guide, current firmware, and repository deployment skill.
@@ -54,12 +56,21 @@ Current phase: implement the July 17 node simplification and Pi GPIO17 trigger d
 - Ran an immediate normal recovery request. It committed and displayed capture 45 with zero `.part` files. Stopped the transient test unit and restored the normal `checkpoint4-ui.service` active.
 - Independently completed and visually accepted the product-boot presentation on July 17: reliable direct-kernel boot, cloud-init disabled after provisioning, isolated labwc session, matched compositor/application logo frames, no visible OS/debug content, and a transparent compositor cursor. The replacement-Pi process is recorded in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 - Audited replacement-Pi reproducibility, expanded the installer to provision runtime dependencies and deterministic LightDM autologin, expanded verification from 20 to 28 checks, and completed a successful post-install cold boot. The installer preserves existing image package versions with `apt-get install --no-upgrade`.
+- Inspected the Pi GPIO environment before implementation: Raspberry Pi OS Trixie, kernel `6.18.34+rpt-rpi-v8`, Python 3.13.5, `/dev/gpiochip0`, the application user in `gpio`, and maintained Raspberry Pi package `python3-lgpio` 0.2.2 installed.
+- Removed every firmware status-LED and node-storage path. `D0 / GPIO1` is unused; `D1 / GPIO2` remains `INPUT_PULLUP` with the existing 40 ms debounce; BTC1 transfer, stable eFuse UID, ACK/NACK, corruption test, and reconnect behavior remain.
+- Added an injectable direct-`lgpio` GPIO17 controller with configured BCM pin 17 and 100 ms pulse. Initialization, idle, pulse-finally, and shutdown cleanup all drive LOW. Normal actions produce one hardware pulse and no USB `CAPTURE_REQUEST`; diagnostic USB triggering requires an explicit flag.
+- Added manifest/summary trigger-source analytics so later evidence distinguishes `pi_gpio17`, `physical_shared_bus`, and explicit `diagnostic_usb` captures instead of assuming every capture was USB-requested.
+- Local test command `python -m unittest discover -s pi_app/tests -v` passed 13 tests with zero failures. This includes normal-versus-diagnostic selection, GPIO initialization, one pulse, repeated pulses, and cleanup after an injected exception.
+- Repository deployment helper compile succeeded for `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`: 371,077 bytes flash, 33,368 bytes dynamic memory, and 371,232-byte application image with SHA-256 `275f9a9c5e18c7383cf1f4b1b4d55280c7070fac40ff1089fcc6f5f20d3f9ab0`.
+- Flashed the same non-erase image set to all four attached identities with esptool 5.3.1. Every write hash verified, and all four boards reported ESP32-S3 revision 0.2 with 8 MB PSRAM.
+- Bounded post-flash serial output passed camera-ready, BTC1/matching eFuse identity, and trigger-ready gates on `E072A1F99CF8`, `E072A1F99CC0`, `E072A1F9A190`, and `E072A1F9B3E4`. No node-storage marker was expected or emitted.
+- Created local implementation commit `416cb91`. Direct push to `origin/main` was blocked pending explicit product-owner approval, so the Pi checkout/service has not been updated and the stopped service has not touched GPIO17.
 
 ## Evidence Collected
 
 - Pi environment and USB topology evidence is listed in the progress log above.
-- Current protocol test result: 7 tests passed, 0 failed.
-- Firmware compile, application-partition upload, flash hash, camera startup, microSD startup, and trigger-ready verification passed.
+- Current Pi/protocol/fake-GPIO test result: 13 tests passed, 0 failed.
+- Revised firmware compile, four-node non-erase upload, flash hashes, camera startup, BTC1 protocol/stable identity, and trigger-ready verification passed.
 - The retained `docs/evidence/checkpoint4-idle-error.png` documents the initial idle-timeout defect and is not READY-state evidence.
 - USB-request-to-screen behavior and recovery are verified. Physical-button behavior is not verified because the button is not connected.
 - Literal hub unplug/replug, general missing-node UI recovery, and the live corrupt-payload/NACK/no-commit/recovery path are verified. Electrical power and concurrent four-node behavior were not measured.
@@ -67,17 +78,21 @@ Current phase: implement the July 17 node simplification and Pi GPIO17 trigger d
 
 ## Active Work
 
-- Keep the tracked Pi user service active for touchscreen USB-request captures.
-- Pending next implementation session: remove camera-node status LED and node microSD behavior, add Pi BCM GPIO17 hardware-trigger control through the documented 2N3904 circuit, and replace the normal touchscreen USB request with a single hardware pulse.
+- Keep the Pi user service stopped until commit `416cb91` is explicitly approved for push/pull and the revised runtime is installed.
+- After deployment, initialize GPIO17 LOW but do not pulse until the unpowered breadboard checks are confirmed.
+- Then demonstrate physical-button and Pi-initiated capture separately and run the repeated integrity/timing/duplicate test.
 
 ## Blockers and Limitations
 
-- A physical trigger press may require the product owner if it cannot be initiated safely through existing hardware.
+- Publishing commit `416cb91` to `origin/main` requires explicit product-owner approval.
+- Unpowered multimeter validation and a physical trigger press require the product owner at the bench.
 - Electrical power analytics require suitable measurement hardware and are outside this software-only session unless such hardware is already attached and accessible.
 - One-node measurements cannot validate four-node USB contention or aggregate power behavior.
 
 ## Next Actions
 
-1. Validate the physical shared button after it is connected to the bench setup.
-2. Use suitable external instrumentation for electrical power measurements when available.
-3. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.
+1. Approve pushing `416cb91`, then pull/install/verify the Pi runtime and confirm GPIO17 initializes LOW.
+2. Record the unpowered circuit measurements and validate the physical shared button plus one Pi hardware pulse without duplicates.
+3. Run repeated captures and record timing, integrity, node identity, failures, and duplicate count.
+4. Use suitable external instrumentation for electrical power measurements when available.
+5. Optimize the measured acquisition and USB-transfer bottlenecks before assuming the four-node path can meet the soft two-second target.
