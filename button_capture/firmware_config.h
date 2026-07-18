@@ -19,4 +19,6 @@ constexpr int SENSOR_DENOISE = 1;
 constexpr unsigned long TRIGGER_DEBOUNCE_MS = 40;
 constexpr unsigned long HOST_ACK_TIMEOUT_MS = 10000;
 constexpr size_t USB_CHUNK_SIZE = 4096;
+constexpr unsigned long USB_WRITE_STALL_TIMEOUT_MS = 1000;
 constexpr uint8_t PROTOCOL_VERSION = 1;
+constexpr char FIRMWARE_VERSION[] = "0.2.1";

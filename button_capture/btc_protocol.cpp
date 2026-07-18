@@ -35,13 +35,20 @@ uint32_t readU32Le(const uint8_t* source) {
 
 bool writeAll(const uint8_t* data, size_t length) {
   size_t offset = 0;
+  unsigned long lastProgressMs = millis();
   while (offset < length) {
     const size_t chunk = min(USB_CHUNK_SIZE, length - offset);
     const size_t written = Serial.write(data + offset, chunk);
     if (written == 0) {
-      return false;
+      if ((millis() - lastProgressMs) >= USB_WRITE_STALL_TIMEOUT_MS) {
+        return false;
+      }
+      delay(1);
+      yield();
+      continue;
     }
     offset += written;
+    lastProgressMs = millis();
     yield();
   }
   return true;
@@ -183,9 +190,9 @@ void sendHelloFrame() {
   char metadata[320];
   snprintf(metadata, sizeof(metadata),
            "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"capture_seq\":%lu,"
-           "\"firmware_version\":\"0.2.0\",\"timestamp_us\":%llu}",
+           "\"firmware_version\":\"%s\",\"timestamp_us\":%llu}",
            uid, static_cast<unsigned long>(bootId), static_cast<unsigned long>(captureSequence),
-           static_cast<unsigned long long>(esp_timer_get_time()));
+           FIRMWARE_VERSION, static_cast<unsigned long long>(esp_timer_get_time()));
   sendFrame(MSG_HELLO, metadata);
 }
 
