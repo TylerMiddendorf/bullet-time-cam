@@ -12,6 +12,13 @@ reviewed without searching one large flat directory.
 
 ## Milestone 2 — User-Removable USB Media
 
+- [`removable-media-qualification-2026-07-18.md`](milestone-2/removable-media-qualification-2026-07-18.md)
+  — complete real-Pi hardware matrix covering normal/reboot/reinsert/remount,
+  missing/full/read-only/corrupt/mid-write loss, recovery, deterministic
+  two-drive selection, and the physical-rig E2E test; media-safety behavior
+  passed, while a UI poll crash, clipped errors, dirty FAT, and stale staging
+  keep the milestone open
+
 - [`../MILESTONE_2_PLAN.md`](../MILESTONE_2_PLAN.md) — active fault procedures,
   safety boundaries, evidence requirements, and exit gates
 - [`milestone-2/`](milestone-2/) — USB-media discovery, mount bring-up, and

@@ -1,6 +1,6 @@
 # Milestone 2 Plan - User-Removable USB Media Qualification
 
-Status: active July 18, 2026
+Status: active; complete hardware matrix executed July 18, 2026, with UI exit blockers
 
 ## Outcome
 
@@ -183,6 +183,25 @@ For every qualifying scenario retain:
 Summarize the completed run in a dated Markdown record under
 `docs/evidence/milestone-2/`. Raw exploratory logs that are not needed to
 support a qualifying claim should remain untracked.
+
+## July 18 Qualification Result
+
+All five checkpoint scenario families were executed on the Raspberry Pi. The
+normal/reboot/reinsert path, missing media, isolated full/read-only/corrupt
+media, deterministic USB-storage removal during active staging, and
+preferred/fallback/no-preference multi-drive selection all failed or succeeded
+as intended without new boot-card media. Every restored state completed a
+byte-valid four-camera recovery capture, and the environment-gated four-node
+hardware test passed when supplied its existing evidence ledger.
+
+The milestone remains active because the media-removal run exposed a Tk polling
+callback crash when the currently reviewed GIF disappears, and every tested
+storage-error class renders substantially clipped text on the 800x480 display.
+The product FAT dirty bit and a pre-existing uncommitted staging directory also
+require repair/cleanup or explicit acceptance. The mid-write test used a
+serial-verified USB-storage interface unbind rather than a literal cable yank.
+Full evidence and exact capture IDs are in
+[`evidence/milestone-2/removable-media-qualification-2026-07-18.md`](evidence/milestone-2/removable-media-qualification-2026-07-18.md).
 
 ## Milestone Exit Gate
 

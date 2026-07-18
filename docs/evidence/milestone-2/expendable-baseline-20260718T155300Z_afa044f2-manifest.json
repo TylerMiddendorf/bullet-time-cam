@@ -1,0 +1,308 @@
+{
+  "cameras": [
+    {
+      "boot_id": "2027193694",
+      "capture_seq": 9,
+      "logical_camera_id": 1,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2414.406304,
+          "host_payload_receive": 451.186954,
+          "jpeg_decode_validation": 0.270163,
+          "node_transfer": 474.366
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "8a8708b7",
+          "expected_crc32": "8a8708b7"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3796596963,
+          "frame_ready_us": 3798002367,
+          "transfer_completed_us": 3798980222,
+          "transfer_started_us": 3798505856,
+          "trigger_accepted_us": 3796596858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3786895314505,
+          "payload_receive_started_ns": 3788858533855,
+          "payload_received_ns": 3789309720809
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1608089600,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3786952667172,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 0.99,
+            "process_rss_bytes": 41971712,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.34228515625
+          },
+          {
+            "available_memory_bytes": 1610981376,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3789310619447,
+            "process_cpu_system_seconds": 0.29,
+            "process_cpu_user_seconds": 1.22,
+            "process_rss_bytes": 45322240,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.314453125
+          }
+        ],
+        "serial_port": "/dev/ttyACM3",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F9B3E4",
+      "status": "complete"
+    },
+    {
+      "boot_id": "2300585681",
+      "capture_seq": 9,
+      "logical_camera_id": 2,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 1819.494798,
+          "host_payload_receive": 314.257087,
+          "jpeg_decode_validation": 9.631246,
+          "node_transfer": 334.009
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "fc176486",
+          "expected_crc32": "fc176486"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3796598961,
+          "frame_ready_us": 3798003374,
+          "transfer_completed_us": 3798387426,
+          "transfer_started_us": 3798053417,
+          "trigger_accepted_us": 3796598857
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3786893909984,
+          "payload_receive_started_ns": 3788399147695,
+          "payload_received_ns": 3788713404782
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1608089600,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3786953227277,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 0.99,
+            "process_rss_bytes": 41979904,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.34228515625
+          },
+          {
+            "available_memory_bytes": 1610072064,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3788714271513,
+            "process_cpu_system_seconds": 0.23,
+            "process_cpu_user_seconds": 1.09,
+            "process_rss_bytes": 42950656,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.314453125
+          }
+        ],
+        "serial_port": "/dev/ttyACM2",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F9A190",
+      "status": "complete"
+    },
+    {
+      "boot_id": "1267995835",
+      "capture_seq": 9,
+      "logical_camera_id": 3,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2055.504817,
+          "host_payload_receive": 404.570669,
+          "jpeg_decode_validation": 0.322885,
+          "node_transfer": 412.011
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "56bf78c5",
+          "expected_crc32": "56bf78c5"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3796602963,
+          "frame_ready_us": 3798004630,
+          "transfer_completed_us": 3798615867,
+          "transfer_started_us": 3798203856,
+          "trigger_accepted_us": 3796602858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3786895078675,
+          "payload_receive_started_ns": 3788546012823,
+          "payload_received_ns": 3788950583492
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1608089600,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3786952046456,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 0.99,
+            "process_rss_bytes": 41963520,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.34228515625
+          },
+          {
+            "available_memory_bytes": 1610985472,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3788951512945,
+            "process_cpu_system_seconds": 0.27,
+            "process_cpu_user_seconds": 1.14,
+            "process_rss_bytes": 44056576,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.314453125
+          }
+        ],
+        "serial_port": "/dev/ttyACM1",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F99CC0",
+      "status": "complete"
+    },
+    {
+      "boot_id": "1606592662",
+      "capture_seq": 9,
+      "logical_camera_id": 4,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2439.999652,
+          "host_payload_receive": 587.139665,
+          "jpeg_decode_validation": 0.276368,
+          "node_transfer": 640.021
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "9dfb9f7b",
+          "expected_crc32": "9dfb9f7b"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3796593963,
+          "frame_ready_us": 3798003477,
+          "transfer_completed_us": 3799014877,
+          "transfer_started_us": 3798374856,
+          "trigger_accepted_us": 3796593858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3786894984861,
+          "payload_receive_started_ns": 3788747844848,
+          "payload_received_ns": 3789334984513
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1608089600,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3786951286909,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 0.99,
+            "process_rss_bytes": 41955328,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.34228515625
+          },
+          {
+            "available_memory_bytes": 1610981376,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3789335662209,
+            "process_cpu_system_seconds": 0.3,
+            "process_cpu_user_seconds": 1.22,
+            "process_rss_bytes": 45658112,
+            "storage_free_bytes": 66042880,
+            "storage_sample_path": "/media/username/M2TEST/BulletTime",
+            "system_load_average_1m": 0.314453125
+          }
+        ],
+        "serial_port": "/dev/ttyACM0",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F99CF8",
+      "status": "complete"
+    }
+  ],
+  "capture_id": "20260718T155300Z_afa044f2",
+  "errors": [],
+  "files": [
+    {
+      "bytes": 225095,
+      "crc32": "8a8708b7",
+      "logical_camera_id": 1,
+      "path": "camera_01.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 211747,
+      "crc32": "fc176486",
+      "logical_camera_id": 2,
+      "path": "camera_02.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 208975,
+      "crc32": "56bf78c5",
+      "logical_camera_id": 3,
+      "path": "camera_03.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 300429,
+      "crc32": "9dfb9f7b",
+      "logical_camera_id": 4,
+      "path": "camera_04.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 1800863,
+      "camera_sequence": [
+        1,
+        2,
+        3,
+        4,
+        3,
+        2
+      ],
+      "crc32": "47044aaf",
+      "frame_count": 6,
+      "path": "bullet_time.gif",
+      "role": "animation"
+    }
+  ],
+  "metrics": {
+    "durations_ms": {
+      "capture_event_to_display_callback": 6779.864172,
+      "capture_set": 2441.745799
+    },
+    "pi_monotonic_ns": {
+      "capture_set_completed_ns": 3789336730660,
+      "display_callback_ns": 3793674849033,
+      "first_capture_started_ns": 3786894984861
+    }
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "storage": {
+    "available": true,
+    "capture_root": "/media/username/M2TEST/BulletTime",
+    "filesystem": "vfat",
+    "mountpoint": "/media/username/M2TEST",
+    "source": "/dev/sdb1",
+    "transport": "usb"
+  }
+}

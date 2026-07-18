@@ -85,7 +85,7 @@ Exit criteria:
 
 ## Milestone 2 - User-Removable USB Media
 
-Status: active; normal product capture is validated, removable-media fault qualification remains
+Status: active; hardware fault matrix passed media-safety behavior, UI exit blockers remain
 
 The detailed real-drive procedures, safety boundaries, evidence requirements,
 and exit gates are in [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md).
@@ -97,7 +97,27 @@ and exit gates are in [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md).
 - Validate actual JPEG and GIF writes, restart behavior, unplug/replug, and deterministic selection when more than one USB drive is present.
 - Handle missing, full, corrupt, read-only, and prematurely removed USB drives safely and visibly.
 
-Bring-up evidence on July 17-18, 2026: the Pi enumerated the added removable 231 GB FAT partition as `/dev/sda1`, label `USB DISK`, with USB sysfs ancestry. The exact `udisksctl` non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, and the mount was writable by user `username`. Real Camera 1 commits before and after reboot are recorded, followed by the July 18 four-node acceptance run: 25 complete sets, fault/recovery sets, originals, manifests, and GIFs all passed byte validation on that drive. Deterministic fault injection proves failed staging does not publish a capture directory. Real-drive unplug/replug, full, read-only/corrupt filesystem, removal-during-write, and deterministic multi-drive selection remain open, so this milestone remains active.
+Bring-up evidence on July 17-18, 2026 established user-service mounting,
+writable product-media capture, reboot persistence, and the full four-camera
+application path. The July 18 qualification then executed all five hardware
+checkpoint families: idle physical unplug/reinsert and automatic remount;
+missing media through UI and shared-trigger paths; isolated full, read-only,
+and unmountable expendable media; deterministic removal of the expendable
+USB-storage interface during active staging; and preferred, fallback, restart,
+and no-preference two-drive selection. Every isolated fault avoided boot-card
+fallback and valid-looking partial publication, then recovered to a byte-valid
+four-camera capture. The final product capture was
+`20260718T163525Z_3a578613`; the environment-gated four-node E2E test also
+passed with its evidence ledger.
+
+Milestone 2 remains active because testing exposed a UI polling callback crash
+when the currently reviewed GIF disappears and substantially clipped error
+text for all storage-fault classes. The product drive also has a dirty FAT and
+one pre-existing uncommitted staging directory. Those findings require a fix
+and focused retest, or an explicit acceptance where appropriate. The active
+write-loss test used a serial-verified kernel USB-storage unbind rather than a
+literal cable yank. See
+`docs/evidence/milestone-2/removable-media-qualification-2026-07-18.md`.
 
 ## Milestone 3 - Integrated Battery and Safe Power
 

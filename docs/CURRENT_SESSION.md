@@ -1,38 +1,46 @@
-# Current Session — Milestone 2 Removable-Media Qualification
+# Current Session - Milestone 2 Removable-Media Qualification
 
 Status reviewed: July 18, 2026
 
-## Starting State
+## Verified State
 
-- Milestone 1 is complete. The physical shutter and normal touchscreen/GPIO17
-  paths both produce integrated four-camera originals, atomic manifests, ordered
-  six-frame GIFs, and full-screen review on the Raspberry Pi.
-- The qualifying physical-rig run completed 25/25 normal sets, 100 originals,
-  and 25 GIFs. Every logical camera unavailability, checksum corruption,
-  mid-transfer truncation, recovery, and reboot-identity scenario passed the
-  byte validator and environment-gated E2E test.
-- Representative normal and corrected Camera 4 partial-result screens were
-  photographed. The presentation defect found during the first partial visual
-  run was fixed in `710eadd`.
-- Camera firmware 0.2.3 is installed on all four nodes. Camera 4 passed a final
-  bounded startup smoke, `bullet-time-ui.service` is active, and GPIO17 is
+- All five Milestone 2 hardware scenario families have been exercised over SSH
+  on the live four-camera Raspberry Pi rig. Fail-closed behavior, atomic
+  non-publication, no boot-card fallback, recovery after each isolated fault,
+  and preferred/fallback/deterministic two-drive selection passed.
+- The deterministic suite passed locally, and the environment-gated physical
+  four-node E2E test passed on the Pi when supplied its existing evidence ledger.
+- Final actual-UI product capture `20260718T163525Z_3a578613` passed byte
+  validation for Cameras 1-4 and recorded the correct product USB destination.
+- The product drive, serial `900049666ACEB315`, is mounted at
+  `/media/username/USB DISK`. `bullet-time-ui.service` is active and GPIO17 is
   output LOW.
-- The full evidence summary and scenario ledger are under
-  [`evidence/milestone-1/checkpoint-5/`](evidence/milestone-1/checkpoint-5/).
-- Complete-set review time was 3.250 seconds median and 3.289 seconds maximum,
-  so the soft two-second target remains an explicit optimization item.
+- The expendable drive, serial `900048D90E707A22`, was intentionally erased and
+  repartitioned as a clean 64 MiB FAT32 `M2TEST` volume. It is currently
+  unmounted.
 
 ## Immediate Work
 
-Execute [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md), beginning with the normal
-service-context baseline and idle unplug/replug test. Use expendable media for
-full, corrupt, and removal-during-write cases; do not intentionally damage the
-validated product drive or Raspberry Pi boot card.
+Milestone 2 stays active because qualification found real exit blockers:
 
+1. Make UI polling tolerate disappearance of the currently reviewed GIF. The
+   existing process and receiver survive removal, but the Tk polling callback
+   dies and screen updates require a service restart.
+2. Wrap or otherwise fit storage failures within the 800x480 display. Missing,
+   full, read-only, corrupt, and mid-write errors are substantially clipped.
+3. Back up the product USB media, then repair its dirty FAT and reconcile the
+   one-byte primary/backup boot-sector difference. No repair was performed in
+   the qualification session.
+4. Remove or deliberately retain the pre-existing uncommitted
+   `.20260718T015549Z_273b2de6.part` directory and define startup cleanup for
+   stale staging.
+5. Rerun the focused removal/error-display checks and one final recovery
+   capture. A literal cable-yank during write is optional corroboration; the
+   completed fault used deterministic removal of the serial-verified
+   USB-storage interface while staging was active.
+
+The full result, screenshots, manifests, filesystem evidence, and capture IDs
+are in
+[`evidence/milestone-2/removable-media-qualification-2026-07-18.md`](evidence/milestone-2/removable-media-qualification-2026-07-18.md).
 After Milestone 2 closes, measure aggregate electrical power before choosing
 battery, charging, regulation, monitoring, or safe-power-cut hardware.
-
-The completed bench milestone plan remains at
-[`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md). The current procedures are in
-[`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md), and ordering and budget gates are
-in [`ROADMAP.md`](ROADMAP.md).

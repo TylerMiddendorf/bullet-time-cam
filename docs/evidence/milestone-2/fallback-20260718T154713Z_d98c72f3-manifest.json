@@ -1,0 +1,308 @@
+{
+  "cameras": [
+    {
+      "boot_id": "2027193694",
+      "capture_seq": 7,
+      "logical_camera_id": 1,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2415.510524,
+          "host_payload_receive": 451.495875,
+          "jpeg_decode_validation": 0.27759,
+          "node_transfer": 473.756
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "171461a3",
+          "expected_crc32": "171461a3"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3448835979,
+          "frame_ready_us": 3450243123,
+          "transfer_completed_us": 3451219612,
+          "transfer_started_us": 3450745856,
+          "trigger_accepted_us": 3448835858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3439135265652,
+          "payload_receive_started_ns": 3441099280301,
+          "payload_received_ns": 3441550776176
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1600634880,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3439195031441,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 1.07,
+            "process_rss_bytes": 41992192,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          },
+          {
+            "available_memory_bytes": 1609027584,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3441551649888,
+            "process_cpu_system_seconds": 0.32,
+            "process_cpu_user_seconds": 1.28,
+            "process_rss_bytes": 45228032,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          }
+        ],
+        "serial_port": "/dev/ttyACM3",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F9B3E4",
+      "status": "complete"
+    },
+    {
+      "boot_id": "2300585681",
+      "capture_seq": 7,
+      "logical_camera_id": 2,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 1817.269078,
+          "host_payload_receive": 312.256991,
+          "jpeg_decode_validation": 10.468764,
+          "node_transfer": 330.509
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "e624d4ca",
+          "expected_crc32": "e624d4ca"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3448837962,
+          "frame_ready_us": 3450244236,
+          "transfer_completed_us": 3450623928,
+          "transfer_started_us": 3450293419,
+          "trigger_accepted_us": 3448837857
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3439134649937,
+          "payload_receive_started_ns": 3440639662024,
+          "payload_received_ns": 3440951919015
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1600634880,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3439194291079,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 1.07,
+            "process_rss_bytes": 41984000,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          },
+          {
+            "available_memory_bytes": 1611350016,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3440952789523,
+            "process_cpu_system_seconds": 0.23,
+            "process_cpu_user_seconds": 1.17,
+            "process_rss_bytes": 42926080,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          }
+        ],
+        "serial_port": "/dev/ttyACM2",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F9A190",
+      "status": "complete"
+    },
+    {
+      "boot_id": "1267995835",
+      "capture_seq": 7,
+      "logical_camera_id": 3,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2040.363761,
+          "host_payload_receive": 388.131294,
+          "jpeg_decode_validation": 0.306607,
+          "node_transfer": 394.556
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "9b8a4817",
+          "expected_crc32": "9b8a4817"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3448840963,
+          "frame_ready_us": 3450245025,
+          "transfer_completed_us": 3450838412,
+          "transfer_started_us": 3450443856,
+          "trigger_accepted_us": 3448840858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3439134563604,
+          "payload_receive_started_ns": 3440786796071,
+          "payload_received_ns": 3441174927365
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1600634880,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3439196216686,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 1.07,
+            "process_rss_bytes": 42004480,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          },
+          {
+            "available_memory_bytes": 1610317824,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3441177722294,
+            "process_cpu_system_seconds": 0.26,
+            "process_cpu_user_seconds": 1.22,
+            "process_rss_bytes": 44007424,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          }
+        ],
+        "serial_port": "/dev/ttyACM1",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F99CC0",
+      "status": "complete"
+    },
+    {
+      "boot_id": "1606592662",
+      "capture_seq": 7,
+      "logical_camera_id": 4,
+      "metrics": {
+        "app_version": "0.2.0",
+        "durations_ms": {
+          "capture_event_to_payload_received": 2443.060307,
+          "host_payload_receive": 587.986864,
+          "jpeg_decode_validation": 0.274775,
+          "node_transfer": 642.135
+        },
+        "integrity": {
+          "checksum_ok": true,
+          "computed_crc32": "d0370599",
+          "expected_crc32": "d0370599"
+        },
+        "node_monotonic_us": {
+          "acquisition_started_us": 3448833963,
+          "frame_ready_us": 3450244082,
+          "transfer_completed_us": 3451257991,
+          "transfer_started_us": 3450615856,
+          "trigger_accepted_us": 3448833858
+        },
+        "pi_monotonic_ns": {
+          "capture_event_received_ns": 3439135807127,
+          "payload_receive_started_ns": 3440990880570,
+          "payload_received_ns": 3441578867434
+        },
+        "resource_samples": [
+          {
+            "available_memory_bytes": 1600634880,
+            "phase": "capture_started",
+            "pi_monotonic_ns": 3439195604490,
+            "process_cpu_system_seconds": 0.19,
+            "process_cpu_user_seconds": 1.07,
+            "process_rss_bytes": 41996288,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          },
+          {
+            "available_memory_bytes": 1608003584,
+            "phase": "payload_received",
+            "pi_monotonic_ns": 3441579545797,
+            "process_cpu_system_seconds": 0.33,
+            "process_cpu_user_seconds": 1.28,
+            "process_rss_bytes": 45572096,
+            "storage_free_bytes": 247959715840,
+            "storage_sample_path": "/media/username/USB DISK1/BulletTime",
+            "system_load_average_1m": 0.36181640625
+          }
+        ],
+        "serial_port": "/dev/ttyACM0",
+        "trigger_source": "pi_gpio17"
+      },
+      "node_uid": "E072A1F99CF8",
+      "status": "complete"
+    }
+  ],
+  "capture_id": "20260718T154713Z_d98c72f3",
+  "errors": [],
+  "files": [
+    {
+      "bytes": 223827,
+      "crc32": "171461a3",
+      "logical_camera_id": 1,
+      "path": "camera_01.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 208109,
+      "crc32": "e624d4ca",
+      "logical_camera_id": 2,
+      "path": "camera_02.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 204758,
+      "crc32": "9b8a4817",
+      "logical_camera_id": 3,
+      "path": "camera_03.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 304884,
+      "crc32": "d0370599",
+      "logical_camera_id": 4,
+      "path": "camera_04.jpg",
+      "role": "original"
+    },
+    {
+      "bytes": 1761670,
+      "camera_sequence": [
+        1,
+        2,
+        3,
+        4,
+        3,
+        2
+      ],
+      "crc32": "8ecf88f2",
+      "frame_count": 6,
+      "path": "bullet_time.gif",
+      "role": "animation"
+    }
+  ],
+  "metrics": {
+    "durations_ms": {
+      "capture_event_to_display_callback": 6756.595708,
+      "capture_set": 2445.961755
+    },
+    "pi_monotonic_ns": {
+      "capture_set_completed_ns": 3441580611692,
+      "display_callback_ns": 3445891245645,
+      "first_capture_started_ns": 3439134649937
+    }
+  },
+  "schema_version": 2,
+  "status": "complete",
+  "storage": {
+    "available": true,
+    "capture_root": "/media/username/USB DISK1/BulletTime",
+    "filesystem": "vfat",
+    "mountpoint": "/media/username/USB DISK1",
+    "source": "/dev/sdb1",
+    "transport": "usb"
+  }
+}

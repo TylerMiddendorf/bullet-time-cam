@@ -49,6 +49,16 @@ so the soft two-second target remains an optimization item. Milestone 2 removabl
 USB fault qualification is active; see [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md)
 and the roadmap for its procedures and exit gates.
 
+The complete Milestone 2 hardware matrix has now exercised normal, reboot,
+idle-reinsert, automatic-remount, missing, full, read-only,
+corrupt/unmountable, active-write removal, and two-drive selection paths on the
+four-camera Raspberry Pi rig. Media safety behavior passed: failures did not
+publish incomplete sets or fall back to the boot card, and every isolated fault
+recovered to a byte-valid capture. The milestone remains open because removal
+of the currently reviewed GIF crashes the Tk polling callback, storage errors
+are clipped on the 800x480 display, and the product drive's dirty FAT plus a
+pre-existing stale staging directory require resolution or acceptance.
+
 ## Camera Firmware
 
 The sketch target is `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`. With Arduino CLI and
