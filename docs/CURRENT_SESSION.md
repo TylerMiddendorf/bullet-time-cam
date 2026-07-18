@@ -15,7 +15,13 @@ GIF review.
   rejection, and the prescribed electrical inspection have recorded evidence.
 - The final V1 USB hub/cabling chain enumerates all four stable node identities.
 - The Pi application requires writable removable USB storage and never falls back
-  to the boot microSD; real-drive application capture/removal tests remain open.
+  to the boot microSD. Real CRC-verified Camera 1 captures now pass on that drive
+  before and after a Pi reboot; removal and other real-drive fault tests remain
+  open.
+- The `b950740` repository/module refactor is deployed on the Pi and all four
+  camera nodes. Its 10-cycle hardware regression passed 40/40 images, and the Pi
+  passed all 33 automated boot checks after reboot. See
+  [`refactor-hardware-regression-2026-07-17.md`](evidence/milestone-1/checkpoint-4/refactor-hardware-regression-2026-07-17.md).
 - Product-level coordination still maps only Camera 1 and does not yet persist or
   display a grouped four-image result.
 - The executable acceptance contract is in
