@@ -12,14 +12,15 @@ constexpr framesize_t CAPTURE_FRAME_SIZE = FRAMESIZE_QXGA;
 constexpr uint8_t JPEG_QUALITY = 8;  // Lower is higher quality.
 constexpr unsigned long LIGHT_SETTLE_MS = 700;
 constexpr uint8_t WARMUP_FRAME_COUNT = 4;
+constexpr unsigned long TRANSFER_SLOT_SPACING_MS = 150;
 constexpr gainceiling_t SENSOR_GAIN_CEILING = GAINCEILING_4X;
 constexpr int SENSOR_SHARPNESS = 1;
 constexpr int SENSOR_DENOISE = 1;
 
 constexpr unsigned long TRIGGER_DEBOUNCE_MS = 40;
-constexpr unsigned long HOST_ACK_TIMEOUT_MS = 10000;
+constexpr unsigned long HOST_ACK_TIMEOUT_MS = 30000;
 constexpr size_t USB_CHUNK_SIZE = 4096;
 constexpr size_t USB_TX_BUFFER_BYTES = 16 * 1024;
 constexpr unsigned long USB_WRITE_STALL_TIMEOUT_MS = 10000;
 constexpr uint8_t PROTOCOL_VERSION = 1;
-constexpr char FIRMWARE_VERSION[] = "0.2.2";
+constexpr char FIRMWARE_VERSION[] = "0.2.3";

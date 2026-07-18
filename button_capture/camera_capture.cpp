@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <esp_camera.h>
+#include <string.h>
 
 #if __has_include("esp_idf_version.h")
 #include "esp_idf_version.h"
@@ -32,6 +33,11 @@ bool discardWarmupFrames() {
     esp_camera_fb_return(frame);
   }
   return true;
+}
+
+uint8_t transferSlot() {
+  const char* identity = nodeUid();
+  return crc32Bytes(reinterpret_cast<const uint8_t*>(identity), strlen(identity)) % CAMERA_COUNT;
 }
 
 void configureCameraPins(camera_config_t& config) {
@@ -97,6 +103,8 @@ bool capturePhoto() {
     sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "FRAME_DIMENSIONS_INVALID");
   } else {
     const uint32_t jpegCrc = crc32Bytes(frame->buf, frame->len);
+    const uint8_t slot = transferSlot();
+    delay(slot * TRANSFER_SLOT_SPACING_MS);
     const uint64_t transferStartedUs = esp_timer_get_time();
     char imageMetadata[640];
     snprintf(imageMetadata, sizeof(imageMetadata),
@@ -104,14 +112,14 @@ bool capturePhoto() {
              "\"width\":%u,\"height\":%u,\"jpeg_bytes\":%u,"
              "\"jpeg_crc32\":\"%08lx\",\"trigger_accepted_us\":%llu,"
              "\"acquisition_started_us\":%llu,\"frame_ready_us\":%llu,"
-             "\"transfer_started_us\":%llu}",
+             "\"transfer_slot\":%u,\"transfer_started_us\":%llu}",
              nodeUid(), static_cast<unsigned long>(nodeBootId()),
              static_cast<unsigned long>(sequence), static_cast<unsigned int>(frame->width),
              static_cast<unsigned int>(frame->height), static_cast<unsigned int>(frame->len),
              static_cast<unsigned long>(jpegCrc),
              static_cast<unsigned long long>(triggerAcceptedUs),
              static_cast<unsigned long long>(acquisitionStartedUs),
-             static_cast<unsigned long long>(frameReadyUs),
+             static_cast<unsigned long long>(frameReadyUs), static_cast<unsigned int>(slot),
              static_cast<unsigned long long>(transferStartedUs));
 
     const bool transferred =

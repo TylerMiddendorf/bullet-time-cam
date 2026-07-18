@@ -1,11 +1,19 @@
+import json
 import shutil
 import subprocess
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
 
 
 class FirmwareHostTests(unittest.TestCase):
+    def test_registered_nodes_receive_distinct_transfer_slots(self):
+        repository = Path(__file__).resolve().parents[2]
+        config = json.loads((repository / "pi_app" / "config.json").read_text(encoding="utf-8"))
+        slots = {uid: zlib.crc32(uid.encode("ascii")) % 4 for uid in config["logical_cameras"]}
+        self.assertEqual(set(slots.values()), {0, 1, 2, 3})
+
     @unittest.skipUnless(shutil.which("g++"), "g++ is required for the firmware host regression")
     def test_ack_identity_tokens_match_exact_numeric_values(self):
         repository = Path(__file__).resolve().parents[2]
