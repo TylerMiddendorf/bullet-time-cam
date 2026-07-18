@@ -223,5 +223,7 @@ hardware and the evidence shows:
 - `ROADMAP.md`, `PROJECT_CONTEXT.md`, `CURRENT_SESSION.md`, `README.md`, and the
   evidence index are updated with the demonstrated result and any remaining limitation.
 
-This gate closed on July 18. The next ordered work is aggregate electrical
-power measurement and Milestone 3 battery/safe-power design.
+This gate closed on July 18. Aggregate electrical measurement was initially the
+next ordered work, then was retired later that day when the product owner
+accepted the external two-output battery pack as the complete V1 power
+arrangement. Milestone 4 enclosure work is now active.

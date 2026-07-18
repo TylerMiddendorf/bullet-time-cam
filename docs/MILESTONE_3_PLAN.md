@@ -1,8 +1,24 @@
 # Milestone 3 Plan - Aggregate Power and Safe Battery Integration
 
-Status: active; external aggregate-power instrument required
+Status: closed July 18, 2026 by product-owner decision; measurement plan retired for V1
 
-## Outcome
+## Closure Decision
+
+The product owner confirmed that the external battery pack is the selected V1
+power solution. It supplies the Raspberry Pi and powered USB hub from separate
+rated 5 V / 2 A outputs and includes its own battery-percentage display. The
+owner directed that further power work be ignored because power is handled.
+
+Accordingly, aggregate measurement, internal battery/charging integration,
+fuel-gauge work, single-control power sequencing, and automatic low-battery
+shutdown are no longer V1 gates. No aggregate measurements or coordinated
+shutdown demonstrations were completed, so this closure records a changed
+requirement rather than electrical validation.
+
+The remainder of this document is retained as the superseded measurement and
+integration plan in case the requirement is reopened for a later revision.
+
+## Original Outcome - Retired
 
 Measure the complete final V1 bench chain electrically, use that evidence to set
 a runtime target and power budget, then select and validate battery, regulation,

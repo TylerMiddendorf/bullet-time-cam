@@ -11,8 +11,9 @@ status narratives between files.
 - [`ROADMAP.md`](ROADMAP.md) — milestone order, status, cost gates, and exit criteria
 - [`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md) — completed bench end-to-end milestone plan and measured exit evidence
 - [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md) — completed removable-media qualification procedures, evidence requirements, and exit result
-- [`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md) — active aggregate-power measurement and safe battery-integration gates
-- [`CURRENT_SESSION.md`](CURRENT_SESSION.md) — concise handoff for active aggregate-power work
+- [`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md) — closed/retired aggregate-power and safe battery-integration plan
+- [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md) — active enclosure layout, print, and acceptance gates
+- [`CURRENT_SESSION.md`](CURRENT_SESSION.md) — concise handoff for active enclosure work
 - [`INTERVIEW.md`](INTERVIEW.md) — dated product-owner decisions and requirement changes
 
 ## Test Plans and Runbooks

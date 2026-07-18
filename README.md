@@ -56,7 +56,10 @@ App 0.2.1 keeps Tk polling alive when reviewed media disappears, presents
 bounded storage errors on the 800x480 display, and cleans expired capture
 staging safely. The fully backed-up product FAT was repaired and remained clean
 after final byte-valid four-camera capture `20260718T175104Z_04b69c0b`.
-Aggregate electrical power measurement is the next ordered work.
+The product owner accepted an external battery pack with separate rated
+5 V / 2 A feeds for the Raspberry Pi and powered USB hub plus its own percentage
+display. Aggregate measurement and internal battery/safe-power integration are
+retired as V1 gates; compact enclosure work is next.
 
 ## Camera Firmware
 
@@ -153,7 +156,8 @@ and evidence locations. The canonical changing project state lives in:
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — milestone ordering, status, and budget gates
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md) — completed bench milestone plan and measured exit evidence
 - [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md) — completed removable-media fault-qualification procedures and exit evidence
-- [`docs/MILESTONE_3_PLAN.md`](docs/MILESTONE_3_PLAN.md) — active aggregate-power measurement and safe battery-integration plan
+- [`docs/MILESTONE_3_PLAN.md`](docs/MILESTONE_3_PLAN.md) — closed/retired aggregate-power and safe battery-integration plan
+- [`docs/MILESTONE_4_PLAN.md`](docs/MILESTONE_4_PLAN.md) — active compact-enclosure layout, print, and acceptance plan
 - [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — concise handoff for the active work
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md) — product-owner decision history
 

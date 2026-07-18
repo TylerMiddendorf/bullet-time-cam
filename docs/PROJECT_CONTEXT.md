@@ -13,7 +13,8 @@ The finished device is intended to:
 3. Use a central computer to coordinate capture, collect all four images, clean up and improve image quality, and turn the result into an animated GIF that moves through the viewpoints.
 4. Provide an integrated screen where the user can adjust camera settings, review captured images, and potentially see previews before capture.
 5. Provide a physical shutter button that behaves like the button on a normal camera.
-6. Run from an internal rechargeable battery.
+6. Run from the selected external battery pack, using separate rated 5 V / 2 A
+   feeds for the Raspberry Pi and powered USB hub.
 7. Provide a removable USB drive so the user can take completed images and animations off the camera while the Raspberry Pi boot microSD remains protected inside the device.
 8. Potentially host a Wi-Fi hotspot from the central computer so a phone or laptop can browse and retrieve finished media.
 
@@ -23,7 +24,7 @@ The likely central computer is a Raspberry Pi 4 Model B, but that selection is p
 
 The current product concept is:
 
-1. Power on a self-contained handheld camera.
+1. Power the enclosed handheld camera from its selected external battery pack.
 2. See no operating-system content during boot: the display may remain blank during the early kernel phase, then shows only the product logo followed directly by the full-screen camera application, without boot logs, cursors, or loading diagnostics.
 3. Use its screen to review status and configure capture settings.
 4. Hold and aim the rig like a normal digital camera.
@@ -119,12 +120,11 @@ RAM and Raspberry Pi OS. The implemented application:
 - Records capture, transfer, processing, storage, and resource measurements
 
 Image alignment, appearance normalization, other quality-improvement processing,
-and network media access remain future work. The Pi is still provisional as the
-final integrated production computer until aggregate-power measurement and the
-latency tradeoff are resolved. Its current
-operating system and USB communication path are fixed as the validated version 1
-bench baseline. The measured four-node median is 3.250 seconds, above the soft
-two-second target.
+and network media access remain future work. The Pi remains the V1 central-
+computer candidate through enclosure integration and the unresolved latency
+tradeoff. Its current operating system and USB communication path are fixed as
+the validated version 1 bench baseline. The measured four-node median is 3.250
+seconds, above the soft two-second target.
 
 ### Camera-node communication - USB selected for V1
 
@@ -188,26 +188,23 @@ references, not validated UI behavior or product decisions; in particular, the
 live-preview, settings, library, and viewer concepts do not expand version 1
 scope.
 
-### Power - prototype and planned
+### Power - selected version 1 arrangement
 
-Current prototype power:
+On July 18, 2026, the product owner selected an external battery pack as the
+complete V1 power solution. The pack provides two separate rated outputs:
 
-- All four ESP32S3 boards are powered over USB from a battery hub.
+- 5 V / 2 A to the Raspberry Pi
+- 5 V / 2 A to the powered USB hub
 
-Planned product power:
+The pack has its own battery-percentage display. The product owner considers
+power handled and retired further aggregate-power measurement, internal-battery
+integration, fuel-gauge, charging, and automatic power-cut work as V1 gates.
+This supersedes the earlier internal rechargeable battery and coordinated
+low-battery shutdown direction for V1.
 
-- One internal rechargeable battery
-- Internal power distribution for the four camera nodes, central computer, screen, and supporting electronics
-- Mandatory USB-C charging
-- Long enough runtime to take many capture sets per charge
-- A single user-facing on/off control for the complete device
-- Coordinated shutdown of the Raspberry Pi and camera nodes before power is removed
-- Automatic safe shutdown when battery charge becomes too low, before brownout
-- No requirement to operate while charging
-
-The power subsystem must not simply remove power from a running Raspberry Pi. A hardware power controller or supervisor will likely need to monitor the button and battery, request an orderly software shutdown, wait for completion, and then disconnect the system load. The same sequence should run for a user shutdown and a low-battery shutdown.
-
-Battery chemistry, capacity, regulators, exact low-battery thresholds, and a numerical runtime/capture-count target remain open. Those values should be chosen after measuring the real four-node, central-computer, display, and storage load.
+No repository evidence independently measures total current, output regulation,
+runtime, or shutdown behavior. Those are not claimed as demonstrated and are no
+longer remaining V1 acceptance gates unless the product owner reopens them.
 
 ### Storage - prototype and planned
 
@@ -267,7 +264,9 @@ As of July 18, 2026:
 - All four modules are assembled on a breadboard.
 - A universal/shared shutter button is wired to all four nodes.
 - Historical/superseded: each node previously used an individual status LED.
-- The boards are powered by USB from a battery hub.
+- The selected external battery pack powers the Raspberry Pi from one rated
+  5 V / 2 A output and the powered USB hub from a separate rated 5 V / 2 A
+  output; the pack provides its own battery-percentage display.
 - The shared button and all four camera nodes work as expected.
 - Historical/superseded: the original prototype saved images to individual node cards.
 - Firmware 0.2.3 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and transfers captures directly through BTC1 without initializing node storage.
@@ -279,12 +278,12 @@ As of July 18, 2026:
 - The dedicated private SSH key is stored outside the repository under the Windows user profile; non-secret connection details, the pinned host-key fingerprint, access boundaries, and recovery guidance are recorded in `docs/RASPBERRY_PI_SSH.md`.
 - The final V1 USB hub/cabling chain is installed on the Raspberry Pi. The Pi reports VIA Labs `2109:3431` feeding Terminus `1a40:0101`; the four ESP32 nodes enumerate concurrently through the downstream four-port hub at 12 Mb/s, while the touchscreen and removable drive also enumerate on the installed chain.
 - A 3D printer is available.
-- The final integrated USB hub/cabling selection is installed and has passed the recorded four-node concurrent integrity runs. Aggregate system power remains unmeasured.
-- No integrated battery/charging system has been acquired.
+- The final integrated USB hub/cabling selection is installed and has passed the recorded four-node concurrent integrity runs. Aggregate system power remains unmeasured but is no longer a V1 gate by product-owner decision.
+- The external two-output battery pack is the accepted V1 power arrangement; no internal battery/charging integration is planned for V1.
 - The product owner has added a USB drive to the Raspberry Pi for removable JPEG/GIF storage.
 - The Pi application detects mounted USB-backed filesystems, can request automatic mounting through `udisks2`, writes capture sets below `BulletTime/`, records the selected USB filesystem in each manifest, and refuses to fall back to the boot microSD. The product drive is identified by USB serial `900049666ACEB315`, UUID `B67C-53C4`, and label/mount name `USB DISK`; its `/dev/sdX` letter may change after re-enumeration. Product-level four-original/manifest/GIF persistence and reboot continuity pass on this drive.
 - The July 18 Milestone 2 hardware session exercised physical idle reinsertion, automatic remount, missing/full/read-only/corrupt media, deterministic removal during active staging, recovery, and preferred/fallback/no-preference two-drive selection without creating boot-card media or valid-looking failed sets. All restored states reached a byte-valid four-camera capture. At that first handoff, the product drive had a pre-existing FAT dirty bit and clearly uncommitted July 17 staging directory; storage-error screens clipped long text, and removal of the currently reviewed GIF killed the Tk poll callback until service restart. Evidence is in `docs/evidence/milestone-2/removable-media-qualification-2026-07-18.md`.
-- Raspberry Pi/display bring-up, concurrent four-node grouping, multi-image GIF generation, camera-specific partial capture, touchscreen review, and normal removable-USB persistence are implemented and physically validated. Power integration and enclosure work remain.
+- Raspberry Pi/display bring-up, concurrent four-node grouping, multi-image GIF generation, camera-specific partial capture, touchscreen review, and normal removable-USB persistence are implemented and physically validated. Enclosure work remains.
 - Approximately $200 remains available for version 1.
 - The physical button and Pi GPIO17/2N3904 stage are connected to the four-node shared trigger. The framed Pi-to-node USB request remains explicit diagnostic scaffolding only; normal touchscreen actions use one 100 ms GPIO17 pulse.
 - The Git-tracked Pi application and camera firmware complete the physical/Pi-trigger-to-touchscreen path through all four powered nodes, with CRC validation, atomic capture-set preservation, ordered GIFs, manifests, resource/timing instrumentation, camera-specific partial review, and reconnect discovery by stable node UID.
@@ -295,13 +294,13 @@ As of July 18, 2026:
 - On July 18, the full product coordinator passed its physical-rig E2E contract: 25/25 complete four-node sets (100 originals and 25 six-frame GIFs), every logical camera unavailable separately, checksum-corrupt and mid-transfer-truncated Camera 1 cases with complete recovery, stable Camera 4 identity through reboot, and separate physical-shutter and touchscreen/GPIO17 product captures. The byte validator passed 35 named sets and the environment-gated live suite passed. Complete-set time was 3.250 seconds median and 3.289 seconds maximum, so the soft two-second target remains open. Representative normal and corrected camera-specific partial screens were photographed. See `docs/evidence/milestone-1/checkpoint-5/checkpoint5-four-node-e2e-2026-07-18.md`.
 - Later on July 18, the complete removable-media hardware matrix passed fail-closed, atomic-publication, no-boot-card-fallback, recovery, and deterministic two-drive selection checks. Missing, full, read-only, corrupt/unmountable, and deterministic mid-write USB-storage removal were exercised on the Pi; every restored state completed a byte-valid four-camera capture, and the environment-gated four-node E2E test passed with its ledger. Qualification also exposed a Tk poll-callback crash when reviewed media disappears, clipped storage-error text, a dirty product FAT, and one pre-existing stale staging directory. See `docs/evidence/milestone-2/removable-media-qualification-2026-07-18.md`.
 - The focused July 18 follow-up resolved those findings. App 0.2.1 survived the live removed-review exception without restarting, bounded storage and camera-disconnect text at 800x480, and removed the expired staging directory through guarded cleanup. A complete 1,224-file/947,483,006-byte product-media backup matched every source SHA-256 before `fsck.vfat` repaired the dirty FAT and reconciled the boot-sector difference. The offline check passed both immediately and after final actual-UI four-camera capture `20260718T175104Z_04b69c0b`; that set passed byte and GIF-order validation. See `docs/evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`.
-- The first Milestone 3 inventory found no Pi `power_supply` entries, no `hwmon` voltage/current/power inputs, and no USB device identifiable as an electrical power meter. `get_throttled=0x0` is a health flag rather than an aggregate measurement. A suitable external inline instrument and a physical map of every present power rail are required before electrical data can be collected; see `docs/MILESTONE_3_PLAN.md`.
-- The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained. Electrical power remains unmeasured.
+- The first Milestone 3 inventory found no Pi `power_supply` entries, no `hwmon` voltage/current/power inputs, and no USB device identifiable as an electrical power meter. `get_throttled=0x0` is a health flag rather than an aggregate measurement. The product owner subsequently retired that measurement work and accepted the external two-output battery pack as the V1 power solution; see `docs/MILESTONE_3_PLAN.md`.
+- The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. Aggregate power measurement, battery/safe-power integration, and enclosure work remain.
+The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. Enclosure work remains.
 
-The active work is aggregate electrical power measurement for Milestone 3, followed by battery/safe-shutdown design. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+The active work is the compact V1 enclosure in Milestone 4. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -340,15 +339,15 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - Raspberry Pi BCM GPIO17, physical pin 11, activates the shared trigger through the documented 2N3904 open-collector circuit.
 - The Pi observes capture start through USB `CAPTURE_STARTED` messages rather than a separate trigger-sense GPIO.
 - The final device has an integrated screen and a physical shutter button.
-- The final device uses an internal rechargeable battery.
+- Version 1 uses an external battery pack with separate rated 5 V / 2 A outputs
+  for the Raspberry Pi and powered USB hub.
+- The selected pack's own battery-percentage display is the V1 charge indicator.
 - The user needs removable USB storage for exported media.
 - Raspberry Pi boot storage is a protected internal microSD card.
 - Original JPEGs, manifests, and generated GIFs are stored on a physically separate USB drive; the application does not use the boot card as a media fallback.
-- USB-C charging is required.
-- Version 1 does not need to operate while charging.
-- One on/off button controls the complete device.
-- User-requested and low-battery shutdowns must safely stop all systems before power removal.
-- Low battery must trigger orderly shutdown before a brownout.
+- Aggregate electrical measurement, an internal charging subsystem, a single
+  system power control, and automatic low-battery shutdown are not V1 gates
+  under the July 18 product-owner decision.
 - Version 1 uses a simple box-shaped 3D-printed enclosure.
 - The version 1 enclosure should remain reasonably compact and expose all required user-accessible components.
 - Weight optimization, ergonomic shaping, integrated lighting, tripod mounting, and weather resistance are deferred to later revisions.
@@ -360,7 +359,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - A touchscreen and 3D printer are already available.
 - Approximately $200 remains for version 1.
 - The bench-top, USB-powered end-to-end milestone from four camera nodes through Raspberry Pi GIF generation and touchscreen review is complete.
-- Removable USB media fault qualification is complete; battery and enclosure integration follow measured aggregate power and safe-power design.
+- Removable USB media fault qualification is complete; the external battery
+  arrangement is accepted, and compact enclosure integration is next.
 - Progress is milestone-based without a fixed version 1 deadline.
 
 ## Provisional Ideas
@@ -374,32 +374,29 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - View alignment and appearance matching
 - AI-generated intermediate frames
 - NeRF or 3D Gaussian Splatting processing
-- A dedicated hardware power controller or supervisor for button handling, battery monitoring, shutdown coordination, and final power cutoff
+- A dedicated hardware power controller or supervisor for a later revision if
+  coordinated shutdown and final load cutoff are reopened
 
 ## Major Work Remaining
 
-The ordered implementation plan is maintained in `ROADMAP.md`. Active
-removable-media work, fault procedures, and exit gates are in
-`MILESTONE_2_PLAN.md`; `MILESTONE_1_PLAN.md` is the completed bench-integration
-record.
+The ordered implementation plan is maintained in `ROADMAP.md`. Active enclosure
+work and exit gates are in `MILESTONE_4_PLAN.md`; `MILESTONE_3_PLAN.md` records
+the retired power-measurement plan, and `MILESTONE_2_PLAN.md` plus
+`MILESTONE_1_PLAN.md` are completed qualification records.
 
 - Choose total enclosure width and define the curve/convergence geometry for a future 12+ camera array.
 - Define GIF frame duration, playback direction, loop behavior, and export settings.
 - Optimize or explicitly accept the measured 3.250-second median four-node review path against the soft two-second target; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
-- Continue validating the Raspberry Pi candidate during aggregate-power testing before treating it as the final production choice.
-- Measure the installed display's outer bezel/depth and actual current only if the Pi-reported 150x100 mm area and USB 5 V / 100 mA descriptor are insufficient for enclosure or battery design.
-- Retain the installed final V1 hub/cabling and include it in aggregate power and final enclosure-layout measurements.
+- Measure the installed display's outer bezel/depth; the Pi-reported 150x100 mm area is not an enclosure dimension.
+- Retain the installed final V1 hub/cabling and include it in enclosure-layout measurements.
 - Design future image alignment, cleanup, and enhancement after the validated raw-image GIF path.
 - Design the fast-follow live-preview architecture.
 - Add live preview after version 1 works end to end.
 - Define version 2 camera settings and how they are synchronized across nodes.
-- Design the internal power, charging, monitoring, and safe-shutdown system.
-- Measure idle, capture, transfer, processing, and display power consumption.
-- Set a numerical runtime or captures-per-charge requirement from those measurements.
-- Select the battery, USB-C charging implementation, regulators, fuel gauge, and shutdown supervisor.
-- Define the Raspberry Pi/node shutdown handshake and safe power-cut timing.
 - Design the compact enclosure, camera mounts, controls, ports, and cooling.
 - Lay out the integrated version 1 hardware before fixing enclosure dimensions.
+- Provide strain-relieved routes for the external pack's separate Raspberry Pi
+  and powered-hub supply leads without enclosing the pack.
 - Produce a simple 3D-printable box enclosure with the required external openings and camera alignment.
 - Revisit weight, ergonomics, lighting, tripod mounting, and weather resistance after version 1.
 - Establish objective reliability, image-quality, runtime, and size targets.
@@ -407,6 +404,6 @@ record.
 
 ## Draft Definition of Done
 
-The project is complete when a user can pick up one self-contained device, power it on, confirm readiness on its screen, press its physical shutter once, reliably capture all four views, receive a processed bullet-time GIF, review it, and remove or download the finished media without opening the device or manually handling the four camera-node cards.
+The project is complete when a user can pick up the enclosed camera rig and its selected external battery pack, power it on, confirm readiness on its screen, press its physical shutter once, reliably capture all four views, receive a processed bullet-time GIF, review it, and remove or download the finished media without opening the enclosure or manually handling the four camera-node cards.
 
 This definition is a draft and should be refined during the project interview.

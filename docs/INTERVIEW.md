@@ -265,3 +265,20 @@ Implementation status:
 - The product owner confirmed that the hub and cabling currently installed on the Raspberry Pi are the final V1 selection rather than temporary bench hardware.
 - Read-only SSH inspection confirmed that the installed chain enumerates VIA Labs hub `2109:3431`, downstream Terminus hub `1a40:0101`, all four stable ESP32 identities, touchscreen controller `8888:6666`, and the removable USB drive.
 - The running compositor reports the installed HDMI display at 800x480, 65.681 Hz, with a 150x100 mm physical area and generic EDID identity `Addi-Data GmbH`, model `0x0004`. The USB interface declares 5 V / 100 mA maximum. This descriptor is not an electrical measurement of the entire panel/backlight, and Linux cannot report the enclosure-facing bezel/depth.
+
+### 2026-07-18 - External battery pack accepted for version 1
+
+- The product owner directed that aggregate-power work be ignored because the
+  power solution has already been handled.
+- Version 1 uses an external battery pack with one rated 5 V / 2 A output for
+  the Raspberry Pi and a separate rated 5 V / 2 A output for the powered USB
+  hub.
+- The battery pack has its own battery-percentage display, which is the V1
+  charge indication.
+- This supersedes the June 26 internal rechargeable battery, aggregate
+  measurement, integrated charging/fuel-gauge, single-control sequencing, and
+  automatic low-battery shutdown direction as V1 gates.
+- No independent aggregate-current, runtime, regulation-margin, or coordinated
+  shutdown measurement is claimed. Milestone 3 is closed by changed
+  product-owner acceptance rather than by electrical test evidence, and
+  enclosure work proceeds next.

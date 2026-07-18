@@ -48,7 +48,7 @@ Work:
 - Define a transport-independent capture and image-transfer protocol.
 - Prototype direct JPEG transfer from one ESP32S3 frame buffer.
 - Use USB as the selected V1 transport; defer Wi-Fi unless USB exposes a concrete blocker.
-- Use the product owner's installed final V1 USB hub/cabling chain; its four concurrent camera links are enumerated and have passed the recorded repeated transfer tests. Aggregate power validation remains part of later system power measurement.
+- Use the product owner's installed final V1 USB hub/cabling chain; its four concurrent camera links are enumerated and have passed the recorded repeated transfer tests. The later aggregate-power gate was retired by the July 18 product-owner decision.
 - Integrate the validated concurrent four-node transfers into the product coordinator and capture-set workflow.
 - Implement capture-set grouping, partial-set handling, and diagnostics.
 - Preserve originals and generate the version 1 GIF.
@@ -122,28 +122,35 @@ USB-storage unbind rather than a literal cable yank. See
 
 ## Milestone 3 - Integrated Battery and Safe Power
 
-Status: active; aggregate bench-power measurement next
+Status: closed July 18, 2026 by product-owner acceptance of the external power arrangement; planned aggregate measurement was not executed
 
 The measurement and integration checkpoints are in
 [`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md).
 
-- Measure idle, capture, transfer, processing, display, and peak power.
-- Set a runtime or captures-per-charge target.
-- Select battery capacity and regulators from measured demand.
-- Add USB-C charging.
-- Add battery/fuel monitoring.
-- Implement one-button startup and coordinated shutdown.
-- Trigger the same safe shutdown before low-voltage brownout.
-- No operation while charging is required for version 1.
+- Use the selected external battery pack's separate rated 5 V / 2 A outputs for
+  the Raspberry Pi and powered USB hub.
+- Use the battery pack's own percentage display as the V1 charge indication.
+- Retire aggregate measurement, internal battery/charging integration, and
+  automatic low-battery shutdown as V1 gates.
+- Do not claim actual current, runtime, regulation margin, or coordinated
+  shutdown as independently measured or demonstrated.
+
+This supersedes the earlier internal-battery direction for V1. The original
+measurement and safe-power checkpoints remain in `MILESTONE_3_PLAN.md` as
+historical planning context.
 
 ## Milestone 4 - Compact Version 1 Enclosure
 
-Status: after hardware layout stabilizes
+Status: active July 18, 2026
+
+The detailed layout, print, and acceptance checkpoints are in
+[`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md).
 
 - Arrange all final version 1 components.
 - Model a reasonably compact box-shaped enclosure.
 - Maintain the 4 cm sensor spacing and straight camera alignment.
-- Provide openings for cameras, screen, shutter, power, USB-C charging, removable USB media, and other required access.
+- Provide openings for cameras, screen, shutter, the two external battery-pack
+  leads, removable USB media, and other required access.
 - 3D print and revise for fit.
 
 Ergonomics, weight optimization, integrated lighting, tripod mounting, and weather resistance are later revisions.
@@ -166,4 +173,8 @@ Ergonomics, weight optimization, integrated lighting, tripod mounting, and weath
 
 ## Budget Rule
 
-Approximately $200 remains for version 1. Do not purchase battery, charging, enclosure-specific, or optional network hardware until the bench-top end-to-end milestone identifies actual requirements. Use already-available bench hardware where reliable, and confirm electrical and software compatibility before buying each missing component.
+Approximately $200 remains for version 1. The product owner has accepted the
+existing external battery pack, so the earlier battery/charging purchase gate is
+retired. Tie enclosure-specific and optional network purchases to demonstrated
+requirements, reuse available hardware where reliable, and confirm compatibility
+before buying each missing component.

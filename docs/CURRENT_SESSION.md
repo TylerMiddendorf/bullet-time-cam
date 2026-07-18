@@ -1,44 +1,36 @@
-# Current Session - Aggregate Power Measurement
+# Current Session - Compact Version 1 Enclosure
 
 Status reviewed: July 18, 2026
 
 ## Verified State
 
-- Milestone 2 removable USB qualification is complete at Raspberry Pi revision
-  `8fd1f17a774b2b093971b817a36d97aca0f6a806`, app version `0.2.1`.
-- The UI survives disappearance of its reviewed GIF without a service restart.
-  Missing-media and camera-disconnect messages fit the 800x480 screen.
-- Guarded one-hour cleanup removed the pre-existing stale staging directory.
-- The product FAT was backed up file-for-file, repaired, and returned a clean
-  offline `fsck.vfat -n -v` result again after final capture
-  `20260718T175104Z_04b69c0b`.
-- That final actual-UI capture passed byte validation for Cameras 1-4 and GIF
-  order `[1, 2, 3, 4, 3, 2]` on the product drive.
-- `bullet-time-ui.service` is active, GPIO17 is output LOW, all four stable
-  camera identities are present, and the product USB drive is mounted writable.
-  The clean 64 MiB `M2TEST` partition is attached and unmounted.
-- The complete focused evidence is in
+- Milestones 1 and 2 are complete. The full four-camera workflow and removable
+  USB fault/recovery behavior are physically validated.
+- App 0.2.1 survives disappearance of its reviewed GIF, fits bounded errors on
+  the 800x480 display, and cleans expired staging safely.
+- The product FAT was backed up, repaired, and returned a clean offline check
+  after final actual-UI capture `20260718T175104Z_04b69c0b`.
+- The product owner accepted an external battery pack as the V1 power solution.
+  It supplies separate rated 5 V / 2 A feeds to the Raspberry Pi and powered
+  USB hub and has its own battery-percentage display.
+- Aggregate measurement, internal battery/charging integration, and automatic
+  safe-power sequencing are retired as V1 gates. No electrical measurement or
+  coordinated shutdown evidence is claimed.
+- The complete removable-media follow-up is in
   [`evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`](evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md).
 
 ## Immediate Work
 
-Begin Milestone 3 with aggregate bench-power measurement before selecting any
-battery, regulator, charger, fuel gauge, or shutdown controller.
+Execute Milestone 4 from [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md):
 
-1. Identify a suitable external inline power instrument and its voltage/current
-   range, sample/logging capability, burden voltage, and connection point.
-2. Measure the complete final V1 bench chain, including Raspberry Pi, display,
-   final hubs/cabling, four camera nodes, and product USB storage.
-3. Record stable idle, one real touchscreen-triggered four-camera capture,
-   transfer/processing/review, and observed peak current/power. Repeat enough
-   captures to establish representative and maximum values.
-4. Record source voltage at the load during peak activity and any Pi
-   undervoltage/throttling indication. Software resource metrics are not a
-   substitute for the electrical measurement.
-5. Use measured demand only after this evidence to set runtime/captures-per-
-   charge targets and evaluate battery, regulation, charging, monitoring, and
-   safe-power-cut hardware.
-
-No suitable aggregate electrical instrument has yet been identified in the
-repository evidence. Do not infer system power from USB descriptors or Linux
-software counters.
+1. Measure every enclosure-facing component and connector, including the real
+   display bezel/depth, camera modules and ribbons, Raspberry Pi, installed
+   hubs/cabling, trigger hardware, shutter, and removable product USB drive.
+2. Lay out the four sensors in their straight 4 cm spacing and arrange the
+   remaining hardware for cooling, serviceability, cable bend radius, and
+   removable-media access.
+3. Route and strain-relieve the external pack's separate Pi and powered-hub
+   leads; the external pack does not consume internal enclosure volume.
+4. Produce and inspect fit-check prints before committing to a complete shell.
+5. Assemble and rerun the product capture, display, removable-media, and thermal
+   acceptance checks in the closed enclosure.
