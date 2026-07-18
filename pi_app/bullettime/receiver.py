@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import queue
 import threading
 import time
@@ -32,6 +33,8 @@ from .protocol import (
     read_frame,
 )
 from .storage import StorageUnavailable, UsbStorageResolver
+
+LOGGER = logging.getLogger(__name__)
 
 
 def response_metadata(metadata: dict, status: str, error: str | None = None) -> dict:
@@ -263,9 +266,16 @@ class Receiver(threading.Thread):
                 active_before and self.coordinator.active_capture_id is None
             )
         if not self.stop.is_set() and not capture_was_finalized:
+            camera_id = self.logical_cameras.get(uid)
+            LOGGER.warning("Camera %s disconnected on %s: %s", camera_id, session.port, exc)
+            message = (
+                f"Camera {camera_id} disconnected\n{connected}/4 cameras connected"
+                if camera_id is not None
+                else f"Camera connection lost\n{connected}/4 cameras connected"
+            )
             self.send_status(
                 "LOADING" if self.coordinator.active_capture_id else "ERROR",
-                message=f"{session.port}: {exc} ({connected}/4 cameras connected)",
+                message=message,
             )
 
     def _process_commands(self) -> None:

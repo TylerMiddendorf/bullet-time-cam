@@ -236,8 +236,24 @@ class ReceiverCompletionTests(unittest.TestCase):
             receiver._capture_started(session, meta, 1_000_000)
             session.current_metadata = meta
             receiver.sessions_by_uid[session.node_uid] = session
-            receiver.session_disconnected(session, OSError("cable removed"))
+            with self.assertLogs("pi_app.bullettime.receiver", level="WARNING"):
+                receiver.session_disconnected(session, OSError("cable removed"))
             self.assertEqual(receiver.coordinator._active.errors[3].code, "transfer_truncated")
+
+    def test_idle_disconnect_uses_camera_specific_bounded_ui_message(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            receiver.sessions_by_uid = {session.node_uid: session for session in sessions.values()}
+
+            with self.assertLogs("pi_app.bullettime.receiver", level="WARNING") as logs:
+                receiver.session_disconnected(sessions[2], OSError("long low-level detail"))
+
+            event = events.get_nowait()
+            self.assertEqual(event["state"], "ERROR")
+            self.assertEqual(event["message"], "Camera 2 disconnected\n3/4 cameras connected")
+            self.assertNotIn("test-port", event["message"])
+            self.assertIn("long low-level detail", logs.output[0])
 
     def test_failed_serial_port_reconnect_is_backed_off(self):
         with tempfile.TemporaryDirectory() as temp:
