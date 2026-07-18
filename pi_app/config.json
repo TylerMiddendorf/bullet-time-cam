@@ -5,10 +5,10 @@
     "auto_mount": true
   },
   "logical_cameras": {
-    "E072A1F9A190": 1,
-    "E072A1F99CC0": 2,
-    "E072A1F99CF8": 3,
-    "E072A1F9B3E4": 4
+    "E072A1F9B3E4": 1,
+    "E072A1F9A190": 2,
+    "E072A1F99CC0": 3,
+    "E072A1F99CF8": 4
   },
   "serial_baud": 115200,
   "serial_read_timeout_seconds": 15,
