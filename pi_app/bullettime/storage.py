@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -13,6 +14,8 @@ import zlib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
+
+LOGGER = logging.getLogger(__name__)
 
 
 class StorageUnavailable(RuntimeError):
@@ -28,6 +31,7 @@ class UsbMount:
 
 
 _MOUNT_ESCAPE = re.compile(r"\\([0-7]{3})")
+_CAPTURE_STAGING = re.compile(r"^\.\d{8}T\d{6}Z_[0-9a-f]{8}\.part$")
 
 
 def _unescape_mount_field(value: str) -> str:
@@ -136,6 +140,7 @@ class UsbStorageResolver:
         auto_mount: bool = True,
         mount_discovery: Callable[[], list[UsbMount]] | None = None,
         automounter: Callable[[], list[str]] | None = None,
+        stale_staging_seconds: float = 3600,
     ) -> None:
         relative = Path(capture_directory)
         if relative.is_absolute() or ".." in relative.parts or relative == Path("."):
@@ -145,6 +150,9 @@ class UsbStorageResolver:
         self.auto_mount = auto_mount
         self._mount_discovery = mount_discovery or discover_usb_mounts
         self._automounter = automounter or auto_mount_usb_volumes
+        if stale_staging_seconds < 0:
+            raise ValueError("stale_staging_seconds must not be negative")
+        self.stale_staging_seconds = stale_staging_seconds
         self.active_mount: UsbMount | None = None
         self.active_root: Path | None = None
 
@@ -171,6 +179,9 @@ class UsbStorageResolver:
                 continue
             if not os.access(root, os.W_OK):
                 continue
+            removed = cleanup_stale_staging(root, self.stale_staging_seconds)
+            for staging_dir in removed:
+                LOGGER.warning("Removed stale uncommitted capture staging: %s", staging_dir)
             self.active_mount = mount
             self.active_root = root
             return root
@@ -232,6 +243,34 @@ def _fsync_directory(path: Path) -> None:
         pass
     finally:
         os.close(directory_fd)
+
+
+def cleanup_stale_staging(
+    root: Path, stale_after_seconds: float, *, now: float | None = None
+) -> list[Path]:
+    """Remove expired, unmistakably uncommitted capture staging directories."""
+    if stale_after_seconds < 0:
+        raise ValueError("stale_after_seconds must not be negative")
+    cutoff = (time.time() if now is None else now) - stale_after_seconds
+    removed: list[Path] = []
+    try:
+        entries = list(root.iterdir())
+    except OSError:
+        return removed
+    for entry in entries:
+        if not _CAPTURE_STAGING.fullmatch(entry.name) or entry.is_symlink():
+            continue
+        try:
+            if not entry.is_dir() or entry.stat().st_mtime > cutoff:
+                continue
+            shutil.rmtree(entry)
+            removed.append(entry)
+        except OSError as exc:
+            LOGGER.warning("Could not remove stale capture staging %s: %s", entry, exc)
+            continue
+    if removed:
+        _fsync_directory(root)
+    return removed
 
 
 def commit_capture(root: Path, metadata: dict, jpeg: bytes, metrics: dict) -> tuple[Path, dict]:

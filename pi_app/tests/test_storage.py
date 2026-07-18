@@ -1,6 +1,8 @@
 import io
 import json
+import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +14,7 @@ from pi_app.bullettime.storage import (
     UsbMount,
     UsbStorageResolver,
     atomic_json,
+    cleanup_stale_staging,
     commit_capture,
     discover_usb_mounts,
 )
@@ -87,6 +90,43 @@ class UsbStorageResolverTests(unittest.TestCase):
             self.assertEqual(len(mounts), 1)
             self.assertEqual(mounts[0].mountpoint, Path("/media/user/CAMERA MEDIA"))
             self.assertEqual(mounts[0].source, "/dev/sda1")
+
+    def test_resolve_removes_only_expired_capture_staging_directories(self):
+        with tempfile.TemporaryDirectory() as temp:
+            mount = self.mount(Path(temp))
+            root = mount.mountpoint / "BulletTime"
+            root.mkdir()
+            stale = root / ".20260717T015549Z_273b2de6.part"
+            fresh = root / ".20260718T163114Z_0c95d8d0.part"
+            unrelated = root / ".notes.part"
+            stale.mkdir()
+            fresh.mkdir()
+            unrelated.mkdir()
+            (stale / "camera_01.jpg").write_bytes(b"stale")
+            old = time.time() - 7200
+            os.utime(stale, (old, old))
+
+            resolver = UsbStorageResolver(
+                auto_mount=False,
+                mount_discovery=lambda: [mount],
+                stale_staging_seconds=3600,
+            )
+
+            self.assertEqual(resolver.resolve(), root)
+            self.assertFalse(stale.exists())
+            self.assertTrue(fresh.exists())
+            self.assertTrue(unrelated.exists())
+
+    def test_stale_cleanup_ignores_files_and_rejects_negative_age(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            matching_file = root / ".20260717T015549Z_273b2de6.part"
+            matching_file.write_text("not a staging directory", encoding="utf-8")
+
+            self.assertEqual(cleanup_stale_staging(root, 0), [])
+            self.assertTrue(matching_file.exists())
+            with self.assertRaises(ValueError):
+                cleanup_stale_staging(root, -1)
 
 
 class AtomicPersistenceTests(unittest.TestCase):

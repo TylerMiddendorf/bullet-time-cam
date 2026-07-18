@@ -1,10 +1,18 @@
 import io
+import queue
 import threading
 import unittest
 from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
 
-from pi_app.bullettime.ui import PresentationState, run_headless
+from pi_app.bullettime.ui import (
+    PresentationState,
+    _compact_ui_message,
+    _drain_events,
+    _load_review_frames,
+    run_headless,
+)
 
 
 class PresentationStateTests(unittest.TestCase):
@@ -49,6 +57,58 @@ class PresentationStateTests(unittest.TestCase):
             state.apply({"state": "ERROR", "message": "Camera disconnected"}).image,
             "latest.gif",
         )
+
+    def test_storage_errors_are_compacted_to_actionable_800x480_messages(self):
+        cases = {
+            "Capture set was not committed: [Errno 28] No space left on device": (
+                "USB storage is full"
+            ),
+            "No writable USB storage is mounted. Automatic mount errors: wrong fs type": (
+                "USB storage could not be mounted"
+            ),
+            "No writable USB storage is mounted. Insert a USB drive and try again.": (
+                "USB storage unavailable"
+            ),
+            "Capture set was not committed: [Errno 30] Read-only file system": (
+                "USB storage is read-only"
+            ),
+            "Capture set was not committed: [Errno 5] Input/output error": (
+                "USB storage was removed or failed"
+            ),
+        }
+
+        for detail, heading in cases.items():
+            with self.subTest(detail=detail):
+                rendered = _compact_ui_message(detail)
+                self.assertTrue(rendered.startswith(heading))
+                self.assertLessEqual(max(map(len, rendered.splitlines())), 48)
+                self.assertLessEqual(len(rendered.splitlines()), 3)
+
+        camera_error = "Camera 4: no progress timeout"
+        self.assertEqual(_compact_ui_message(camera_error), camera_error)
+
+    def test_removed_review_media_does_not_stop_later_event_polling(self):
+        events = queue.Queue()
+        events.put({"state": "REVIEW", "image": "removed.gif"})
+        events.put({"state": "ERROR", "message": "USB storage unavailable"})
+        handled = []
+        failures = []
+
+        def handle(event):
+            handled.append(event["state"])
+            if event["state"] == "REVIEW":
+                raise FileNotFoundError(event["image"])
+
+        _drain_events(events, handle, lambda event, exc: failures.append((event, exc)))
+
+        self.assertEqual(handled, ["REVIEW", "ERROR"])
+        self.assertEqual(len(failures), 1)
+        self.assertIsInstance(failures[0][1], FileNotFoundError)
+
+    def test_review_frame_loader_reports_a_removed_file(self):
+        missing = Path("definitely-removed-review.gif")
+        with self.assertRaises(FileNotFoundError):
+            _load_review_frames(missing, (800, 480))
 
 
 class HeadlessTests(unittest.TestCase):

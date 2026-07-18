@@ -86,6 +86,7 @@ def main() -> None:
         capture_directory=storage_config.get("capture_directory", "BulletTime"),
         preferred_mount_name=storage_config.get("preferred_mount_name"),
         auto_mount=bool(storage_config.get("auto_mount", True)),
+        stale_staging_seconds=float(storage_config.get("stale_staging_seconds", 3600)),
     )
     trigger_pin = int(config["trigger_gpio_bcm"])
     pulse_seconds = float(config["trigger_pulse_ms"]) / 1000
