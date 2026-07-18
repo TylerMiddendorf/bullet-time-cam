@@ -25,6 +25,19 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(frame.metadata["capture_seq"], 7)
         self.assertEqual(frame.payload, payload)
 
+    def test_payload_progress_reports_bounded_chunk_delivery(self):
+        payload = b"x" * (150 * 1024)
+        observations = []
+        frame = read_frame(
+            io.BytesIO(encode_frame(IMAGE, {"node_uid": "node-a"}, payload)),
+            payload_progress=lambda metadata, received, total: observations.append(
+                (metadata["node_uid"], received, total)
+            ),
+        )
+        self.assertEqual(frame.payload, payload)
+        self.assertEqual([item[1] for item in observations], [65536, 131072, len(payload)])
+        self.assertTrue(all(item[2] == len(payload) for item in observations))
+
     def test_resynchronizes_after_text(self):
         stream = io.BytesIO(b"startup diagnostics\n" + encode_frame(IMAGE, {}, b"jpeg"))
         self.assertEqual(read_frame(stream).payload, b"jpeg")

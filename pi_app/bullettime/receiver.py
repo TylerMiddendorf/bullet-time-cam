@@ -93,7 +93,13 @@ class NodeSession(threading.Thread):
                 self.node_uid = self.owner.session_connected(self, hello.metadata)
                 while not self.owner.stop.is_set():
                     try:
-                        frame = read_frame(stream, validate_payload_crc=False)
+                        frame = read_frame(
+                            stream,
+                            validate_payload_crc=False,
+                            payload_progress=lambda metadata, received, total: (
+                                self.owner.payload_progress(self, metadata, received, total)
+                            ),
+                        )
                     except TimeoutError:
                         continue
                     if (
@@ -258,6 +264,9 @@ class Receiver(threading.Thread):
                 self.automatic_triggers_remaining > 0
                 and not self.automatic_trigger_in_flight
                 and len(self.sessions_by_uid) == len(self.logical_cameras)
+                and all(
+                    session.current_metadata is None for session in self.sessions_by_uid.values()
+                )
                 and now_ns >= self.next_automatic_trigger_ns
             )
         if requested or automatic:
@@ -267,6 +276,13 @@ class Receiver(threading.Thread):
         with self.lock:
             if not self.coordinator.trigger_allowed or self.pending_trigger is not None:
                 self.send_status("LOADING", message="Capture already in progress")
+                return
+            if any(
+                session.current_metadata is not None for session in self.sessions_by_uid.values()
+            ):
+                self.send_status(
+                    "LOADING", message="Waiting for all cameras to finish the prior capture"
+                )
                 return
             try:
                 self.storage.resolve()
@@ -347,6 +363,17 @@ class Receiver(threading.Thread):
                 self._node_error(session, metadata, now_ns)
             elif frame.message_type in {HELLO, LOG}:
                 return
+
+    def payload_progress(
+        self, session: NodeSession, metadata: dict, received: int, total: int
+    ) -> None:
+        if received <= 0 or total <= 0 or metadata.get("node_uid") != session.node_uid:
+            return
+        with self.lock:
+            try:
+                self.coordinator.progress(metadata, time.monotonic_ns())
+            except CoordinationError:
+                pass
 
     def _capture_started(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
         key = transaction_key(metadata)

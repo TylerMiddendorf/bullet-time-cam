@@ -52,6 +52,13 @@ class CaptureSetCoordinatorTests(unittest.TestCase):
         self.assertEqual(set(result.images), {1, 2, 3})
         self.assertEqual(result.errors[4].code, "no_progress_timeout")
 
+    def test_payload_progress_refreshes_timeout_for_active_transaction(self):
+        coordinator = self.coordinator()
+        coordinator.start(metadata(1), 0)
+        coordinator.progress(metadata(1), 400_000_000)
+        self.assertFalse(coordinator.timed_out(800_000_000))
+        self.assertTrue(coordinator.timed_out(901_000_000))
+
     def test_explicit_transfer_failure_closes_a_usable_partial_set(self):
         coordinator = self.coordinator()
         for camera_id in range(1, 5):

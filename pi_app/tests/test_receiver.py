@@ -250,6 +250,10 @@ class ReceiverCompletionTests(unittest.TestCase):
             receiver.sessions_by_uid = {
                 f"UID-{camera_id}": FakeSession(camera_id) for camera_id in range(1, 5)
             }
+            receiver.sessions_by_uid["UID-2"].current_metadata = metadata(2)
+            receiver._process_commands()
+            self.assertEqual(receiver.trigger.pulse_count, 0)
+            receiver.sessions_by_uid["UID-2"].current_metadata = None
             receiver._process_commands()
             self.assertEqual(receiver.trigger.pulse_count, 1)
             self.assertTrue(receiver.automatic_trigger_in_flight)

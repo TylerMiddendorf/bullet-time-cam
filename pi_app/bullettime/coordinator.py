@@ -142,6 +142,14 @@ class CaptureSetCoordinator:
         )
         active.last_progress_ns = now_ns
 
+    def progress(self, metadata: dict, now_ns: int) -> None:
+        """Refresh the no-progress clock for a matching in-flight transaction."""
+        camera_id, transaction = self._identity(metadata)
+        active = self._require_matching(camera_id, transaction)
+        if camera_id in active.images or camera_id in active.errors:
+            raise CoordinationError(f"Camera {camera_id} reported progress after resolution")
+        active.last_progress_ns = now_ns
+
     def fail(self, metadata: dict, code: str, message: str, now_ns: int) -> None:
         camera_id, transaction = self._identity(metadata)
         active = self._require_matching(camera_id, transaction)

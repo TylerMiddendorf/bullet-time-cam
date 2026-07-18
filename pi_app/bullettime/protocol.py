@@ -6,6 +6,7 @@ import json
 import struct
 import time
 import zlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import BinaryIO
 
@@ -64,13 +65,23 @@ def encode_frame(message_type: int, metadata: dict, payload: bytes = b"", flags:
     return prefix + struct.pack("<I", crc32(prefix)) + metadata_bytes + payload
 
 
-def _read_exact(stream: BinaryIO, length: int) -> bytes:
+def _read_exact(
+    stream: BinaryIO,
+    length: int,
+    *,
+    progress: Callable[[int, int], None] | None = None,
+    max_chunk: int | None = None,
+) -> bytes:
     chunks = bytearray()
     while len(chunks) < length:
-        chunk = stream.read(length - len(chunks))
+        remaining = length - len(chunks)
+        request_size = min(remaining, max_chunk) if max_chunk else remaining
+        chunk = stream.read(request_size)
         if not chunk:
             raise ProtocolError(f"partial frame: received {len(chunks)} of {length} bytes")
         chunks.extend(chunk)
+        if progress is not None:
+            progress(len(chunks), length)
     return bytes(chunks)
 
 
@@ -87,7 +98,12 @@ def _seek_magic(stream: BinaryIO) -> None:
             return
 
 
-def read_frame(stream: BinaryIO, *, validate_payload_crc: bool = True) -> Frame:
+def read_frame(
+    stream: BinaryIO,
+    *,
+    validate_payload_crc: bool = True,
+    payload_progress: Callable[[dict, int, int], None] | None = None,
+) -> Frame:
     _seek_magic(stream)
     rest = _read_exact(stream, HEADER.size - len(MAGIC))
     header = MAGIC + rest
@@ -111,13 +127,20 @@ def read_frame(stream: BinaryIO, *, validate_payload_crc: bool = True) -> Frame:
     metadata_bytes = _read_exact(stream, metadata_len)
     if crc32(metadata_bytes) != metadata_crc:
         raise ProtocolError("metadata CRC mismatch")
-    payload_started_ns = time.monotonic_ns()
-    payload = _read_exact(stream, payload_len)
-    payload_completed_ns = time.monotonic_ns()
-    if validate_payload_crc and crc32(payload) != payload_crc:
-        raise ProtocolError("payload CRC mismatch")
     try:
         metadata = json.loads(metadata_bytes.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ProtocolError("invalid metadata JSON") from exc
+    progress = None
+    if payload_progress is not None:
+
+        def report_progress(received: int, total: int) -> None:
+            payload_progress(metadata, received, total)
+
+        progress = report_progress
+    payload_started_ns = time.monotonic_ns()
+    payload = _read_exact(stream, payload_len, progress=progress, max_chunk=64 * 1024)
+    payload_completed_ns = time.monotonic_ns()
+    if validate_payload_crc and crc32(payload) != payload_crc:
+        raise ProtocolError("payload CRC mismatch")
     return Frame(message_type, metadata, payload, flags, payload_started_ns, payload_completed_ns)
