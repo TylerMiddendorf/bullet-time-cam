@@ -11,6 +11,7 @@
     "E072A1F9B3E4": 4
   },
   "serial_baud": 115200,
+  "serial_read_timeout_seconds": 10,
   "fullscreen": true,
   "startup_logo": "../assets/Logo_800x480.png",
   "hide_pointer": true,

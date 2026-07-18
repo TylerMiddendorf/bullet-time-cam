@@ -132,6 +132,8 @@ class ReceiverCompletionTests(unittest.TestCase):
     def test_acks_all_nodes_only_after_atomic_set_and_gif_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, events = self.receiver(Path(temp))
+            receiver.automatic_triggers_remaining = 1
+            receiver.automatic_trigger_in_flight = True
             sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
             for camera_id in (3, 1, 4, 2):
                 self.transfer(
@@ -157,6 +159,7 @@ class ReceiverCompletionTests(unittest.TestCase):
             self.assertEqual(
                 len([item for item in manifest["files"] if item["role"] == "original"]), 4
             )
+            self.assertTrue(receiver.automatic_run_completed.is_set())
 
     def test_timeout_commits_three_view_partial_and_identifies_missing_camera(self):
         with tempfile.TemporaryDirectory() as temp:

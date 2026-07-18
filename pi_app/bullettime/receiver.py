@@ -81,7 +81,7 @@ class NodeSession(threading.Thread):
             with serial.Serial(
                 self.port,
                 self.owner.config.get("serial_baud", 115200),
-                timeout=1,
+                timeout=float(self.owner.config.get("serial_read_timeout_seconds", 10)),
                 write_timeout=10,
             ) as stream:
                 self.stream = stream
@@ -158,6 +158,7 @@ class Receiver(threading.Thread):
         self.diagnostic_usb_trigger = bool(config.get("diagnostic_usb_trigger", False))
         self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
         self.pending_trigger: dict | None = None
+        self.automatic_run_completed = threading.Event()
 
     def send_status(self, state: str, **values) -> None:
         self.events.put({"state": state, **values})
@@ -222,7 +223,10 @@ class Receiver(threading.Thread):
                     self.coordinator.fail(
                         current,
                         "transfer_truncated",
-                        f"Camera {self.logical_cameras.get(uid)} disconnected during transfer",
+                        (
+                            f"Camera {self.logical_cameras.get(uid)} transfer interrupted "
+                            f"on {session.port}: {exc}"
+                        ),
                         time.monotonic_ns(),
                     )
                     self.pending_images.pop(key, None)
@@ -530,6 +534,8 @@ class Receiver(threading.Thread):
             if self.automatic_trigger_in_flight:
                 self.automatic_triggers_remaining -= 1
                 self.automatic_trigger_in_flight = False
+                if self.automatic_triggers_remaining == 0:
+                    self.automatic_run_completed.set()
                 self.next_automatic_trigger_ns = (
                     time.monotonic_ns()
                     + int(self.config.get("automatic_rearm_ms", 150)) * 1_000_000

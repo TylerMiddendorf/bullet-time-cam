@@ -62,12 +62,23 @@ def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageReso
     from .receiver import Receiver
 
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
-    Receiver(config, events, commands, stop, trigger, storage).start()
+    receiver = Receiver(config, events, commands, stop, trigger, storage)
+    receiver.start()
+    bounded_automatic_run = int(config.get("trigger_count", 0)) > 0
     try:
         while True:
-            print(json.dumps(events.get(), sort_keys=True), flush=True)
+            try:
+                event = events.get(timeout=0.2)
+            except queue.Empty:
+                if bounded_automatic_run and receiver.automatic_run_completed.is_set():
+                    break
+                continue
+            print(json.dumps(event, sort_keys=True), flush=True)
     except KeyboardInterrupt:
+        pass
+    finally:
         stop.set()
+        receiver.join(timeout=2)
 
 
 def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:
