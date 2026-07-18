@@ -47,7 +47,7 @@ Work:
 - Assign stable logical camera numbers.
 - Define a transport-independent capture and image-transfer protocol.
 - Prototype direct JPEG transfer from one ESP32S3 frame buffer.
-- Select USB or Wi-Fi from measured latency, reliability, power, and complexity.
+- Use USB as the selected V1 transport; defer Wi-Fi unless USB exposes a concrete blocker.
 - Use the product owner's installed final V1 USB hub/cabling chain; its four concurrent camera links are enumerated and have passed the recorded repeated transfer tests. Aggregate power validation remains part of later system power measurement.
 - Integrate the validated concurrent four-node transfers into the product coordinator and capture-set workflow.
 - Implement capture-set grouping, partial-set handling, and diagnostics.
@@ -58,15 +58,19 @@ Work:
 
 Intermediary checkpoints:
 
-1. Pi and touchscreen bring-up
-2. Offline GIF/UI vertical slice using reproducible local-only photos generated under ignored `photos/`
-3. One-node direct USB JPEG transfer
+1. **Absorbed/retired as a separate gate:** Pi and touchscreen bring-up; required behavior was validated by the later integrated checkpoints
+2. **Absorbed/retired as a separate gate:** Offline GIF/UI vertical slice; required complete/partial GIF and UI behavior passed in Checkpoints 5-7
+3. **Absorbed/retired as a separate gate:** One-node direct USB JPEG transfer; required transport, integrity, reconnect, and timing behavior passed in Checkpoint 4 and later regressions
 4. **Complete:** one-node full-system bench test through the powered USB hub, including capture, direct transfer, preservation, representative processing, touchscreen display, stage analytics, and the electrical inspection
 5. **Complete:** Four-node capture grouping and partial-failure handling
 6. **Complete:** Integrated live GIF/touchscreen flow
 7. **Complete:** Performance and reliability pass, with the measured latency limitation retained
 
-By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
+By product-owner decision on July 10, 2026, work fast-forwarded to Checkpoint 4.
+At Milestone 1 close, Checkpoints 1-3 were retired as standalone gates rather
+than represented as independently completed. Their required product behavior
+was absorbed and accepted by Checkpoints 4-7; their original proposals remain
+in `MILESTONE_1_PLAN.md` as historical planning context.
 
 Checkpoint 4 demonstrated the temporary diagnostic USB-request path, a clean 20-capture instrumented run, reconnect/error/NACK recovery, and the normal physical/Pi hardware-trigger-to-touchscreen paths. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes. One physical press and one normal Pi pulse each produced exactly one Camera 1 atomic-commit/display workflow. Separate four-port observers showed one physical press, one GPIO17 pulse, and 10 repeated GPIO17 cycles produced 48/48 valid four-node captures in total with zero errors or duplicates; repeated pulse-to-all-completions was 2.455 seconds median and maximum start spread was 4.930 ms. The product owner subsequently completed the prescribed unpowered multimeter checklist and reported all checks passing, closing Checkpoint 4. After the repository/module refactor at `b950740`, all four nodes were reflashed and startup-verified, another 10-cycle/40-image physical-rig regression passed without errors or duplicates, and the pulled Pi application completed CRC-valid removable-USB captures before and after a verified reboot. The renamed service and all 33 automated boot gates passed after that reboot.
 
@@ -77,11 +81,14 @@ Exit criteria:
 - Repeated button presses complete the path from four nodes to touchscreen.
 - Original JPEGs and the GIF are preserved for every successful capture.
 - Incomplete capture sets remain usable and report the failed camera.
-- Normal captures approach the two-second review target.
+- Normal latency is measured and the gap from the soft two-second target is explicitly retained.
 
 ## Milestone 2 - User-Removable USB Media
 
-Status: active next; normal product capture is validated, removable-media fault qualification remains
+Status: active; normal product capture is validated, removable-media fault qualification remains
+
+The detailed real-drive procedures, safety boundaries, evidence requirements,
+and exit gates are in [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md).
 
 - Use the USB drive added by the product owner rather than a separate removable-card reader.
 - Keep Raspberry Pi microSD boot storage protected and internal, with no media fallback to it.

@@ -127,8 +127,8 @@ GPIO17 capture with successful Cameras 1-3 and failed Camera 4.
 
 ## Automated acceptance and postflight
 
-- Deterministic suite: 68 tests passed; the live test skips unless evidence
-  paths are supplied.
+- Normal local suite: 68 tests discovered, with 67 passing and the
+  environment-gated live test skipped when evidence paths are absent.
 - Environment-gated physical-rig suite:
   `test_required_live_scenarios_and_persisted_artifacts ... ok` (37.888 s).
 - Direct validator: 35 named captures checked, including 25 normal captures and

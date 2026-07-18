@@ -12,7 +12,10 @@ reviewed without searching one large flat directory.
 
 ## Milestone 2 — User-Removable USB Media
 
-- [`milestone-2/`](milestone-2/) — early USB-media discovery and mount bring-up
+- [`../MILESTONE_2_PLAN.md`](../MILESTONE_2_PLAN.md) — active fault procedures,
+  safety boundaries, evidence requirements, and exit gates
+- [`milestone-2/`](milestone-2/) — USB-media discovery, mount bring-up, and
+  qualifying fault/recovery evidence
 
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,

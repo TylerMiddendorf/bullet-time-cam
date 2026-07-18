@@ -15,5 +15,7 @@ under `cam1/` through `cam4/`. It also creates `photo_0007` for Cameras 1-3
 while deliberately omitting Camera 4, matching the partial-set scenario in the
 Milestone 1 plan. Existing files are preserved unless `--force` is supplied.
 
-Real camera captures can use the same directory layout. They remain local and
-must never be committed.
+This layout is only an offline development input fixture. Product captures use
+the USB-backed `BulletTime/<capture-id>/` layout documented in
+[`pi_app/README.md`](../pi_app/README.md); real captures and generated local
+samples must not be committed from this directory.

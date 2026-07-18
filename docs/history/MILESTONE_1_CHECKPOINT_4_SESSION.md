@@ -1,8 +1,12 @@
-# Current Session - Milestone 1 Checkpoint 4
+# Archived Session - Milestone 1 Checkpoint 4
 
 Implementation dates: July 10-11, 2026
 
 Status reviewed: July 17, 2026
+
+Archive notice: this file preserves the Checkpoint 4 handoff as it existed on
+July 17. Its present-tense work and next-action lists are historical; current
+work is owned by `docs/CURRENT_SESSION.md` and the active milestone plan.
 
 Objective: implement and verify the one-node trigger-to-touchscreen path through the powered USB hub, then replace the temporary normal USB request with the approved shared hardware-trigger path and collect the evidence required by Checkpoint 4.
 
@@ -91,7 +95,7 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - Concurrent four-node physical, Pi, and 10-cycle repeated trigger/protocol/integrity behavior is verified by bounded observers. Raw logs are `docs/evidence/milestone-1/checkpoint-4/four-node-physical-trigger-2026-07-17.txt`, `four-node-pi-trigger-2026-07-17.txt`, `four-node-immediate-rearm-boundary-2026-07-17.txt`, and `four-node-repeated-gpio-2026-07-17.txt`.
 - Live NACK evidence is retained in `docs/evidence/milestone-1/checkpoint-4/checkpoint4-live-nack.txt`, `checkpoint4-live-nack.png`, and `checkpoint4-live-nack-recovered.png`.
 
-## Active Work
+## Historical Handoff Work
 
 - Keep the normal Pi user service active; it currently owns GPIO17 as output LOW while idle.
 - Git-deploy and validate the USB-only storage implementation against the mounted drive, including a real capture and removal/failure behavior.
@@ -104,7 +108,7 @@ Entries through the live-NACK work describe the historical pre-revision firmware
 - The four-node observers validate concurrent USB transfer integrity, but the checked-in UI still processes one configured node and does not yet atomically group four images or create/display the final animation.
 - The USB drive's enumeration, service-context mount, and write permission are verified, but the new code has not been deployed to the Pi and no JPEG/GIF application commit, unplug/replug, full, read-only, corrupt, or mid-write removal test has been recorded.
 
-## Next Actions
+## Historical Next Actions
 
 1. Git-deploy the USB storage code and record one real capture plus missing-drive/unplug-replug behavior on the Pi.
 2. Build the checked-in four-node capture grouping, atomic persistence, animation, and touchscreen review path using the validated shared-trigger/protocol behavior.

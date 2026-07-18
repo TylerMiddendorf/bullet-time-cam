@@ -24,17 +24,15 @@ Status reviewed: July 18, 2026
 
 ## Immediate Work
 
-1. Test removable-drive unplug/replug and automatic remount in the normal
-   product service context.
-2. Exercise visible missing, full, read-only/corrupt, and removal-during-write
-   failure behavior without falling back to the boot microSD.
-3. Verify deterministic selection when more than one writable USB drive is
-   present.
-4. Retain persisted artifacts and service/UI evidence for each real-drive fault
-   and recovery case under `docs/evidence/milestone-2/`.
-5. Measure aggregate electrical power before choosing battery, charging,
-   regulation, monitoring, or safe-power-cut hardware.
+Execute [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md), beginning with the normal
+service-context baseline and idle unplug/replug test. Use expendable media for
+full, corrupt, and removal-during-write cases; do not intentionally damage the
+validated product drive or Raspberry Pi boot card.
+
+After Milestone 2 closes, measure aggregate electrical power before choosing
+battery, charging, regulation, monitoring, or safe-power-cut hardware.
 
 The completed bench milestone plan remains at
-[`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md), and the current ordering and budget
-gates are in [`ROADMAP.md`](ROADMAP.md).
+[`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md). The current procedures are in
+[`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md), and ordering and budget gates are
+in [`ROADMAP.md`](ROADMAP.md).

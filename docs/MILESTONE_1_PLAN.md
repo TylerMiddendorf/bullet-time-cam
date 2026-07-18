@@ -33,6 +33,12 @@ These are implementation recommendations for the milestone, not irreversible pro
 
 ## Checkpoint 1 - Bench Inventory and Pi Bring-Up
 
+Status: retired as a standalone checkpoint at Milestone 1 close. Its required
+Pi, display, touch, camera enumeration, and final-hub behavior was validated by
+the later integrated checkpoints. Unmeasured mechanical dimensions and
+electrical load moved to enclosure and power work rather than keeping this gate
+open.
+
 Cost gate: no purchase
 
 Work:
@@ -52,7 +58,7 @@ Exit gate:
 - One camera node is visible to the Pi over USB.
 - The remaining hardware unknowns are written down.
 
-Evidence recorded June 27 and July 8, 2026 (partial; checkpoint remains open):
+Evidence recorded June 27 and July 8, 2026 (historical partial record):
 
 - A Windows bench host detected one connected XIAO as `COM6`, an ESP32 USB serial/JTAG device.
 - Arduino CLI 1.5.1 with Espressif ESP32 core 3.3.10 compiled and uploaded `button_capture` using `esp32:esp32:XIAO_ESP32S3:PSRAM=opi`.
@@ -68,6 +74,10 @@ Evidence recorded June 27 and July 8, 2026 (partial; checkpoint remains open):
 - Linux reports the display's generic EDID identity, 150x100 mm physical area, and the USB interface's declared 5 V / 100 mA maximum. The enclosure-facing outer bezel/depth and actual display/backlight current cannot be measured over SSH and still need a manual caliper/load measurement if the enclosure or battery calculation requires them. A direct-to-Pi camera comparison is no longer required because the installed final hub/cabling has demonstrated four concurrent links. Raw inventory interpretation and limitations are recorded in [`evidence/milestone-1/checkpoint-1/pi-display-usb-inventory-2026-07-17.md`](evidence/milestone-1/checkpoint-1/pi-display-usb-inventory-2026-07-17.md).
 
 ## Checkpoint 2 - Offline Media and UI Vertical Slice
+
+Status: retired as a standalone checkpoint at Milestone 1 close. Complete and
+partial ordered GIF generation plus touchscreen state behavior passed with real
+four-node data in Checkpoints 5-7.
 
 Cost gate: no purchase
 
@@ -101,6 +111,10 @@ Exit gate:
 - Stage timings are recorded.
 
 ## Checkpoint 3 - One-Node Direct USB Transfer
+
+Status: retired as a standalone checkpoint at Milestone 1 close. Its protocol,
+integrity, stable-identity, reconnect, and timing requirements passed through
+Checkpoint 4 and later hardware regressions.
 
 Cost gate: no purchase
 
@@ -143,7 +157,12 @@ Cost gate: no purchase; use one node, the available powered data hub, Raspberry 
 
 Purpose:
 
-Build the narrowest real vertical slice before completing the broader offline and transport-isolation work: one physical trigger causes one node to capture, transfers the JPEG directly over USB through the hub, the Pi validates and preserves it, performs representative display processing, and shows the result on the touchscreen. Checkpoints 2 and 3 are not complete; their necessary one-node elements are absorbed here, and their remaining multi-image/isolated-test coverage is deferred.
+At the time, this checkpoint built the narrowest real vertical slice before the
+broader offline and transport-isolation work: one physical trigger caused one
+node to capture, transfer the JPEG directly over USB through the hub, preserve
+it on the Pi, perform representative display processing, and show the result on
+the touchscreen. Necessary portions of Checkpoints 2 and 3 were absorbed here;
+their remaining product behavior was later accepted in Checkpoints 5-7.
 
 End-to-end path:
 
@@ -200,13 +219,13 @@ Evaluate the one-node results against:
 - Expected four-node behavior
 - Path toward 12+ nodes
 
-Current direction after the one-node evidence:
+Direction chosen from the one-node evidence:
 
 - Continue with USB for version 1 while validating the physical trigger and four-node path; the measured vertical slice is reliable but still exceeds the soft two-second target.
 - Run a focused Wi-Fi spike only if USB exposes a concrete blocker; do not build two complete production transports before the first end-to-end milestone.
 - Extrapolation may identify risks, but final four-node concurrency and power behavior still require Checkpoints 5 and 7 measurements.
 
-Evidence recorded July 10-11, 2026 (Checkpoint 4 remains active):
+Evidence recorded July 10-11, 2026 (Checkpoint 4 was active at this point):
 
 - Implemented and Git-deployed a CRC-protected `BTC1` USB protocol with PING/HELLO discovery, stable eFuse UID, capture request/start, JPEG image, transfer completion, ACK/NACK, LOG, and ERROR messages.
 - Node `E072A1F9A190` is mapped to logical Camera 1. The Pi checkout at `/home/username/bullet-time-cam` was pulled from `origin/main`; firmware and Pi runtime tests were executed from that Git-tracked source.
@@ -232,7 +251,7 @@ Evidence recorded July 16, 2026:
 
 The July 16 result above is historical pre-revision evidence. Its card gate was valid for that firmware but is superseded by the July 17 node design.
 
-Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
+Evidence recorded July 17, 2026 (Checkpoint 4 was active at the start of this record):
 
 - Pi inspection confirmed Raspberry Pi OS Trixie, kernel `6.18.34+rpt-rpi-v8`, Python 3.13.5, `/dev/gpiochip0`, application-user membership in `gpio`, and installed Raspberry Pi package `python3-lgpio` 0.2.2. Direct `lgpio` was selected as the smallest installed maintained backend.
 - Implemented GPIO17 ownership behind an injectable abstraction. It claims BCM 17 LOW, pulses HIGH for the configured 100 ms, returns LOW in pulse-error cleanup, and writes LOW again before release/shutdown. Normal capture sends no USB `CAPTURE_REQUEST`; the USB request requires explicit `--diagnostic-usb-trigger` selection.
@@ -391,21 +410,9 @@ Evidence recorded July 18, 2026:
 - Per-camera unavailability, checksum corruption, mid-transfer truncation, immediate recovery, and reboot identity all passed the artifact-level contract.
 - The result is repeatable and the dominant acquisition/USB path is measured, but 3.25 seconds does not meet the soft two-second target. Latency optimization remains explicit follow-up work rather than an unverified completion claim.
 
-## Recommended Build Order
+## Post-Milestone 1 Handoff
 
-1. Checkpoint 1: Pi and display bring-up (substantially demonstrated; documentation details remain)
-2. Checkpoint 4: complete one-node full-system bench test
-3. Deferred Checkpoint 2 coverage needed for four-image GIF and partial-set behavior
-4. Deferred Checkpoint 3 coverage not already proven by Checkpoint 4
-5. Checkpoint 5: four-node grouping and failure handling
-6. Checkpoint 6: integrated live flow
-7. Checkpoint 7: performance and reliability pass
-
-This order produces visible progress early, isolates failures, and avoids buying hardware before its requirements are known.
-
-## Immediate Next Actions
-
-1. Complete Milestone 2 removable-drive fault qualification: unplug/replug, missing, full, read-only/corrupt, removal-during-write, and deterministic multi-drive selection.
+1. Execute [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md): unplug/replug, missing, full, read-only/corrupt, removal-during-write, and deterministic multi-drive selection.
 2. Measure aggregate idle, capture, transfer, processing, display, and peak electrical power before selecting battery or regulator hardware.
 3. Optimize or explicitly accept the 3.250-second median acquisition/USB review path; the soft two-second target is not yet met.
 4. Use the measured bench and power results to select the integrated battery, USB-C charging, monitoring, and safe-shutdown architecture.

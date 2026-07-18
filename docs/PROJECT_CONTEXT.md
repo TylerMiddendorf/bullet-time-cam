@@ -104,26 +104,31 @@ There are four identical camera nodes. Each currently consists of:
 
 Firmware 0.2.3 implements the July 17 camera-node simplification and subsequent bounded transfer/recovery fixes: it streams the 2048x1536 JPEG directly from the frame buffer to the Pi, does not initialize or access node storage, and leaves `D0 / GPIO1` unused. The same image is flashed to all four nodes and each passes camera, BTC1 protocol/stable-identity, and trigger startup gates. Earlier card/LED results remain truthful historical prototype evidence, not evidence for the current design. Physical and Pi-triggered four-node capture/integrity function is verified, and the product owner completed the prescribed unpowered multimeter checklist with every check reported passing.
 
-### Central computer - planned
+### Central computer - validated V1 bench implementation
 
-The central computer is expected to:
+The version 1 bench system uses the available Raspberry Pi 4 Model B with 2 GB
+RAM and Raspberry Pi OS. The implemented application:
 
-- Coordinate the system and capture workflow
-- Acquire images from all four ESP32S3 nodes
-- Track which four images belong to the same capture
-- Run image cleanup and quality-improvement processing
-- Create the final animated GIF
-- Preserve every original JPEG alongside the generated GIF
-- Target a reviewable result within two seconds under normal conditions
-- Drive the integrated display and user interface
-- Manage finished-media storage
-- Potentially provide a local Wi-Fi hotspot and media browser
+- Coordinates the four-node capture workflow
+- Acquires concurrent CRC-checked JPEG streams from all four ESP32S3 nodes
+- Groups node transactions into complete or camera-specific partial capture sets
+- Creates the ordered back-and-forth animated GIF
+- Atomically preserves every successful original, manifest, and GIF
+- Drives the full-screen loading, review, and error interface
+- Selects and manages removable USB media without falling back to the boot card
+- Records capture, transfer, processing, storage, and resource measurements
 
-A Raspberry Pi 4 Model B with 2 GB RAM is already on hand and is the current central-computer candidate. Its operating system, communication links, and measured performance requirements are not yet fixed. It should be evaluated against the version 1 capture, transfer, GIF-generation, display, and two-second normal-case targets before it is treated as the final production choice.
+Image alignment, appearance normalization, other quality-improvement processing,
+and network media access remain future work. The Pi is still provisional as the
+final integrated production computer until removable-media fault qualification,
+aggregate-power measurement, and the latency tradeoff are resolved. Its current
+operating system and USB communication path are fixed as the validated version 1
+bench baseline. The measured four-node median is 3.250 seconds, above the soft
+two-second target.
 
-### Camera-node communication - under evaluation
+### Camera-node communication - USB selected for V1
 
-The two preferred transport candidates are USB and Wi-Fi.
+The two transport candidates evaluated for the product were USB and Wi-Fi.
 
 USB advantages:
 
@@ -151,9 +156,12 @@ Wi-Fi disadvantages:
 - More discovery, connection, retry, and failure-handling complexity
 - Less deterministic multi-node transfer timing
 
-The current engineering direction is to prototype and measure both. USB is the leading candidate for the first four-camera product because reliability and the two-second normal-case result target matter more than eliminating short internal cables. Wi-Fi remains valuable as an alternate transport and may become more attractive for a 12+ node array.
-
-The transport should sit behind a common capture/transfer protocol so the rest of the central software does not depend directly on USB or Wi-Fi.
+USB is the selected version 1 transport. The final installed hub/cabling chain
+has passed concurrent four-node integrity, grouping, persistence, animation, and
+review tests. The Pi application keeps protocol, capture coordination, storage,
+and UI concerns separated so a future transport does not require rewriting the
+complete workflow. Wi-Fi is deferred unless USB exposes a concrete blocker and
+may be reconsidered for a 12+ node array.
 
 ### Trigger architecture
 
@@ -207,11 +215,10 @@ Approved camera-node revision:
 - Transfer every live JPEG directly from the ESP32S3 frame buffer to the central computer.
 - Preserve user media centrally; removing node cards does not remove the separate user-removable media requirement.
 
-Planned product storage:
+Current central storage design:
 
 - A user-removable USB mass-storage drive for finished captures and animations
-- A central mechanism for collecting images from the four nodes
-- Direct image transfer from each node to the central computer, if bandwidth tests support it
+- Direct BTC1/USB image transfer from each node's frame buffer to the central computer
 - A protected internal microSD card dedicated to the Raspberry Pi operating system and application
 - Automatic Raspberry Pi application discovery of writable USB-backed filesystems
 - A `BulletTime/` directory on the selected USB drive containing capture-set directories, original JPEGs, manifests, and generated GIFs
@@ -244,7 +251,7 @@ Version 1 uses graceful degradation for capture and transfer failures:
 - The error identifies the logical camera number and shows relevant diagnostic details.
 - A stable camera identity scheme is therefore required even though all nodes run the same firmware.
 
-The two-second shutter-to-review goal is a soft normal-case target. It may be exceeded while a capture, transfer, save, or other operation is actively progressing. The loading screen should remain active rather than report a false timeout. Timeout thresholds, retry policy, minimum image count for an animation, and whether diagnostics are also written to the removable USB drive remain to be designed.
+The two-second shutter-to-review goal is a soft normal-case target. It may be exceeded while a capture, transfer, save, or other operation is actively progressing, and the loading screen remains active rather than reporting a false timeout. The runtime now uses bounded association and no-progress windows, preserves usable partial sets, and creates an animation when at least two views succeed. Broader user-facing retry policy and removable-media fault recovery are refined through later milestones.
 
 ## Current State
 
@@ -272,8 +279,6 @@ As of July 18, 2026:
 - The Pi application detects mounted USB-backed filesystems, can request automatic mounting through `udisks2`, writes capture sets below `BulletTime/`, records the selected USB filesystem in each manifest, and refuses to fall back to the boot microSD. The added 231 GB FAT USB partition is `/dev/sda1`, label/mount name `USB DISK`, and is mounted read/write for the camera user at `/media/username/USB DISK`. Product-level four-original/manifest/GIF persistence and reboot continuity pass on this drive. Full/read-only/corrupt/removal-during-write and deterministic multi-drive cases remain Milestone 2 work.
 - Raspberry Pi/display bring-up, concurrent four-node grouping, multi-image GIF generation, camera-specific partial capture, touchscreen review, and normal removable-USB persistence are implemented and physically validated. Power integration and enclosure work remain.
 - Approximately $200 remains available for version 1.
-- Milestone 1 work deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display. The earlier temporary USB-request diagnostic path and the current physical/Pi hardware-trigger paths are validated.
-- This sequencing change does not mark the earlier offline UI or isolated one-node transfer checkpoints complete; required portions are being integrated into the active test and remaining coverage is deferred.
 - The physical button and Pi GPIO17/2N3904 stage are connected to the four-node shared trigger. The framed Pi-to-node USB request remains explicit diagnostic scaffolding only; normal touchscreen actions use one 100 ms GPIO17 pulse.
 - The Git-tracked Pi application and camera firmware complete the physical/Pi-trigger-to-touchscreen path through all four powered nodes, with CRC validation, atomic capture-set preservation, ordered GIFs, manifests, resource/timing instrumentation, camera-specific partial review, and reconnect discovery by stable node UID.
 - A final 20-capture resource-instrumented run completed 20/20 captures with no checksum failures, recorded errors, or partial files. Median capture-event-to-display callback was 2.494 seconds, so the soft two-second target is not yet met; camera acquisition (1.374 seconds median) and node transfer (0.773 seconds median) dominate.
@@ -286,7 +291,7 @@ As of July 18, 2026:
 
 The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. It is not yet a self-contained handheld product because removable-drive fault qualification, aggregate power measurement, battery/safe-power integration, and enclosure work remain.
 
-The next milestone is removable USB media fault qualification, followed by electrical power measurement and battery/safe-shutdown design. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+The active milestone is removable USB media fault qualification, followed by electrical power measurement and battery/safe-shutdown design. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -318,7 +323,7 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - A reviewable result targets appearing within two seconds after capture under normal conditions.
 - The two-second target is soft and may be exceeded while work is actively progressing.
 - The first version continues to use the shared physical trigger line.
-- The central computer should later be able to activate that trigger for remote and time-lapse capture.
+- The Raspberry Pi can activate the shared trigger through the validated GPIO17/2N3904 open-collector stage.
 - Camera-node local storage and GPIO-driven status indication are removed from firmware 0.2.3; all four nodes pass revised startup and physical/Pi-trigger functional capture gates, and the product owner reported the full unpowered circuit checklist passing.
 - Live JPEGs transfer directly from each ESP32S3 frame buffer to the central computer.
 - Each node uses `D1 / GPIO2` for the shared active-low physical trigger; `D0 / GPIO1` is unused.
@@ -351,11 +356,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 ## Provisional Ideas
 
 - Raspberry Pi 4 Model B as the central computer
-- USB as the primary transport for the first four-camera product
 - Wi-Fi as an alternate transport and possible scaling option
 - A shared application protocol that can operate over USB or Wi-Fi
-- ESP32S3 frame-buffer transmission without an intermediate node storage write
-- A touchscreen as the main on-device input method
 - Live or near-live camera previews before capture
 - A much-later device-hosted Wi-Fi hotspot for media access and possible remote control
 - Image cleanup and enhancement performed locally on the central computer
@@ -366,7 +368,10 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 
 ## Major Work Remaining
 
-The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-integration work is broken into testable intermediaries in `MILESTONE_1_PLAN.md`.
+The ordered implementation plan is maintained in `ROADMAP.md`. Active
+removable-media work, fault procedures, and exit gates are in
+`MILESTONE_2_PLAN.md`; `MILESTONE_1_PLAN.md` is the completed bench-integration
+record.
 
 - Choose total enclosure width and define the curve/convergence geometry for a future 12+ camera array.
 - Define GIF frame duration, playback direction, loop behavior, and export settings.
@@ -379,8 +384,6 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 - Design the fast-follow live-preview architecture.
 - Add live preview after version 1 works end to end.
 - Define version 2 camera settings and how they are synchronized across nodes.
-- Validate and integrate the selected removable USB drive and its accessible product USB port.
-- Complete hardware tests for a missing, full, corrupt, read-only, or prematurely removed USB drive.
 - Design the internal power, charging, monitoring, and safe-shutdown system.
 - Measure idle, capture, transfer, processing, and display power consumption.
 - Set a numerical runtime or captures-per-charge requirement from those measurements.
@@ -390,7 +393,6 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 - Lay out the integrated version 1 hardware before fixing enclosure dimensions.
 - Produce a simple 3D-printable box enclosure with the required external openings and camera alignment.
 - Revisit weight, ergonomics, lighting, tripod mounting, and weather resistance after version 1.
-- Demonstrate the two-second normal-case end-to-end review target on candidate central hardware.
 - Establish objective reliability, image-quality, runtime, and size targets.
 - After the onboard experience is polished, optionally implement hotspot-based media browsing, download, and remote features.
 

@@ -68,15 +68,22 @@ Do not rename the checkout. The installer refuses a different location instead o
 
 ### 3. Configure stable camera identities
 
-Edit `pi_app/config.json` before installation when the attached ESP32S3 nodes differ from the bench node. `logical_cameras` maps each stable eFuse UID to a logical camera number:
+Confirm `pi_app/config.json` before installation. `logical_cameras` maps each
+stable eFuse UID to a logical camera number. The validated four-node rig uses:
 
 ```json
 "logical_cameras": {
-  "E072A1F9A190": 1
+  "E072A1F9B3E4": 1,
+  "E072A1F9A190": 2,
+  "E072A1F99CC0": 3,
+  "E072A1F99CF8": 4
 }
 ```
 
-The shown UID belongs to the validated one-node bench setup. A new four-node rig must contain four unique UID-to-camera mappings. Linux names such as `/dev/ttyACM0` are deliberately not used as identity.
+If a replacement rig uses different boards, update all four entries from
+verified startup output before installation. A four-node rig must contain four
+unique UID-to-camera mappings. Linux names such as `/dev/ttyACM0` are
+deliberately not used as identity.
 
 ### 4. Run the product-boot installer
 
@@ -99,7 +106,9 @@ cd "${HOME}/bullet-time-cam"
 ./pi_app/scripts/verify_boot_experience.sh
 ```
 
-All 28 checks must report `PASS`. Also perform one physical cold-boot observation. The automated checks prove configuration and process state; only a person or recorded video proves that no transient frame was visible.
+All 33 checks must report `PASS`. Also perform one physical cold-boot
+observation. The automated checks prove configuration and process state; only a
+person or recorded video proves that no transient frame was visible.
 
 Expected live processes are:
 

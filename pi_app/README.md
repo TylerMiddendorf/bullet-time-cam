@@ -38,7 +38,12 @@ Storage behavior is configured in `pi_app/config.json`:
 
 The repository configuration prefers the added drive's `USB DISK` mount-directory name (normally derived from its label below `/media/<user>/`). This is a preference rather than a hard requirement, so another writable USB drive can still be selected if that drive is absent. With no preference, the application selects deterministically by mount path. Each capture manifest records the selected device, filesystem, mountpoint, and capture root.
 
-Do not remove the drive while the loading screen is active. Missing/unplugged-drive handling is implemented, but actual-drive tests for full, read-only, corrupt, and removal-during-write cases remain part of the removable-media milestone.
+Do not remove the drive while the loading screen is active during normal use.
+Missing/unplugged-drive handling is implemented, but actual-drive tests for
+full, read-only, corrupt, and removal-during-write cases remain part of the
+removable-media milestone. Follow
+[`docs/MILESTONE_2_PLAN.md`](../docs/MILESTONE_2_PLAN.md) for the controlled
+fault procedures and safety boundary.
 
 GPIO17 is claimed as an output LOW before the receiver starts, remains LOW while idle, and is returned LOW during pulse-error and application-shutdown cleanup. The backend is the Raspberry Pi OS Trixie `python3-lgpio` package pinned in `system-requirements.txt`. Do not connect GPIO17 directly to the trigger bus; follow [`docs/TRIGGER_CIRCUIT.md`](../docs/TRIGGER_CIRCUIT.md). The product owner reports that its complete unpowered multimeter checklist passes.
 

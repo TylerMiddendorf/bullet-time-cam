@@ -53,10 +53,19 @@ OK
 
 Storage coverage includes mountinfo parsing and escaped mount names, USB-only selection, the configured preferred drive, automatic-mount rescan, capture-root path confinement, and refusal to fall back to boot storage.
 
-## Open Validation
+## Open Validation at Time of Record
 
 - Commit/push the code and pull it through the project's Git-only Pi deployment flow.
 - Run the camera service with the new configuration and commit a real original/manifest to `BulletTime/`.
 - Verify manifest storage metadata and touchscreen review from the USB-backed file.
 - Test service restart and physical USB unplug/replug.
 - Test missing, full, read-only, corrupt, and removal-during-write behavior without accepting a partial or falling back to the boot microSD.
+
+## Subsequent Resolution
+
+Later July 17-18 evidence records Git deployment, real USB-backed application
+commits, manifest storage metadata, touchscreen review, service restart, and
+post-reboot persistence. Those later results do not alter the limited scope of
+this bring-up record. Idle unplug/replug, missing, full, read-only/corrupt,
+removal-during-write, and deterministic multi-drive qualification remain active
+under [`../../MILESTONE_2_PLAN.md`](../../MILESTONE_2_PLAN.md).

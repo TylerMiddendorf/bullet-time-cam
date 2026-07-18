@@ -45,8 +45,8 @@ recovery, and the accepted full-screen boot presentation. A qualifying 25-cycle
 run completed 25/25 four-camera sets; artifact-level fault/recovery and reboot
 identity tests also passed. Median complete-set review latency was 3.250 seconds,
 so the soft two-second target remains an optimization item. Milestone 2 removable
-USB fault qualification is next; see the roadmap and milestone evidence for the
-full measured record.
+USB fault qualification is active; see [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md)
+and the roadmap for its procedures and exit gates.
 
 ## Camera Firmware
 
@@ -141,8 +141,9 @@ and evidence locations. The canonical changing project state lives in:
 
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — product goal, architecture, decisions, and current state
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — milestone ordering, status, and budget gates
-- [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md) — active checkpoint tests and exit criteria
-- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — current Checkpoint 5 implementation handoff
+- [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md) — completed bench milestone plan and measured exit evidence
+- [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md) — active removable-media fault-qualification procedures and exit gates
+- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — concise handoff for the active milestone
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md) — product-owner decision history
 
 Successful hardware demonstrations are recorded under the indexed
