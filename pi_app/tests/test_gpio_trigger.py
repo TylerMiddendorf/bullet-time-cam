@@ -73,6 +73,20 @@ class TriggerTests(unittest.TestCase):
             ],
         )
 
+    def test_invalid_configuration_and_use_after_close_are_rejected(self):
+        backend = FakeBackend()
+        with self.assertRaises(ValueError):
+            HardwareTrigger(-1, 0.1, backend=backend)
+        with self.assertRaises(ValueError):
+            HardwareTrigger(17, 0, backend=backend)
+
+        trigger, backend, _ = self.make_trigger()
+        trigger.close()
+        trigger.close()
+        self.assertEqual(backend.events.count(("close", 17)), 1)
+        with self.assertRaisesRegex(RuntimeError, "closed"):
+            trigger.pulse()
+
 
 if __name__ == "__main__":
     unittest.main()

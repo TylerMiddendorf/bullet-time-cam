@@ -10,7 +10,7 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently passes 24 tests and skips one environment-gated physical-rig test. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, corrupt and truncated transfers, stable identity across a node reboot, JPEG/GIF integrity, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test after the four-node coordinator is implemented.
+The normal local run currently passes 55 deterministic tests and skips one environment-gated physical-rig test. Coverage includes grouping windows, partial failures, trigger lockout, atomic persistence failures, receiver ACK/NACK boundaries, ordered GIF bytes, animated UI state, protocol limits, firmware ACK identity matching, and configuration/discovery/metrics behavior. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, typed corrupt and truncated transfers plus recovery captures, stable identity across a node reboot, JPEG/GIF integrity and real frame order, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test after concurrent node-session integration.
 
 Run the application:
 

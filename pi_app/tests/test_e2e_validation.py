@@ -30,8 +30,9 @@ class EvidenceBuilder:
         self.boot_ids[camera_id] = f"boot-{camera_id}-b"
         self.sequence[camera_id] = 0
 
-    def capture(self, capture_id: str, failed=()):
+    def capture(self, capture_id: str, failed=(), error_codes=None):
         failed = set(failed)
+        error_codes = error_codes or {}
         capture_dir = self.root / capture_id
         capture_dir.mkdir()
         cameras = []
@@ -96,7 +97,11 @@ class EvidenceBuilder:
             "cameras": cameras,
             "files": files,
             "errors": [
-                {"logical_camera_id": camera_id, "code": "test_fault", "message": "injected"}
+                {
+                    "logical_camera_id": camera_id,
+                    "code": error_codes.get(camera_id, "camera_unavailable"),
+                    "message": "injected",
+                }
                 for camera_id in sorted(failed)
             ],
         }
@@ -218,8 +223,14 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
                 str(camera_id): builder.capture(f"disconnect-{camera_id}", failed={camera_id})
                 for camera_id in range(1, 5)
             }
-            corrupt = builder.capture("corrupt-transfer", failed={2})
-            truncated = builder.capture("truncated-transfer", failed={3})
+            corrupt = builder.capture(
+                "corrupt-transfer", failed={2}, error_codes={2: "jpeg_checksum_mismatch"}
+            )
+            corrupt_recovery = builder.capture("corrupt-recovery")
+            truncated = builder.capture(
+                "truncated-transfer", failed={3}, error_codes={3: "transfer_truncated"}
+            )
+            truncated_recovery = builder.capture("truncated-recovery")
             before = builder.capture("before-reboot")
             builder.reboot(4)
             after = builder.capture("after-reboot")
@@ -228,8 +239,18 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
                 "logical_cameras": UIDS,
                 "normal_capture_ids": normals,
                 "disconnect_capture_ids": disconnects,
-                "corrupt_transfer": {"capture_id": corrupt, "failed_camera_id": 2},
-                "truncated_transfer": {"capture_id": truncated, "failed_camera_id": 3},
+                "corrupt_transfer": {
+                    "capture_id": corrupt,
+                    "failed_camera_id": 2,
+                    "error_code": "jpeg_checksum_mismatch",
+                    "recovery_capture_id": corrupt_recovery,
+                },
+                "truncated_transfer": {
+                    "capture_id": truncated,
+                    "failed_camera_id": 3,
+                    "error_code": "transfer_truncated",
+                    "recovery_capture_id": truncated_recovery,
+                },
                 "reboot_between_captures": {
                     "before_capture_id": before,
                     "after_capture_id": after,
@@ -242,13 +263,14 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
             result = validate_scenario_ledger(root, ledger_path)
             self.assertEqual(result["status"], "pass")
             self.assertEqual(result["normal_capture_count"], 25)
-            self.assertEqual(result["capture_count"], 33)
+            self.assertEqual(result["capture_count"], 35)
             self.assertEqual(result["partial_capture_count"], 6)
 
             # Reusing one real transaction in another set must fail the suite,
             # even if both individual manifests and files remain internally valid.
             after_manifest_path = root / after / "manifest.json"
             after_manifest = json.loads(after_manifest_path.read_text(encoding="utf-8"))
+            original_after_manifest = json.loads(json.dumps(after_manifest))
             before_manifest = json.loads(
                 (root / before / "manifest.json").read_text(encoding="utf-8")
             )
@@ -258,6 +280,12 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
             ]
             after_manifest_path.write_text(json.dumps(after_manifest), encoding="utf-8")
             with self.assertRaisesRegex(EvidenceValidationError, "appears in both"):
+                validate_scenario_ledger(root, ledger_path)
+
+            after_manifest_path.write_text(json.dumps(original_after_manifest), encoding="utf-8")
+            ledger["corrupt_transfer"]["error_code"] = "wrong_code"
+            ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
+            with self.assertRaisesRegex(EvidenceValidationError, "wrong camera error code"):
                 validate_scenario_ledger(root, ledger_path)
 
             ledger["schema_version"] = 999

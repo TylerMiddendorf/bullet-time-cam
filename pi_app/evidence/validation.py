@@ -166,6 +166,8 @@ def validate_capture(
             if animation is not None:
                 raise EvidenceValidationError(f"{capture_id}: multiple animations recorded")
             animation = record
+        else:
+            raise EvidenceValidationError(f"{capture_id}: unsupported file role {role!r}")
 
     if set(originals) != successful:
         raise EvidenceValidationError(
@@ -243,11 +245,18 @@ def validate_capture(
             raise
         except Exception as exc:
             raise EvidenceValidationError(f"{capture_id}: invalid animation: {exc}") from exc
+    elif animation is not None:
+        raise EvidenceValidationError(f"{capture_id}: animation requires at least two cameras")
 
     error_ids = set()
     for error in manifest.get("errors", []):
         if isinstance(error, dict) and "logical_camera_id" in error:
-            error_ids.add(int(error["logical_camera_id"]))
+            camera_id = int(error["logical_camera_id"])
+            if camera_id in error_ids:
+                raise EvidenceValidationError(
+                    f"{capture_id}: duplicate error record for Camera {camera_id}"
+                )
+            error_ids.add(camera_id)
     if error_ids != failed:
         raise EvidenceValidationError(
             f"{capture_id}: error cameras {sorted(error_ids)} do not match failed cameras {sorted(failed)}"
@@ -274,7 +283,11 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
     if ledger.get("schema_version") != LEDGER_SCHEMA_VERSION:
         raise EvidenceValidationError(f"ledger schema_version must be {LEDGER_SCHEMA_VERSION}")
     mappings = ledger.get("logical_cameras")
-    if not isinstance(mappings, dict) or set(mappings.values()) != EXPECTED_CAMERA_IDS:
+    if (
+        not isinstance(mappings, dict)
+        or len(mappings) != len(EXPECTED_CAMERA_IDS)
+        or set(mappings.values()) != EXPECTED_CAMERA_IDS
+    ):
         raise EvidenceValidationError("ledger logical_cameras must map four UIDs to Cameras 1-4")
 
     normal_ids = ledger.get("normal_capture_ids")
@@ -293,9 +306,11 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
             not isinstance(scenario, dict)
             or "capture_id" not in scenario
             or "failed_camera_id" not in scenario
+            or "error_code" not in scenario
+            or "recovery_capture_id" not in scenario
         ):
-            raise EvidenceValidationError(f"ledger lacks {name} capture/failure details")
-        scenario_ids.append(str(scenario["capture_id"]))
+            raise EvidenceValidationError(f"ledger lacks {name} capture/failure/recovery details")
+        scenario_ids.extend([str(scenario["capture_id"]), str(scenario["recovery_capture_id"])])
 
     reboot = ledger.get("reboot_between_captures")
     if not isinstance(reboot, dict):
@@ -327,8 +342,20 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
     for name in ("corrupt_transfer", "truncated_transfer"):
         scenario = ledger[name]
         expected_failure = {int(scenario["failed_camera_id"])}
-        if evidence[str(scenario["capture_id"])].failed_camera_ids != expected_failure:
+        failed_capture = evidence[str(scenario["capture_id"])]
+        if failed_capture.failed_camera_ids != expected_failure:
             raise EvidenceValidationError(f"{name}: wrong failed camera")
+        failed_camera_id = next(iter(expected_failure))
+        error = next(
+            item
+            for item in failed_capture.manifest["errors"]
+            if int(item["logical_camera_id"]) == failed_camera_id
+        )
+        if error.get("code") != scenario["error_code"]:
+            raise EvidenceValidationError(f"{name}: wrong camera error code")
+        recovery = evidence[str(scenario["recovery_capture_id"])]
+        if recovery.successful_camera_ids != EXPECTED_CAMERA_IDS or recovery.failed_camera_ids:
+            raise EvidenceValidationError(f"{name}: recovery capture is not complete")
 
     camera_id = int(reboot["logical_camera_id"])
     uid = str(reboot["node_uid"])

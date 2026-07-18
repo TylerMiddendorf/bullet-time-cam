@@ -21,7 +21,7 @@ the project roadmap.
 | Path | Purpose |
 | --- | --- |
 | `button_capture/` | Modular XIAO ESP32S3 camera, trigger, and BTC1 USB firmware |
-| `pi_app/bullettime/` | Raspberry Pi capture runtime, receiver, UI, protocol, metrics, GPIO, and storage |
+| `pi_app/bullettime/` | Raspberry Pi capture runtime, receiver, grouping coordinator, media/GIF pipeline, UI, protocol, metrics, GPIO, and storage |
 | `pi_app/evidence/` | Persisted capture-evidence validation library |
 | `pi_app/tests/` | Deterministic unit, storage, protocol, GPIO, and environment-gated hardware tests |
 | `pi_app/tools/` | Serial smoke, capture summaries, evidence validation, and local sample-data tools |

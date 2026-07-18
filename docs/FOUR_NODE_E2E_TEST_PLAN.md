@@ -43,7 +43,7 @@ Do not deliberately unplug shared power or disturb the trigger wiring during a f
 
 ## Scenario Ledger
 
-Copy `pi_app/tests/fixtures/four_node_e2e_ledger.example.json` into the live evidence directory and replace every placeholder with the actual capture ID, assigned UID, and selected failed camera. The 25 normal IDs and all fault/reboot IDs must be distinct.
+Copy `pi_app/tests/fixtures/four_node_e2e_ledger.example.json` into the live evidence directory and replace every placeholder with the actual capture ID, assigned UID, and selected failed camera. Record the expected camera-specific error code and a subsequent complete recovery capture for both corrupt and truncated transfer cases. The 25 normal IDs and all fault, recovery, and reboot IDs must be distinct.
 
 Run the artifact validator on the Raspberry Pi:
 

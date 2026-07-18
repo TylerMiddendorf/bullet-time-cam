@@ -24,17 +24,23 @@ GIF review.
   [`refactor-hardware-regression-2026-07-17.md`](evidence/milestone-1/checkpoint-4/refactor-hardware-regression-2026-07-17.md).
 - Product-level coordination still maps only Camera 1 and does not yet persist or
   display a grouped four-image result.
+- Deterministic coordinator/media primitives now cover shuffled association,
+  no-progress closure, second-trigger rejection, explicit partial failures,
+  reboot identity, atomic four-image persistence, real GIF ordering, animated
+  review state, and receiver ACK/NACK persistence boundaries. The local suite
+  passes 55 tests with one intended live-hardware skip; these primitives are not
+  yet connected to concurrent live serial sessions.
 - The executable acceptance contract is in
   [`FOUR_NODE_E2E_TEST_PLAN.md`](FOUR_NODE_E2E_TEST_PLAN.md).
 
 ## Immediate Work
 
 1. Register stable logical identities for Cameras 2-4.
-2. Introduce concurrent node receivers and one central capture-set coordinator.
-3. Define the bounded association/no-progress windows and second-trigger policy.
-4. Preserve every valid original, close complete or partial sets atomically, and
-   record camera-specific errors.
-5. Generate and display the ordered back-and-forth GIF.
+2. Connect concurrent node receivers to the tested central capture-set coordinator.
+3. Apply the tested bounded association/no-progress windows and second-trigger policy.
+4. Use the tested atomic capture-set writer for every valid original and
+   camera-specific error.
+5. Deploy and measure the tested ordered back-and-forth GIF animation path.
 6. Execute the required normal, disconnect, corruption, reboot, and isolation
    scenarios; retain the ledger and artifacts under
    `docs/evidence/milestone-1/checkpoint-5/`.

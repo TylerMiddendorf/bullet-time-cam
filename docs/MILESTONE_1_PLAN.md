@@ -272,6 +272,8 @@ Proposed grouping tests:
 
 The executable acceptance contract and live scenario procedure are in [`FOUR_NODE_E2E_TEST_PLAN.md`](FOUR_NODE_E2E_TEST_PLAN.md). The deterministic validator tests cover complete and partial sets, corrupt/truncated artifacts, stable UID mapping through a reboot, leftover partials, and duplicate transactions across sets. The physical-rig test is environment-gated until live capture IDs and a completed scenario ledger exist.
 
+Deterministic core progress recorded July 17, 2026: shuffled four-node starts/results, association and no-progress windows, second-trigger rejection, explicit and timeout partial sets, reboot identity, cross-set transaction isolation, atomic capture-set publication, ordered complete/partial GIF bytes, animated-review state, receiver ACK-after-commit/NACK-on-failure, schema enforcement, and typed fault recovery ledgers are covered by the local suite. The suite passes 55 tests with one intended live-hardware skip. These results validate software contracts but do not satisfy the Checkpoint 5 exit gate until the core is connected to concurrent serial node sessions and demonstrated on the physical rig.
+
 Exit gate:
 
 - Normal presses reliably form four-image capture sets.
@@ -370,8 +372,8 @@ This order produces visible progress early, isolates failures, and avoids buying
 ## Immediate Next Actions
 
 1. Validate automatic detection/mounting and a real capture against the added USB drive, then test unplug/replug and the visible missing-drive failure on the Raspberry Pi.
-2. Register Cameras 2 through 4 by stable UID in the product coordinator and implement concurrent capture grouping, partial sets, atomic persistence, and camera-specific errors.
-3. Implement and measure the live four-image back-and-forth GIF/touchscreen path.
+2. Register Cameras 2 through 4 by stable UID and connect the tested grouping/media core to concurrent node sessions, atomic persistence, and camera-specific errors.
+3. Deploy and measure the tested live four-image back-and-forth GIF/touchscreen path.
 4. Execute the physical-rig scenarios in `FOUR_NODE_E2E_TEST_PLAN.md`, retain the ledger/evidence, and run the artifact validator.
 5. Optimize or deliberately accept the measured acquisition/USB latency; the four-node repeated result remains above the soft two-second target.
 6. Defer electrical power conclusions until suitable instrumentation is available; USB descriptors and concurrent data integrity are not substitutes for aggregate power data.

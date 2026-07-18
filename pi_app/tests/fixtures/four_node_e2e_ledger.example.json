@@ -41,11 +41,15 @@
   },
   "corrupt_transfer": {
     "capture_id": "REPLACE_CORRUPT_TRANSFER_CAPTURE",
-    "failed_camera_id": 2
+    "failed_camera_id": 2,
+    "error_code": "jpeg_checksum_mismatch",
+    "recovery_capture_id": "REPLACE_CORRUPT_RECOVERY_CAPTURE"
   },
   "truncated_transfer": {
     "capture_id": "REPLACE_TRUNCATED_TRANSFER_CAPTURE",
-    "failed_camera_id": 3
+    "failed_camera_id": 3,
+    "error_code": "transfer_truncated",
+    "recovery_capture_id": "REPLACE_TRUNCATED_RECOVERY_CAPTURE"
   },
   "reboot_between_captures": {
     "before_capture_id": "REPLACE_BEFORE_REBOOT_CAPTURE",

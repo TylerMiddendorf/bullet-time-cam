@@ -8,7 +8,6 @@ import threading
 import time
 import zlib
 
-import serial
 from PIL import Image
 
 from . import APP_VERSION
@@ -90,6 +89,8 @@ class Receiver(threading.Thread):
             self.stop.wait(self.config.get("reconnect_seconds", 1.0))
 
     def receive_port(self, port: str) -> None:
+        import serial
+
         with serial.Serial(
             port,
             self.config.get("serial_baud", 115200),
