@@ -6,12 +6,21 @@
 #include "trigger_input.h"
 
 void setup() {
+  const size_t usbTxBufferBytes = Serial.setTxBufferSize(USB_TX_BUFFER_BYTES);
   Serial.begin(115200);
   delay(1000);
 
   Serial.println();
   Serial.printf("XIAO ESP32S3 Sense %u-Camera Shared Trigger\n",
                 static_cast<unsigned int>(CAMERA_COUNT));
+  if (usbTxBufferBytes != USB_TX_BUFFER_BYTES) {
+    Serial.printf("Stopped. USB TX buffer allocation failed: requested %u, received %u.\n",
+                  static_cast<unsigned int>(USB_TX_BUFFER_BYTES),
+                  static_cast<unsigned int>(usbTxBufferBytes));
+    while (true) {
+      delay(1000);
+    }
+  }
 
   initializeSharedTrigger();
   initializeNodeIdentity();

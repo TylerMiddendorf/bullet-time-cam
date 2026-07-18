@@ -11,7 +11,7 @@
     "E072A1F9B3E4": 4
   },
   "serial_baud": 115200,
-  "serial_read_timeout_seconds": 10,
+  "serial_read_timeout_seconds": 15,
   "fullscreen": true,
   "startup_logo": "../assets/Logo_800x480.png",
   "hide_pointer": true,
@@ -21,7 +21,7 @@
   "trigger_pulse_ms": 100,
   "trigger_event_association_ms": 1000,
   "capture_association_ms": 250,
-  "no_progress_timeout_ms": 5000,
+  "no_progress_timeout_ms": 12000,
   "automatic_rearm_ms": 150,
   "gif_frame_ms": 150,
   "gif_max_width": 800,
