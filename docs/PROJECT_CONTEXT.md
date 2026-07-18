@@ -102,7 +102,7 @@ There are four identical camera nodes. Each currently consists of:
 - Connection to the shared physical trigger
 - The same Arduino camera-node firmware
 
-Firmware 0.2.0 implements the July 17 camera-node simplification: it streams the 2048x1536 JPEG directly from the frame buffer to the Pi, does not initialize or access node storage, and leaves `D0 / GPIO1` unused. The same image was flashed to all four nodes on July 17 and each passed camera, BTC1 protocol/stable-identity, and trigger startup gates. Earlier card/LED results remain truthful historical prototype evidence, not evidence for the current design. Physical and Pi-triggered four-node capture/integrity function is also verified, and the product owner subsequently completed the prescribed unpowered multimeter checklist with every check reported passing.
+Firmware 0.2.3 implements the July 17 camera-node simplification and subsequent bounded transfer/recovery fixes: it streams the 2048x1536 JPEG directly from the frame buffer to the Pi, does not initialize or access node storage, and leaves `D0 / GPIO1` unused. The same image is flashed to all four nodes and each passes camera, BTC1 protocol/stable-identity, and trigger startup gates. Earlier card/LED results remain truthful historical prototype evidence, not evidence for the current design. Physical and Pi-triggered four-node capture/integrity function is verified, and the product owner completed the prescribed unpowered multimeter checklist with every check reported passing.
 
 ### Central computer - planned
 
@@ -216,7 +216,7 @@ Planned product storage:
 - Automatic Raspberry Pi application discovery of writable USB-backed filesystems
 - A `BulletTime/` directory on the selected USB drive containing capture-set directories, original JPEGs, manifests, and generated GIFs
 
-Firmware 0.2.0 transmits the captured JPEG directly from the ESP32S3 frame buffer and returns the buffer after the ACK/NACK transfer attempt. Available memory, sustained transport bandwidth, retries, and the two-second normal-case target must still be measured under simultaneous four-node operation.
+Firmware 0.2.3 transmits the captured JPEG directly from the ESP32S3 frame buffer and returns the buffer after the ACK/NACK transfer attempt. Simultaneous four-node operation is validated at product level. The qualifying 25-cycle run completed every set, but its 3.250-second median remains above the soft two-second target.
 
 The Raspberry Pi boot card should not be normally accessible to the user. The removable USB drive uses a user-accessible USB port. The application must not fall back to the boot card when USB media is absent: touchscreen-initiated capture is blocked with a clear storage error, and a physical capture that arrives without writable USB storage is rejected rather than committed internally. Missing-drive detection and automatic mounting are implemented; full, corrupt, read-only, and removal-during-write behavior still require Raspberry Pi hardware validation.
 
@@ -248,7 +248,7 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 ## Current State
 
-As of July 17, 2026 (capture-path bench evidence recorded July 11; product-boot evidence recorded July 17):
+As of July 18, 2026:
 
 - Four XIAO ESP32S3 Sense modules and four OV3660 sensors are on hand. Four node cards from the superseded prototype remain in inventory but are not used by current firmware.
 - All four modules are assembled on a breadboard.
@@ -257,7 +257,7 @@ As of July 17, 2026 (capture-path bench evidence recorded July 11; product-boot 
 - The boards are powered by USB from a battery hub.
 - The shared button and all four camera nodes work as expected.
 - Historical/superseded: the original prototype saved images to individual node cards.
-- Firmware 0.2.0 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and transfers captures directly through BTC1 without initializing node storage.
+- Firmware 0.2.3 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and transfers captures directly through BTC1 without initializing node storage.
 - A Raspberry Pi 4 Model B with 2 GB RAM is on hand.
 - The Raspberry Pi 4 has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input works on the intended display.
@@ -269,23 +269,24 @@ As of July 17, 2026 (capture-path bench evidence recorded July 11; product-boot 
 - The final integrated USB hub/cabling selection is installed and has passed the recorded four-node concurrent integrity runs. Aggregate system power remains unmeasured.
 - No integrated battery/charging system has been acquired.
 - The product owner has added a USB drive to the Raspberry Pi for removable JPEG/GIF storage.
-- The Pi application now detects mounted USB-backed filesystems, can request automatic mounting through `udisks2`, writes capture sets below `BulletTime/`, records the selected USB filesystem in each manifest, and refuses to fall back to the boot microSD. The full local suite passes 55 deterministic tests, with one additional physical-rig E2E test skipped until live evidence paths are supplied. The added 231 GB FAT USB partition is `/dev/sda1`, label/mount name `USB DISK`, and is mounted read/write for the camera user at `/media/username/USB DISK`. The refactored application has been deployed on the Pi and committed real CRC-verified Camera 1 JPEGs to that drive before and after a reboot; real-drive fault cases and product-level four-image/GIF persistence remain open.
-- Raspberry Pi/display bring-up and the one-node USB capture vertical slice are implemented. Four-node grouping, multi-image GIF generation, real-drive removable-storage validation, power integration, and enclosure work remain.
+- The Pi application detects mounted USB-backed filesystems, can request automatic mounting through `udisks2`, writes capture sets below `BulletTime/`, records the selected USB filesystem in each manifest, and refuses to fall back to the boot microSD. The added 231 GB FAT USB partition is `/dev/sda1`, label/mount name `USB DISK`, and is mounted read/write for the camera user at `/media/username/USB DISK`. Product-level four-original/manifest/GIF persistence and reboot continuity pass on this drive. Full/read-only/corrupt/removal-during-write and deterministic multi-drive cases remain Milestone 2 work.
+- Raspberry Pi/display bring-up, concurrent four-node grouping, multi-image GIF generation, camera-specific partial capture, touchscreen review, and normal removable-USB persistence are implemented and physically validated. Power integration and enclosure work remain.
 - Approximately $200 remains available for version 1.
 - Milestone 1 work deliberately fast-forwarded to a one-node full-system vertical slice through the available powered hub: direct frame-buffer transfer to the Pi, verified persistence, representative processing, and touchscreen display. The earlier temporary USB-request diagnostic path and the current physical/Pi hardware-trigger paths are validated.
 - This sequencing change does not mark the earlier offline UI or isolated one-node transfer checkpoints complete; required portions are being integrated into the active test and remaining coverage is deferred.
 - The physical button and Pi GPIO17/2N3904 stage are connected to the four-node shared trigger. The framed Pi-to-node USB request remains explicit diagnostic scaffolding only; normal touchscreen actions use one 100 ms GPIO17 pulse.
-- The Git-tracked Pi application and camera firmware complete the one-node physical/Pi-trigger-to-touchscreen path through the powered hub, with CRC validation, atomic original preservation, manifests, resource/timing instrumentation, and reconnect discovery by stable node UID.
+- The Git-tracked Pi application and camera firmware complete the physical/Pi-trigger-to-touchscreen path through all four powered nodes, with CRC validation, atomic capture-set preservation, ordered GIFs, manifests, resource/timing instrumentation, camera-specific partial review, and reconnect discovery by stable node UID.
 - A final 20-capture resource-instrumented run completed 20/20 captures with no checksum failures, recorded errors, or partial files. Median capture-event-to-display callback was 2.494 seconds, so the soft two-second target is not yet met; camera acquisition (1.374 seconds median) and node transfer (0.773 seconds median) dominate.
 - A forced receiver interruption left no committed or partial capture, and the app/node recovered without a Pi reboot. Two literal cable unplug/replug cycles preserved logical Camera 1 and service continuity; a live disconnect displayed a missing-node error and recovered visibly. A deliberately corrupted live USB payload produced a targeted NACK and visible checksum error without committing an original or partial file; the next normal capture succeeded.
 - On July 17, one physical press and one normal Pi touchscreen action each produced exactly one Camera 1 capture through atomic commit and display with no error. Separate four-node observers showed one physical press and one real 100 ms GPIO17 pulse each produced exactly one valid capture per stable UID with zero duplicates/errors. A 10-cycle GPIO17 run passed all 40 captures; pulse-to-all-completions was 2.455 seconds median and 2.497 seconds maximum, with 4.930 ms maximum start spread.
 - Later on July 17, the repository/module reorganization at `b950740` was pushed before the Pi pulled it, then regression-tested on the physical rig. The exact rebuilt firmware passed all three startup gates on all four reflashed nodes; another 10-cycle GPIO17 run passed 40/40 valid captures with zero duplicates/errors. The renamed `bullet-time-ui.service`, removable USB capture, and all 33 automated boot checks passed both installation and a requested Pi reboot; a post-reboot real capture was CRC-valid and the service returned active with GPIO17 LOW. Detailed evidence is in `docs/evidence/milestone-1/checkpoint-4/refactor-hardware-regression-2026-07-17.md`.
+- On July 18, the full product coordinator passed its physical-rig E2E contract: 25/25 complete four-node sets (100 originals and 25 six-frame GIFs), every logical camera unavailable separately, checksum-corrupt and mid-transfer-truncated Camera 1 cases with complete recovery, stable Camera 4 identity through reboot, and separate physical-shutter and touchscreen/GPIO17 product captures. The byte validator passed 35 named sets and the environment-gated live suite passed. Complete-set time was 3.250 seconds median and 3.289 seconds maximum, so the soft two-second target remains open. Representative normal and corrected camera-specific partial screens were photographed. See `docs/evidence/milestone-1/checkpoint-5/checkpoint5-four-node-e2e-2026-07-18.md`.
 - The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained. Electrical power remains unmeasured.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has a successful historical four-camera local-capture prototype, a validated one-node Raspberry Pi vertical slice for both trigger sources, and revised firmware functionally verified on four nodes. The node-to-Pi protocol, direct JPEG transfer, integrity checks, atomic preservation, instrumentation, and touchscreen review work for Camera 1. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Deterministic four-node grouping, timeout, partial-failure, atomic capture-set, ordered GIF, animated-review, and persistence-failure tests now pass locally, but those new coordinator/media primitives have not yet been integrated with the concurrent live serial receiver or demonstrated on the physical rig. It is not yet a four-node product workflow or a self-contained handheld product.
+The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. It is not yet a self-contained handheld product because removable-drive fault qualification, aggregate power measurement, battery/safe-power integration, and enclosure work remain.
 
-The functional physical-shutter and Pi GPIO17 trigger gates have passed separately on all four nodes, including repeated timing/integrity evidence, and the later multimeter pass closes Checkpoint 4. The next software step is integrating the tested grouping/media core with concurrent live node sessions and then demonstrating product-level four-node atomic persistence and GIF review. The repository includes an executable artifact validator and environment-gated physical-rig acceptance suite for the 25 normal captures, per-camera disconnects, corrupt/truncated transfers plus complete recovery captures, reboot identity, real GIF frame order, and cross-set isolation required by Checkpoint 5. Battery integration and enclosure work follow only after the bench path and power/performance requirements are sufficiently measured. See `ROADMAP.md`, `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+The next milestone is removable USB media fault qualification, followed by electrical power measurement and battery/safe-shutdown design. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -318,7 +319,7 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The two-second target is soft and may be exceeded while work is actively progressing.
 - The first version continues to use the shared physical trigger line.
 - The central computer should later be able to activate that trigger for remote and time-lapse capture.
-- Camera-node local storage and GPIO-driven status indication are removed from firmware 0.2.0; all four nodes passed revised startup and physical/Pi-trigger functional capture gates on July 17, and the product owner later reported the full unpowered circuit checklist passing.
+- Camera-node local storage and GPIO-driven status indication are removed from firmware 0.2.3; all four nodes pass revised startup and physical/Pi-trigger functional capture gates, and the product owner reported the full unpowered circuit checklist passing.
 - Live JPEGs transfer directly from each ESP32S3 frame buffer to the central computer.
 - Each node uses `D1 / GPIO2` for the shared active-low physical trigger; `D0 / GPIO1` is unused.
 - Raspberry Pi BCM GPIO17, physical pin 11, activates the shared trigger through the documented 2N3904 open-collector circuit.
@@ -343,9 +344,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The available central-computer prototype is a Raspberry Pi 4 Model B with 2 GB RAM.
 - A touchscreen and 3D printer are already available.
 - Approximately $200 remains for version 1.
-- The next milestone is a bench-top, USB-powered end-to-end prototype from four camera nodes through Raspberry Pi GIF generation and touchscreen review.
-- Within that milestone, the one-node trigger-to-screen Checkpoint 4 is complete; four-node product grouping and partial-failure handling are next.
-- Battery and enclosure integration follow the bench-top end-to-end milestone.
+- The bench-top, USB-powered end-to-end milestone from four camera nodes through Raspberry Pi GIF generation and touchscreen review is complete.
+- Removable USB media fault qualification is next; battery and enclosure integration follow measured aggregate power and safe-power design.
 - Progress is milestone-based without a fixed version 1 deadline.
 
 ## Provisional Ideas
@@ -370,22 +370,13 @@ The ordered implementation plan is maintained in `ROADMAP.md`. The active bench-
 
 - Choose total enclosure width and define the curve/convergence geometry for a future 12+ camera array.
 - Define GIF frame duration, playback direction, loop behavior, and export settings.
-- Extend the existing one-node manifest and capture-set scheme to four originals plus one GIF.
-- Register the remaining node UIDs and define four-node capture-set synchronization.
-- Extend the successful four-node trigger/CRC observer into product capture grouping and benchmark the complete product path; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
-- Test capture, transfer, and initial processing against the two-second normal-case target.
-- Extend the existing `BTC1` capture and transfer protocol for concurrent multi-node grouping and partial sets.
-- Extend the validated one-node transfer and recovery behavior to four concurrent nodes.
-- Assign and persist stable logical numbers for Cameras 2 through 4.
-- Define progress detection, timeout thresholds, retry rules, and the minimum viable partial animation.
-- Extend the existing one-node error UI and diagnostics to camera-specific partial-set failures.
-- Benchmark the Raspberry Pi candidate under concurrent four-node capture and GIF generation before finalizing it.
+- Optimize or explicitly accept the measured 3.250-second median four-node review path against the soft two-second target; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
+- Continue validating the Raspberry Pi candidate during removable-media fault and aggregate-power testing before treating it as the final production choice.
 - Measure the installed display's outer bezel/depth and actual current only if the Pi-reported 150x100 mm area and USB 5 V / 100 mA descriptor are insufficient for enclosure or battery design.
 - Retain the installed final V1 hub/cabling and include it in aggregate power and final enclosure-layout measurements.
-- Validate the added USB drive, its filesystem, mount permissions, and automatic remount behavior on the Raspberry Pi.
-- Design the image alignment, cleanup, enhancement, and GIF pipeline.
-- Design the on-device interface and preview architecture.
-- Extend the implemented one-node loading/review/error interface to the complete four-node version 1 flow.
+- Complete real-drive unplug/replug, full, corrupt, read-only, removal-during-write, and deterministic multi-drive validation on the Raspberry Pi.
+- Design future image alignment, cleanup, and enhancement after the validated raw-image GIF path.
+- Design the fast-follow live-preview architecture.
 - Add live preview after version 1 works end to end.
 - Define version 2 camera settings and how they are synchronized across nodes.
 - Validate and integrate the selected removable USB drive and its accessible product USB port.

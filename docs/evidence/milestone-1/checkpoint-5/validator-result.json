@@ -1,0 +1,12 @@
+{
+  "capture_count": 35,
+  "normal_capture_count": 25,
+  "partial_capture_count": 6,
+  "camera_ids": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "status": "pass"
+}

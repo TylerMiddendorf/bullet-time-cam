@@ -8,9 +8,7 @@ reviewed without searching one large flat directory.
 
 - [`checkpoint-1/`](milestone-1/checkpoint-1/) — Raspberry Pi, display, USB, and bench inventory
 - [`checkpoint-4/`](milestone-1/checkpoint-4/) — one-node trigger-to-screen vertical slice, protocol fault/recovery tests, firmware deployment, electrical inspection, and four-node trigger integrity
-
-Checkpoint 5 four-node product-grouping evidence will be stored under
-`milestone-1/checkpoint-5/` when its physical-rig scenarios are executed.
+- [`checkpoint-5/`](milestone-1/checkpoint-5/) — completed four-node product grouping, GIF/touchscreen flow, 25-cycle reliability, per-camera partial failures, corrupt/truncated recovery, reboot identity, byte validator, and UI photographs
 
 ## Milestone 2 — User-Removable USB Media
 

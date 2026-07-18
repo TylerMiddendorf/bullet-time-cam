@@ -32,16 +32,21 @@ the project roadmap.
 
 ## Current State
 
-Milestone 1 is active. Checkpoint 4—the one-node trigger-to-screen vertical
-slice and four-node trigger/protocol integrity gates—is complete. Checkpoint 5,
-product-level four-node grouping and partial-failure handling, is next.
+Milestone 1 is complete. The physical shared shutter and normal touchscreen
+trigger both drive the integrated four-node path through validated originals,
+atomic manifests, ordered six-frame GIF generation, and full-screen review.
+Camera-specific partial captures preserve and display the successful views.
 
-The current firmware streams directly from each camera frame buffer without
-node-local storage. The Pi runtime supports CRC-checked transfer, stable node
-identity, atomic USB-media persistence, GPIO17 hardware triggering, timing and
-resource instrumentation, reconnect recovery, and the accepted full-screen boot
-presentation. The detailed evidence and remaining gates are maintained in the
-roadmap and active milestone plan rather than duplicated here.
+Firmware 0.2.3 streams directly from each camera frame buffer without node-local
+storage. The Pi runtime supports concurrent CRC-checked transfer, stable node
+identity, atomic USB-media persistence, GPIO17 hardware triggering, ordered GIFs,
+camera-specific partial review, timing/resource instrumentation, reconnect
+recovery, and the accepted full-screen boot presentation. A qualifying 25-cycle
+run completed 25/25 four-camera sets; artifact-level fault/recovery and reboot
+identity tests also passed. Median complete-set review latency was 3.250 seconds,
+so the soft two-second target remains an optimization item. Milestone 2 removable
+USB fault qualification is next; see the roadmap and milestone evidence for the
+full measured record.
 
 ## Camera Firmware
 

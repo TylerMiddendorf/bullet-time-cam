@@ -1,6 +1,6 @@
 # Bullet-Time Camera Rig Roadmap
 
-This roadmap reflects product decisions and capture/trigger/product-boot hardware evidence through July 17, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
+This roadmap reflects product decisions and capture/trigger/product-boot hardware evidence through July 18, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
 
 The project has no fixed completion date. Milestones advance when their exit criteria are satisfied.
 
@@ -20,7 +20,7 @@ The node microSD cards and GPIO-driven status LEDs are historical prototype feat
 
 ## Milestone 1 - Bench-Top End-to-End Capture
 
-Status: active - Checkpoint 4 complete; Checkpoint 5 four-node product grouping is next
+Status: complete July 18, 2026; the soft two-second review target remains an optimization item
 
 Goal: use bench/USB power to prove the entire software and data path before investing in the battery system or enclosure.
 
@@ -62,13 +62,15 @@ Intermediary checkpoints:
 2. Offline GIF/UI vertical slice using reproducible local-only photos generated under ignored `photos/`
 3. One-node direct USB JPEG transfer
 4. **Complete:** one-node full-system bench test through the powered USB hub, including capture, direct transfer, preservation, representative processing, touchscreen display, stage analytics, and the electrical inspection
-5. **Next:** Four-node capture grouping and partial-failure handling
-6. Integrated live GIF/touchscreen flow
-7. Performance and reliability pass
+5. **Complete:** Four-node capture grouping and partial-failure handling
+6. **Complete:** Integrated live GIF/touchscreen flow
+7. **Complete:** Performance and reliability pass, with the measured latency limitation retained
 
 By product-owner decision on July 10, 2026, work fast-forwards to Checkpoint 4. Checkpoints 2 and 3 are not marked complete; the portions required for the one-node vertical slice are absorbed into Checkpoint 4, and remaining offline four-image and isolated-transfer coverage is deferred. The one-node test must capture detailed stage timing, integrity, resource, and failure evidence before four-node scaling. One-node measurements guide future choices but do not replace later concurrent four-node and electrical power measurements.
 
-Checkpoint 4 demonstrated the temporary diagnostic USB-request path, a clean 20-capture instrumented run, reconnect/error/NACK recovery, and the normal physical/Pi hardware-trigger-to-touchscreen paths. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes. One physical press and one normal Pi pulse each produced exactly one Camera 1 atomic-commit/display workflow. Separate four-port observers showed one physical press, one GPIO17 pulse, and 10 repeated GPIO17 cycles produced 48/48 valid four-node captures in total with zero errors or duplicates; repeated pulse-to-all-completions was 2.455 seconds median and maximum start spread was 4.930 ms. The product owner subsequently completed the prescribed unpowered multimeter checklist and reported all checks passing, closing Checkpoint 4. After the repository/module refactor at `b950740`, all four nodes were reflashed and startup-verified, another 10-cycle/40-image physical-rig regression passed without errors or duplicates, and the pulled Pi application completed CRC-valid removable-USB captures before and after a verified reboot. The renamed service and all 33 automated boot gates passed after that reboot. Deterministic Checkpoint 5 core tests now cover shuffled four-node association, timeouts, explicit partial failures, second-trigger rejection, reboot identity, atomic set publication, real GIF order, animated-review state, and receiver ACK/NACK persistence boundaries. The checked-in live receiver still needs concurrent node-session integration and physical four-image demonstration. The artifact-level E2E validator, environment-gated live suite, ledger template, and runbook cover the 25-normal-capture, per-camera disconnect, typed corrupt/truncated transfer plus recovery, reboot identity, real GIF content, and set-isolation gates. Separately, the product-boot portion of Checkpoint 6 was visually accepted on July 17 and is reproducible through `RASPBERRY_PI_BOOT_RUNBOOK.md`.
+Checkpoint 4 demonstrated the temporary diagnostic USB-request path, a clean 20-capture instrumented run, reconnect/error/NACK recovery, and the normal physical/Pi hardware-trigger-to-touchscreen paths. On July 17, simplified firmware was compiled, hash-verified, flashed, and startup-smoked on all four nodes. One physical press and one normal Pi pulse each produced exactly one Camera 1 atomic-commit/display workflow. Separate four-port observers showed one physical press, one GPIO17 pulse, and 10 repeated GPIO17 cycles produced 48/48 valid four-node captures in total with zero errors or duplicates; repeated pulse-to-all-completions was 2.455 seconds median and maximum start spread was 4.930 ms. The product owner subsequently completed the prescribed unpowered multimeter checklist and reported all checks passing, closing Checkpoint 4. After the repository/module refactor at `b950740`, all four nodes were reflashed and startup-verified, another 10-cycle/40-image physical-rig regression passed without errors or duplicates, and the pulled Pi application completed CRC-valid removable-USB captures before and after a verified reboot. The renamed service and all 33 automated boot gates passed after that reboot.
+
+On July 18, the integrated concurrent receiver, capture coordinator, atomic four-image persistence, ordered GIF pipeline, and camera-specific partial review passed the physical-rig acceptance contract. The qualifying run produced 25/25 complete sets, 100 originals, 25 six-frame GIFs, no failed normal transactions, and no leftover partial files. Separate scenarios passed for every camera unavailable, one checksum-corrupt transfer plus recovery, one controlled mid-payload truncation plus recovery, Camera 4 reboot identity, physical shutter, normal touchscreen/GPIO17 capture, and complete/partial touchscreen review. The byte validator passed 35 named capture sets and the environment-gated hardware test passed. Capture-set completion was 3.250 seconds median and 3.289 seconds maximum, so the soft two-second target was not met and remains a known optimization rather than a hidden exit-gate claim. Full evidence is in `docs/evidence/milestone-1/checkpoint-5/checkpoint5-four-node-e2e-2026-07-18.md`.
 
 Exit criteria:
 
@@ -79,7 +81,7 @@ Exit criteria:
 
 ## Milestone 2 - User-Removable USB Media
 
-Status: implementation started early; Raspberry Pi hardware validation remains after bench integration
+Status: active next; normal product capture is validated, removable-media fault qualification remains
 
 - Use the USB drive added by the product owner rather than a separate removable-card reader.
 - Keep Raspberry Pi microSD boot storage protected and internal, with no media fallback to it.
@@ -88,7 +90,7 @@ Status: implementation started early; Raspberry Pi hardware validation remains a
 - Validate actual JPEG and GIF writes, restart behavior, unplug/replug, and deterministic selection when more than one USB drive is present.
 - Handle missing, full, corrupt, read-only, and prematurely removed USB drives safely and visibly.
 
-Bring-up evidence on July 17, 2026: the Pi enumerated the added removable 231 GB FAT partition as `/dev/sda1`, label `USB DISK`, with USB sysfs ancestry. The exact `udisksctl` non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, and the mount was writable by user `username`. The full local suite passes 55 deterministic tests, with the physical-rig E2E test skipped until live evidence exists. Real Camera 1 JPEG application commits before and after reboot are recorded; deterministic fault injection now proves failed staging does not publish a capture directory. Real-drive unplug/replug, full, read-only/corrupt filesystem, removal-during-write, and product-level GIF commits remain open, so this milestone remains open.
+Bring-up evidence on July 17-18, 2026: the Pi enumerated the added removable 231 GB FAT partition as `/dev/sda1`, label `USB DISK`, with USB sysfs ancestry. The exact `udisksctl` non-interactive mount succeeded from the camera user-service context at `/media/username/USB DISK`, and the mount was writable by user `username`. Real Camera 1 commits before and after reboot are recorded, followed by the July 18 four-node acceptance run: 25 complete sets, fault/recovery sets, originals, manifests, and GIFs all passed byte validation on that drive. Deterministic fault injection proves failed staging does not publish a capture directory. Real-drive unplug/replug, full, read-only/corrupt filesystem, removal-during-write, and deterministic multi-drive selection remain open, so this milestone remains active.
 
 ## Milestone 3 - Integrated Battery and Safe Power
 

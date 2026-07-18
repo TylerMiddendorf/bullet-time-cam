@@ -1,5 +1,9 @@
 # Milestone 1 Plan - Bench-Top End-to-End Capture
 
+Status: complete July 18, 2026. The required behavior and reliability gates
+passed; the measured four-node review latency remains above the soft two-second
+target and is retained as an optimization item.
+
 ## Outcome
 
 Prove the complete version 1 data path on the bench:
@@ -248,6 +252,8 @@ Evidence recorded July 17, 2026 (Checkpoint 4 remains active):
 
 ## Checkpoint 5 - Four-Node Capture and Grouping
 
+Status: complete July 18, 2026
+
 Cost gate: no hub/cabling purchase. The product owner confirms the currently installed chain is the final V1 hub/cabling, and the Pi enumerates all four nodes through it. Retain it unless later aggregate power or reliability evidence exposes a concrete defect.
 
 Work:
@@ -272,7 +278,17 @@ Proposed grouping tests:
 
 The executable acceptance contract and live scenario procedure are in [`FOUR_NODE_E2E_TEST_PLAN.md`](FOUR_NODE_E2E_TEST_PLAN.md). The deterministic validator tests cover complete and partial sets, corrupt/truncated artifacts, stable UID mapping through a reboot, leftover partials, and duplicate transactions across sets. The physical-rig test is environment-gated until live capture IDs and a completed scenario ledger exist.
 
-Deterministic core progress recorded July 17, 2026: shuffled four-node starts/results, association and no-progress windows, second-trigger rejection, explicit and timeout partial sets, reboot identity, cross-set transaction isolation, atomic capture-set publication, ordered complete/partial GIF bytes, animated-review state, receiver ACK-after-commit/NACK-on-failure, schema enforcement, and typed fault recovery ledgers are covered by the local suite. The suite passes 55 tests with one intended live-hardware skip. These results validate software contracts but do not satisfy the Checkpoint 5 exit gate until the core is connected to concurrent serial node sessions and demonstrated on the physical rig.
+Deterministic core progress recorded July 17, 2026: shuffled four-node starts/results, association and no-progress windows, second-trigger rejection, explicit and timeout partial sets, reboot identity, cross-set transaction isolation, atomic capture-set publication, ordered complete/partial GIF bytes, animated-review state, receiver ACK-after-commit/NACK-on-failure, schema enforcement, and typed fault recovery ledgers are covered by the local suite.
+
+Physical-rig evidence recorded July 18, 2026:
+
+- Stable logical mapping is Camera 1 `E072A1F9B3E4`, Camera 2 `E072A1F9A190`, Camera 3 `E072A1F99CC0`, and Camera 4 `E072A1F99CF8`.
+- The qualifying normal run completed 25/25 four-image sets: 100 JPEGs, 25 six-frame `1,2,3,4,3,2` GIFs, zero failed normal cameras, zero leftover `.part` files, and 100 unique node transactions.
+- One data-only unavailability scenario for each logical camera formed the correct three-image partial set and named only the selected failed camera.
+- A Camera 1 `jpeg_checksum_mismatch` set and a controlled Camera 1 `transfer_truncated` set each omitted the bad original, preserved the other three views, produced a partial GIF, and were followed by a complete recovery without rebooting the Pi.
+- Rebooting Camera 4 changed its boot ID from `2302327597` to `2564730693` while preserving UID and logical number.
+- The artifact validator passed 35 named capture sets, and the environment-gated live hardware test passed in 37.888 seconds.
+- Complete ledger, capture IDs, rerun limitations, and postflight are in [`evidence/milestone-1/checkpoint-5/checkpoint5-four-node-e2e-2026-07-18.md`](evidence/milestone-1/checkpoint-5/checkpoint5-four-node-e2e-2026-07-18.md).
 
 Exit gate:
 
@@ -281,6 +297,8 @@ Exit gate:
 - Reconnection does not change logical camera numbering.
 
 ## Checkpoint 6 - Integrated GIF and Touchscreen Flow
+
+Status: complete July 18, 2026
 
 Cost gate: no additional purchase
 
@@ -303,7 +321,7 @@ Exit gate:
 - The user never needs to interact with the Pi desktop during normal capture.
 - A filmed cold boot shows no operating-system or diagnostic frame; after an accepted blank early phase, only the product logo appears before the camera application.
 
-Boot-presentation evidence recorded July 16-17, 2026 (visual sub-gate satisfied; integrated real-button flow remains open):
+Boot-presentation evidence recorded July 16-17, 2026 (visual sub-gate satisfied; the integrated live-flow evidence follows):
 
 - The first hardware trial used Raspberry Pi's supported early fullscreen image helper, a custom static Plymouth script theme, a logo compositor background, and an app-owned logo first frame.
 - Plymouth 24.004.60 crashed in `libply-splash-core`/`libply` before normal root startup; the display showed its backtrace and the Pi never reached networking or the application.
@@ -318,7 +336,16 @@ Boot-presentation evidence recorded July 16-17, 2026 (visual sub-gate satisfied;
 - Final cold boot `3b377b08-599e-434e-bc40-948f24710254` loaded the transparent cursor theme into the logo background, Xwayland, and application processes. All 20 then-current automated boot checks passed, the application was active, and the product owner confirmed the result looked good with no remaining pointer or OS/debug frame. The accepted behavior and replacement-Pi procedure are recorded in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 - The replacement-Pi audit expanded verification to 28 checks and made the installer provision its pinned Python environment and LightDM autologin keys. A real installer rerun created backup `20260717T123705Z`; subsequent cold boot `a067e50f-99de-4080-b2fa-3198eec8e80a` passed all 28 checks, ran only labwc, swaybg, the camera app, and Xwayland, and contained no cloud-init stage messages. Package installation now uses `--no-upgrade` to preserve the selected image's existing desktop/session versions.
 
+Integrated live-flow evidence recorded July 18, 2026:
+
+- Physical shared-shutter capture `20260718T051907Z_50cdc484` and normal touchscreen/GPIO17 capture `20260718T052128Z_0f21e734` each persisted byte-valid four-image originals plus a six-frame GIF without desktop interaction.
+- The user photographed the normal animation on the intended display. A controlled Camera 4 failure then proved that Cameras 1-3 remained reviewable in a partial GIF.
+- The first partial-screen photograph exposed a presentation defect in which a generic background reconnect error replaced the camera-specific result. Commit `710eadd` preserved the review message/color, and the user confirmed the corrected emitted screen. Capture `20260718T053522Z_f906ef32` independently validates successful Cameras 1-3, failed Camera 4, and trigger source `pi_gpio17`.
+- The temporary Camera 4 test lock was removed, Camera 4 passed its bounded firmware 0.2.3 startup smoke on stable UID `E072A1F99CF8`, `bullet-time-ui.service` returned active, and GPIO17 returned output LOW.
+
 ## Checkpoint 7 - Performance and Reliability Pass
+
+Status: complete July 18, 2026, with the soft two-second latency target unmet
 
 Cost gate: no purchase
 
@@ -357,6 +384,13 @@ Exit gate:
 - Remaining latency and reliability limitations are measured and documented.
 - The requirements for removable media, battery sizing, and enclosure layout are clearer than estimates.
 
+Evidence recorded July 18, 2026:
+
+- The qualifying 25-cycle run completed 25/25 sets with no normal-capture failure, overwrite, cross-set transaction reuse, or partial artifact.
+- First-node event to complete persisted GIF was 3,201.312 ms minimum, 3,250.161 ms median, and 3,288.951 ms maximum.
+- Per-camera unavailability, checksum corruption, mid-transfer truncation, immediate recovery, and reboot identity all passed the artifact-level contract.
+- The result is repeatable and the dominant acquisition/USB path is measured, but 3.25 seconds does not meet the soft two-second target. Latency optimization remains explicit follow-up work rather than an unverified completion claim.
+
 ## Recommended Build Order
 
 1. Checkpoint 1: Pi and display bring-up (substantially demonstrated; documentation details remain)
@@ -371,9 +405,8 @@ This order produces visible progress early, isolates failures, and avoids buying
 
 ## Immediate Next Actions
 
-1. Validate automatic detection/mounting and a real capture against the added USB drive, then test unplug/replug and the visible missing-drive failure on the Raspberry Pi.
-2. Register Cameras 2 through 4 by stable UID and connect the tested grouping/media core to concurrent node sessions, atomic persistence, and camera-specific errors.
-3. Deploy and measure the tested live four-image back-and-forth GIF/touchscreen path.
-4. Execute the physical-rig scenarios in `FOUR_NODE_E2E_TEST_PLAN.md`, retain the ledger/evidence, and run the artifact validator.
-5. Optimize or deliberately accept the measured acquisition/USB latency; the four-node repeated result remains above the soft two-second target.
-6. Defer electrical power conclusions until suitable instrumentation is available; USB descriptors and concurrent data integrity are not substitutes for aggregate power data.
+1. Complete Milestone 2 removable-drive fault qualification: unplug/replug, missing, full, read-only/corrupt, removal-during-write, and deterministic multi-drive selection.
+2. Measure aggregate idle, capture, transfer, processing, display, and peak electrical power before selecting battery or regulator hardware.
+3. Optimize or explicitly accept the 3.250-second median acquisition/USB review path; the soft two-second target is not yet met.
+4. Use the measured bench and power results to select the integrated battery, USB-C charging, monitoring, and safe-shutdown architecture.
+5. Begin enclosure layout only after the power components and removable-drive access are fixed.

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "logical_cameras": {
+    "E072A1F9B3E4": 1,
+    "E072A1F9A190": 2,
+    "E072A1F99CC0": 3,
+    "E072A1F99CF8": 4
+  },
+  "normal_capture_ids": [
+    "20260718T045718Z_645878db",
+    "20260718T045726Z_a47b7251",
+    "20260718T045735Z_6ef98200",
+    "20260718T045743Z_15c73dd2",
+    "20260718T045752Z_63b44f7e",
+    "20260718T045801Z_7e7dfe97",
+    "20260718T045809Z_c8e74d91",
+    "20260718T045819Z_5d7862c9",
+    "20260718T045828Z_6850f410",
+    "20260718T045836Z_2393ec3a",
+    "20260718T045845Z_ef10d356",
+    "20260718T045853Z_3e45d1b4",
+    "20260718T045902Z_43159cb2",
+    "20260718T045910Z_c5024fb1",
+    "20260718T045919Z_6b1a11aa",
+    "20260718T045929Z_ecd10057",
+    "20260718T045938Z_16b67375",
+    "20260718T045946Z_0f52c6fc",
+    "20260718T045955Z_589898d0",
+    "20260718T050003Z_2228f5e0",
+    "20260718T050012Z_74486252",
+    "20260718T050021Z_b926b797",
+    "20260718T050029Z_047c4cda",
+    "20260718T050039Z_64b376bb",
+    "20260718T050048Z_8551e0c2"
+  ],
+  "disconnect_capture_ids": {
+    "1": "20260718T045407Z_6fe06643",
+    "2": "20260718T045453Z_32453977",
+    "3": "20260718T045549Z_7dc8b5c8",
+    "4": "20260718T045238Z_a397622e"
+  },
+  "corrupt_transfer": {
+    "capture_id": "20260718T050440Z_8083cd05",
+    "failed_camera_id": 1,
+    "error_code": "jpeg_checksum_mismatch",
+    "recovery_capture_id": "20260718T050503Z_ebe7c7e6"
+  },
+  "truncated_transfer": {
+    "capture_id": "20260718T051511Z_b5eecd65",
+    "failed_camera_id": 1,
+    "error_code": "transfer_truncated",
+    "recovery_capture_id": "20260718T051549Z_b662dd29"
+  },
+  "reboot_between_captures": {
+    "before_capture_id": "20260718T050531Z_cb98370e",
+    "after_capture_id": "20260718T050615Z_35b94d04",
+    "logical_camera_id": 4,
+    "node_uid": "E072A1F99CF8"
+  }
+}

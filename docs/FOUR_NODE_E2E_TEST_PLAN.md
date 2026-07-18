@@ -9,7 +9,7 @@ The repository has two layers:
 - `pi_app/tests/test_e2e_validation.py` exercises the evidence validator deterministically, including corrupt/truncated files and cross-capture transaction reuse.
 - `pi_app/tests/e2e/test_four_node_hardware.py` validates the capture sets and scenario ledger produced by the physical rig. It is skipped unless live evidence paths are supplied.
 
-The live suite is an acceptance target for the four-node product coordinator. Its existence does not mark Checkpoint 5 complete: the current checked-in application must first be extended from its one-node workflow to write the four-camera manifest contract below.
+The live suite remains the regression contract for the four-node product coordinator. It was executed against physical-rig evidence on July 18, 2026, and passed; the checked-in application now writes the four-camera manifest contract below. The retained ledger, validator output, UI photographs, and limitations are under `docs/evidence/milestone-1/checkpoint-5/`.
 
 ## Persisted Capture Contract
 

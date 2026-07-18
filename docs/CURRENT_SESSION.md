@@ -1,49 +1,40 @@
-# Current Session — Milestone 1 Checkpoint 5
+# Current Session — Milestone 2 Removable-Media Qualification
 
-Status reviewed: July 17, 2026
-
-## Objective
-
-Extend the validated one-node product path into concurrent four-node capture-set
-grouping, atomic set persistence, partial-failure handling, and live multi-image
-GIF review.
+Status reviewed: July 18, 2026
 
 ## Starting State
 
-- Checkpoint 4 is complete. Physical and Pi-triggered four-node capture/protocol
-  integrity, the one-node screen workflow, reconnect recovery, corrupt-payload
-  rejection, and the prescribed electrical inspection have recorded evidence.
-- The final V1 USB hub/cabling chain enumerates all four stable node identities.
-- The Pi application requires writable removable USB storage and never falls back
-  to the boot microSD. Real CRC-verified Camera 1 captures now pass on that drive
-  before and after a Pi reboot; removal and other real-drive fault tests remain
-  open.
-- The `b950740` repository/module refactor is deployed on the Pi and all four
-  camera nodes. Its 10-cycle hardware regression passed 40/40 images, and the Pi
-  passed all 33 automated boot checks after reboot. See
-  [`refactor-hardware-regression-2026-07-17.md`](evidence/milestone-1/checkpoint-4/refactor-hardware-regression-2026-07-17.md).
-- Product-level coordination still maps only Camera 1 and does not yet persist or
-  display a grouped four-image result.
-- Deterministic coordinator/media primitives now cover shuffled association,
-  no-progress closure, second-trigger rejection, explicit partial failures,
-  reboot identity, atomic four-image persistence, real GIF ordering, animated
-  review state, and receiver ACK/NACK persistence boundaries. The local suite
-  passes 55 tests with one intended live-hardware skip; these primitives are not
-  yet connected to concurrent live serial sessions.
-- The executable acceptance contract is in
-  [`FOUR_NODE_E2E_TEST_PLAN.md`](FOUR_NODE_E2E_TEST_PLAN.md).
+- Milestone 1 is complete. The physical shutter and normal touchscreen/GPIO17
+  paths both produce integrated four-camera originals, atomic manifests, ordered
+  six-frame GIFs, and full-screen review on the Raspberry Pi.
+- The qualifying physical-rig run completed 25/25 normal sets, 100 originals,
+  and 25 GIFs. Every logical camera unavailability, checksum corruption,
+  mid-transfer truncation, recovery, and reboot-identity scenario passed the
+  byte validator and environment-gated E2E test.
+- Representative normal and corrected Camera 4 partial-result screens were
+  photographed. The presentation defect found during the first partial visual
+  run was fixed in `710eadd`.
+- Camera firmware 0.2.3 is installed on all four nodes. Camera 4 passed a final
+  bounded startup smoke, `bullet-time-ui.service` is active, and GPIO17 is
+  output LOW.
+- The full evidence summary and scenario ledger are under
+  [`evidence/milestone-1/checkpoint-5/`](evidence/milestone-1/checkpoint-5/).
+- Complete-set review time was 3.250 seconds median and 3.289 seconds maximum,
+  so the soft two-second target remains an explicit optimization item.
 
 ## Immediate Work
 
-1. Register stable logical identities for Cameras 2-4.
-2. Connect concurrent node receivers to the tested central capture-set coordinator.
-3. Apply the tested bounded association/no-progress windows and second-trigger policy.
-4. Use the tested atomic capture-set writer for every valid original and
-   camera-specific error.
-5. Deploy and measure the tested ordered back-and-forth GIF animation path.
-6. Execute the required normal, disconnect, corruption, reboot, and isolation
-   scenarios; retain the ledger and artifacts under
-   `docs/evidence/milestone-1/checkpoint-5/`.
+1. Test removable-drive unplug/replug and automatic remount in the normal
+   product service context.
+2. Exercise visible missing, full, read-only/corrupt, and removal-during-write
+   failure behavior without falling back to the boot microSD.
+3. Verify deterministic selection when more than one writable USB drive is
+   present.
+4. Retain persisted artifacts and service/UI evidence for each real-drive fault
+   and recovery case under `docs/evidence/milestone-2/`.
+5. Measure aggregate electrical power before choosing battery, charging,
+   regulation, monitoring, or safe-power-cut hardware.
 
-The completed Checkpoint 4 implementation log is retained at
-[`history/MILESTONE_1_CHECKPOINT_4_SESSION.md`](history/MILESTONE_1_CHECKPOINT_4_SESSION.md).
+The completed bench milestone plan remains at
+[`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md), and the current ordering and budget
+gates are in [`ROADMAP.md`](ROADMAP.md).
