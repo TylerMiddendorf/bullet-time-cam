@@ -27,6 +27,7 @@ class MainConfigurationTests(unittest.TestCase):
                 trigger_count=3,
                 trigger_once=False,
                 corrupt_next_payload=True,
+                truncate_camera_id=3,
                 diagnostic_usb_trigger=True,
                 allow_incomplete_node_set=True,
             )
@@ -34,6 +35,7 @@ class MainConfigurationTests(unittest.TestCase):
 
             self.assertEqual(config["trigger_count"], 3)
             self.assertTrue(config["corrupt_next_payload"])
+            self.assertEqual(config["truncate_camera_id"], 3)
             self.assertTrue(config["diagnostic_usb_trigger"])
             self.assertTrue(config["allow_incomplete_node_set"])
             self.assertEqual(
@@ -50,6 +52,7 @@ class MainConfigurationTests(unittest.TestCase):
                 trigger_count=0,
                 trigger_once=True,
                 corrupt_next_payload=False,
+                truncate_camera_id=0,
                 diagnostic_usb_trigger=False,
                 allow_incomplete_node_set=False,
             )
@@ -61,6 +64,7 @@ class MainConfigurationTests(unittest.TestCase):
         self.assertFalse(args.headless)
         self.assertFalse(args.diagnostic_usb_trigger)
         self.assertFalse(args.allow_incomplete_node_set)
+        self.assertEqual(args.truncate_camera_id, 0)
         self.assertEqual(args.trigger_count, 0)
 
 

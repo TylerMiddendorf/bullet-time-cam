@@ -41,6 +41,8 @@ Use a fresh evidence directory on the removable USB drive and retain the applica
 
 Do not deliberately unplug shared power or disturb the trigger wiring during a fault case. Disconnect only the selected camera's USB data connection after the current set has closed, except for the explicitly controlled truncated-transfer case.
 
+For the controlled truncated-transfer case, run one bounded normal hardware capture with `--truncate-camera-id N`. This test-only host hook is inert by default and closes only the selected live serial stream after at least 64 KiB of its IMAGE payload has arrived. Retain the emitted byte-progress message, require the selected camera's manifest error code to be `transfer_truncated`, verify that no selected-camera JPEG or `.part` file was committed, then run an ordinary capture without the option to prove recovery.
+
 ## Scenario Ledger
 
 Copy `pi_app/tests/fixtures/four_node_e2e_ledger.example.json` into the live evidence directory and replace every placeholder with the actual capture ID, assigned UID, and selected failed camera. Record the expected camera-specific error code and a subsequent complete recovery capture for both corrupt and truncated transfer cases. The 25 normal IDs and all fault, recovery, and reboot IDs must be distinct.

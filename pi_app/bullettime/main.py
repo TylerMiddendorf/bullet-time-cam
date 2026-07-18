@@ -37,6 +37,13 @@ def parse_args() -> argparse.Namespace:
         help="arm test-only corruption of the next requested USB image",
     )
     parser.add_argument(
+        "--truncate-camera-id",
+        type=int,
+        choices=range(1, 5),
+        default=0,
+        help="test-only: interrupt the selected camera after IMAGE transfer begins",
+    )
+    parser.add_argument(
         "--allow-incomplete-node-set",
         action="store_true",
         help="test-only: allow bounded automatic capture with one or more nodes missing",
@@ -55,6 +62,9 @@ def load_config(args: argparse.Namespace) -> dict:
     )
     config["corrupt_next_payload"] = args.corrupt_next_payload or bool(
         config.get("corrupt_next_payload", False)
+    )
+    config["truncate_camera_id"] = int(
+        getattr(args, "truncate_camera_id", 0) or config.get("truncate_camera_id", 0)
     )
     config["diagnostic_usb_trigger"] = args.diagnostic_usb_trigger
     config["allow_incomplete_node_set"] = args.allow_incomplete_node_set

@@ -164,6 +164,9 @@ class Receiver(threading.Thread):
         self.next_automatic_trigger_ns = 0
         self.diagnostic_usb_trigger = bool(config.get("diagnostic_usb_trigger", False))
         self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
+        self.truncate_camera_id = int(config.get("truncate_camera_id", 0))
+        self.truncate_after_bytes = int(config.get("truncate_after_bytes", 64 * 1024))
+        self.truncate_fault_triggered = False
         self.allow_incomplete_node_set = bool(config.get("allow_incomplete_node_set", False))
         self.pending_trigger: dict | None = None
         self.automatic_run_completed = threading.Event()
@@ -403,6 +406,22 @@ class Receiver(threading.Thread):
                 self.coordinator.progress(metadata, time.monotonic_ns())
             except CoordinationError:
                 pass
+            camera_id = self.logical_cameras.get(str(session.node_uid))
+            if (
+                self.truncate_camera_id == camera_id
+                and not self.truncate_fault_triggered
+                and self.truncate_after_bytes <= received < total
+                and session.stream is not None
+            ):
+                self.truncate_fault_triggered = True
+                self.send_status(
+                    "LOADING",
+                    message=(
+                        f"Test interruption: Camera {camera_id} serial stream closed "
+                        f"after {received}/{total} IMAGE bytes"
+                    ),
+                )
+                session.stream.close()
 
     def _capture_started(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
         key = transaction_key(metadata)

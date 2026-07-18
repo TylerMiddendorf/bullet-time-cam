@@ -1,6 +1,6 @@
 # Raspberry Pi Bullet-Time Application
 
-This application receives framed JPEG streams over USB CDC, validates and atomically preserves originals on removable USB storage, records timing/resource evidence, and displays results on the Raspberry Pi touchscreen. The currently validated product coordinator handles Camera 1 while Checkpoint 5 extends grouping across all four registered nodes. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
+This application receives framed JPEG streams over USB CDC, validates and atomically preserves originals on removable USB storage, records timing/resource evidence, and displays results on the Raspberry Pi touchscreen. The product coordinator groups all four registered nodes into one atomic capture set and ordered GIF while preserving usable partial sets with camera-specific errors. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
 
 Runtime responsibilities are split across focused modules under `pi_app/bullettime/`: `main.py` owns CLI/configuration, `receiver.py` owns serial transactions, `ui.py` owns headless/touchscreen presentation, `discovery.py` owns port discovery, and `metrics.py` owns resource observations. Protocol, GPIO, capture control, and storage remain separate modules. Persisted E2E evidence validation lives under `pi_app/evidence/`, outside the device runtime.
 
@@ -10,7 +10,7 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently passes 55 deterministic tests and skips one environment-gated physical-rig test. Coverage includes grouping windows, partial failures, trigger lockout, atomic persistence failures, receiver ACK/NACK boundaries, ordered GIF bytes, animated UI state, protocol limits, firmware ACK identity matching, and configuration/discovery/metrics behavior. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, typed corrupt and truncated transfers plus recovery captures, stable identity across a node reboot, JPEG/GIF integrity and real frame order, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test after concurrent node-session integration.
+The normal local run currently discovers 68 tests: 67 pass and one environment-gated physical-rig test is skipped until a live ledger is supplied. Coverage includes grouping windows, partial failures, trigger lockout, atomic persistence failures, receiver ACK/NACK boundaries, ordered GIF bytes, animated UI state, protocol limits, firmware ACK identity matching, and configuration/discovery/metrics behavior. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, typed corrupt and truncated transfers plus recovery captures, stable identity across a node reboot, JPEG/GIF integrity and real frame order, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test.
 
 Run the application:
 
@@ -43,6 +43,8 @@ Do not remove the drive while the loading screen is active. Missing/unplugged-dr
 GPIO17 is claimed as an output LOW before the receiver starts, remains LOW while idle, and is returned LOW during pulse-error and application-shutdown cleanup. The backend is the Raspberry Pi OS Trixie `python3-lgpio` package pinned in `system-requirements.txt`. Do not connect GPIO17 directly to the trigger bus; follow [`docs/TRIGGER_CIRCUIT.md`](../docs/TRIGGER_CIRCUIT.md). The product owner reports that its complete unpowered multimeter checklist passes.
 
 `--trigger-once` and `--trigger-count N` use hardware pulses. The legacy USB command remains only as explicit test scaffolding: add `--diagnostic-usb-trigger` to one of those options when a diagnostic `CAPTURE_REQUEST` is specifically intended. Never use both paths for one capture action.
+
+The live fault suite also provides inert-by-default test scaffolding. `--corrupt-next-payload` arms the selected firmware corruption hook, while `--truncate-camera-id N` closes Camera N's host serial stream after at least 64 KiB of its IMAGE payload has arrived. The latter must produce a typed `transfer_truncated` partial set without committing truncated bytes or `.part` files. Neither option belongs in the product service command.
 
 ## Product Boot Experience
 

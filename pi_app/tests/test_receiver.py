@@ -262,6 +262,24 @@ class ReceiverCompletionTests(unittest.TestCase):
             session_class.assert_called_once_with(receiver, "/dev/ttyACM0")
             session_class.return_value.start.assert_called_once_with()
 
+    def test_explicit_truncation_hook_closes_selected_stream_once_mid_payload(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            receiver.truncate_camera_id = 2
+            receiver.truncate_after_bytes = 64
+            session = FakeSession(2)
+            session.stream = unittest.mock.Mock()
+            meta = metadata(2)
+
+            receiver.payload_progress(session, meta, 63, 1000)
+            session.stream.close.assert_not_called()
+            receiver.payload_progress(session, meta, 64, 1000)
+            receiver.payload_progress(session, meta, 128, 1000)
+
+            session.stream.close.assert_called_once_with()
+            self.assertTrue(receiver.truncate_fault_triggered)
+            self.assertIn("after 64/1000", events.get_nowait()["message"])
+
     def test_automatic_capture_waits_until_all_four_sessions_are_connected(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, _ = self.receiver(Path(temp))
