@@ -1,12 +1,18 @@
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from PIL import Image
+
 from pi_app.bullettime.storage import (
     StorageUnavailable,
     UsbMount,
     UsbStorageResolver,
+    atomic_json,
+    commit_capture,
     discover_usb_mounts,
 )
 
@@ -81,6 +87,48 @@ class UsbStorageResolverTests(unittest.TestCase):
             self.assertEqual(len(mounts), 1)
             self.assertEqual(mounts[0].mountpoint, Path("/media/user/CAMERA MEDIA"))
             self.assertEqual(mounts[0].source, "/dev/sda1")
+
+
+class AtomicPersistenceTests(unittest.TestCase):
+    def jpeg(self) -> bytes:
+        output = io.BytesIO()
+        Image.new("RGB", (8, 6), "navy").save(output, "JPEG")
+        return output.getvalue()
+
+    def test_commit_capture_exposes_only_a_complete_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            path, manifest = commit_capture(
+                root,
+                {"node_uid": "UID-1", "capture_seq": 1},
+                self.jpeg(),
+                {"storage": {"transport": "usb"}},
+            )
+
+            self.assertTrue(path.is_file())
+            self.assertEqual(json.loads((path.parent / "manifest.json").read_text()), manifest)
+            self.assertEqual([item.name for item in root.iterdir()], [manifest["capture_id"]])
+            self.assertFalse(any(root.rglob("*.part")))
+
+    def test_atomic_json_preserves_old_value_and_removes_partial_on_replace_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "manifest.json"
+            path.write_text('{"status":"old"}', encoding="utf-8")
+            with patch("pi_app.bullettime.storage.os.replace", side_effect=OSError("full")):
+                with self.assertRaisesRegex(OSError, "full"):
+                    atomic_json(path, {"status": "new"})
+
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), {"status": "old"})
+            self.assertFalse(path.with_suffix(".json.part").exists())
+
+    def test_failed_commit_does_not_publish_a_capture_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with patch("pi_app.bullettime.storage.atomic_json", side_effect=OSError("removed")):
+                with self.assertRaisesRegex(OSError, "removed"):
+                    commit_capture(root, {"node_uid": "UID-1"}, self.jpeg(), {})
+
+            self.assertEqual(list(root.iterdir()), [])
 
 
 if __name__ == "__main__":

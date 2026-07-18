@@ -1,11 +1,17 @@
 import io
+import struct
 import unittest
 
 from pi_app.bullettime.protocol import (
     CAPTURE_REQUEST,
+    HEADER,
+    HEADER_PREFIX,
     IMAGE,
+    MAX_METADATA,
     PING,
+    VERSION,
     ProtocolError,
+    crc32,
     encode_frame,
     read_frame,
 )
@@ -49,6 +55,31 @@ class ProtocolTests(unittest.TestCase):
     def test_ping_fixture(self):
         frame = read_frame(io.BytesIO(encode_frame(PING, {"host": "test"})))
         self.assertEqual(frame.message_type, PING)
+
+    def test_rejects_unsupported_version_even_with_valid_header_crc(self):
+        encoded = bytearray(encode_frame(PING, {}))
+        encoded[4] = VERSION + 1
+        encoded[HEADER_PREFIX.size : HEADER.size] = struct.pack(
+            "<I", crc32(encoded[: HEADER_PREFIX.size])
+        )
+        with self.assertRaisesRegex(ProtocolError, "unsupported header"):
+            read_frame(io.BytesIO(encoded))
+
+    def test_rejects_invalid_metadata_json_with_valid_crc(self):
+        metadata = b"not-json"
+        prefix = HEADER_PREFIX.pack(b"BTC1", VERSION, PING, 0, len(metadata), 0, crc32(metadata), 0)
+        encoded = prefix + struct.pack("<I", crc32(prefix)) + metadata
+        with self.assertRaisesRegex(ProtocolError, "invalid metadata JSON"):
+            read_frame(io.BytesIO(encoded))
+
+    def test_encode_rejects_metadata_over_limit(self):
+        with self.assertRaisesRegex(ProtocolError, "configured limits"):
+            encode_frame(PING, {"value": "x" * MAX_METADATA})
+
+    def test_reads_concatenated_frames_without_losing_boundaries(self):
+        stream = io.BytesIO(encode_frame(PING, {"index": 1}) + encode_frame(PING, {"index": 2}))
+        self.assertEqual(read_frame(stream).metadata["index"], 1)
+        self.assertEqual(read_frame(stream).metadata["index"], 2)
 
 
 if __name__ == "__main__":

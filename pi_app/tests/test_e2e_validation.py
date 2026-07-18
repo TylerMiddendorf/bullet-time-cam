@@ -170,6 +170,45 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(EvidenceValidationError, "animation camera sequence"):
                 validate_capture(root, wrong_animation_id, UIDS)
 
+    def test_rejects_unknown_schema_and_gif_bytes_in_the_wrong_order(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            builder = EvidenceBuilder(root)
+
+            schema_id = builder.capture("wrong-schema")
+            schema_manifest_path = root / schema_id / "manifest.json"
+            schema_manifest = json.loads(schema_manifest_path.read_text(encoding="utf-8"))
+            schema_manifest["schema_version"] = 999
+            schema_manifest_path.write_text(json.dumps(schema_manifest), encoding="utf-8")
+            with self.assertRaisesRegex(EvidenceValidationError, "schema_version"):
+                validate_capture(root, schema_id, UIDS)
+
+            order_id = builder.capture("wrong-gif-bytes")
+            capture_dir = root / order_id
+            frames = []
+            actual_sequence = [4, 3, 2, 1, 2, 3]
+            for camera_id in actual_sequence:
+                with Image.open(capture_dir / f"camera_{camera_id:02d}.jpg") as image:
+                    frames.append(image.convert("RGB").copy())
+            gif_path = capture_dir / "bullet_time.gif"
+            frames[0].save(
+                gif_path,
+                save_all=True,
+                append_images=frames[1:],
+                duration=100,
+                loop=0,
+                format="GIF",
+            )
+            manifest_path = capture_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            animation = next(item for item in manifest["files"] if item["role"] == "animation")
+            payload = gif_path.read_bytes()
+            animation["bytes"] = len(payload)
+            animation["crc32"] = f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(EvidenceValidationError, "GIF frame 0"):
+                validate_capture(root, order_id, UIDS)
+
     def test_full_ledger_covers_25_normals_disconnects_faults_reboot_and_isolation(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -219,6 +258,11 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
             ]
             after_manifest_path.write_text(json.dumps(after_manifest), encoding="utf-8")
             with self.assertRaisesRegex(EvidenceValidationError, "appears in both"):
+                validate_scenario_ledger(root, ledger_path)
+
+            ledger["schema_version"] = 999
+            ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
+            with self.assertRaisesRegex(EvidenceValidationError, "ledger schema_version"):
                 validate_scenario_ledger(root, ledger_path)
 
 

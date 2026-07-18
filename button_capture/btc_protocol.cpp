@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "firmware_config.h"
+#include "metadata_match.h"
 
 namespace {
 
@@ -204,8 +205,9 @@ bool waitForHostAck(uint32_t sequence) {
       delay(1);
       continue;
     }
-    const bool matching = strstr(metadata, uidNeedle) && strstr(metadata, bootNeedle) &&
-                          strstr(metadata, sequenceNeedle);
+    const bool matching = metadataContainsExactToken(metadata, uidNeedle) &&
+                          metadataContainsExactToken(metadata, bootNeedle) &&
+                          metadataContainsExactToken(metadata, sequenceNeedle);
     if (matching && messageType == MSG_ACK) {
       return true;
     }

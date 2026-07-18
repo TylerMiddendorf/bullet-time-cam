@@ -9,13 +9,17 @@ only process exit codes or log text.
 from __future__ import annotations
 
 import json
+import math
 import zlib
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageSequence, ImageStat
 
 EXPECTED_CAMERA_IDS = frozenset({1, 2, 3, 4})
+CAPTURE_SCHEMA_VERSION = 2
+LEDGER_SCHEMA_VERSION = 1
+MAX_GIF_FRAME_RMS = 25.0
 
 
 class EvidenceValidationError(AssertionError):
@@ -60,6 +64,16 @@ def _crc32(path: Path) -> str:
     return f"{checksum & 0xFFFFFFFF:08x}"
 
 
+def _frame_rms(actual: Image.Image, expected: Image.Image) -> float:
+    """Return a resize-aware RGB difference score for one generated GIF frame."""
+    expected_rgb = expected.convert("RGB")
+    if expected_rgb.size != actual.size:
+        expected_rgb = expected_rgb.resize(actual.size, Image.Resampling.LANCZOS)
+    difference = ImageChops.difference(actual.convert("RGB"), expected_rgb)
+    channel_rms = ImageStat.Stat(difference).rms
+    return math.sqrt(sum(value * value for value in channel_rms) / len(channel_rms))
+
+
 def validate_capture(
     capture_root: Path, capture_id: str, logical_cameras: dict[str, int]
 ) -> CaptureEvidence:
@@ -67,6 +81,10 @@ def validate_capture(
     capture_dir = capture_root / capture_id
     manifest_path = capture_dir / "manifest.json"
     manifest = _read_json(manifest_path)
+    if manifest.get("schema_version") != CAPTURE_SCHEMA_VERSION:
+        raise EvidenceValidationError(
+            f"{capture_id}: schema_version must be {CAPTURE_SCHEMA_VERSION}"
+        )
     if manifest.get("capture_id") != capture_id:
         raise EvidenceValidationError(
             f"{capture_id}: manifest capture_id is {manifest.get('capture_id')!r}"
@@ -154,6 +172,7 @@ def validate_capture(
             f"{capture_id}: committed originals {sorted(originals)} do not match successful cameras "
             f"{sorted(successful)}"
         )
+    original_images: dict[int, Image.Image] = {}
     for camera_id, record in originals.items():
         expected_name = f"camera_{camera_id:02d}.jpg"
         if record.get("path") != expected_name:
@@ -172,6 +191,8 @@ def validate_capture(
         try:
             with Image.open(path) as image:
                 image.verify()
+            with Image.open(path) as image:
+                original_images[camera_id] = image.convert("RGB").copy()
         except Exception as exc:
             raise EvidenceValidationError(
                 f"{capture_id}: invalid JPEG {expected_name}: {exc}"
@@ -206,6 +227,18 @@ def validate_capture(
                     raise EvidenceValidationError(
                         f"{capture_id}: recorded GIF frame count mismatch"
                     )
+                actual_frames = [
+                    frame.convert("RGB").copy() for frame in ImageSequence.Iterator(image)
+                ]
+            for frame_index, (frame, camera_id) in enumerate(
+                zip(actual_frames, expected_sequence, strict=True)
+            ):
+                score = _frame_rms(frame, original_images[camera_id])
+                if score > MAX_GIF_FRAME_RMS:
+                    raise EvidenceValidationError(
+                        f"{capture_id}: GIF frame {frame_index} does not match Camera {camera_id} "
+                        f"(RMS {score:.2f})"
+                    )
         except EvidenceValidationError:
             raise
         except Exception as exc:
@@ -238,6 +271,8 @@ def validate_capture(
 def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
     """Validate all Checkpoint 5 live scenarios named by a hardware-run ledger."""
     ledger = _read_json(ledger_path)
+    if ledger.get("schema_version") != LEDGER_SCHEMA_VERSION:
+        raise EvidenceValidationError(f"ledger schema_version must be {LEDGER_SCHEMA_VERSION}")
     mappings = ledger.get("logical_cameras")
     if not isinstance(mappings, dict) or set(mappings.values()) != EXPECTED_CAMERA_IDS:
         raise EvidenceValidationError("ledger logical_cameras must map four UIDs to Cameras 1-4")
