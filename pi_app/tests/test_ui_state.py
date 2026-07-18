@@ -1,6 +1,10 @@
+import io
+import threading
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
-from pi_app.bullettime.ui import PresentationState
+from pi_app.bullettime.ui import PresentationState, run_headless
 
 
 class PresentationStateTests(unittest.TestCase):
@@ -37,6 +41,38 @@ class PresentationStateTests(unittest.TestCase):
             state.apply({"state": "ERROR", "message": "Camera disconnected"}).image,
             "latest.gif",
         )
+
+
+class HeadlessTests(unittest.TestCase):
+    def test_bounded_run_exits_after_printing_manifest_despite_queued_errors(self):
+        class FakeReceiver:
+            def __init__(self, _config, events, _commands, _stop, _trigger, _storage):
+                self.events = events
+                self.automatic_run_completed = threading.Event()
+
+            def start(self):
+                self.events.put(
+                    {
+                        "state": "REVIEW_WITH_ERROR",
+                        "manifest": {"capture_id": "capture-a", "status": "partial"},
+                    }
+                )
+                for _ in range(10):
+                    self.events.put({"state": "ERROR", "message": "port busy"})
+                self.automatic_run_completed.set()
+
+            def join(self, timeout):
+                self.join_timeout = timeout
+
+        output = io.StringIO()
+        with (
+            patch("pi_app.bullettime.receiver.Receiver", FakeReceiver),
+            redirect_stdout(output),
+        ):
+            run_headless({"trigger_count": 1}, object(), object())
+
+        self.assertEqual(len(output.getvalue().splitlines()), 1)
+        self.assertIn('"capture_id": "capture-a"', output.getvalue())
 
 
 if __name__ == "__main__":

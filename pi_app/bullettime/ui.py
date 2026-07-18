@@ -74,6 +74,12 @@ def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageReso
                     break
                 continue
             print(json.dumps(event, sort_keys=True), flush=True)
+            if (
+                bounded_automatic_run
+                and event.get("manifest") is not None
+                and receiver.automatic_run_completed.wait(timeout=0.2)
+            ):
+                break
     except KeyboardInterrupt:
         pass
     finally:

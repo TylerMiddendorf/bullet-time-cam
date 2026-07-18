@@ -154,6 +154,7 @@ class Receiver(threading.Thread):
         self.lock = threading.RLock()
         self.sessions: dict[str, NodeSession] = {}
         self.sessions_by_uid: dict[str, NodeSession] = {}
+        self.session_retry_after_ns: dict[str, int] = {}
         self.capture_state: dict[tuple[str, str, int], dict] = {}
         self.pending_images: dict[tuple[str, str, int], dict] = {}
         self.pending_acks: dict[int, tuple[NodeSession, dict]] = {}
@@ -181,12 +182,18 @@ class Receiver(threading.Thread):
 
     def _refresh_sessions(self) -> None:
         discovered = set(discover_ports())
+        now_ns = time.monotonic_ns()
         with self.lock:
+            self.session_retry_after_ns = {
+                port: retry_after_ns
+                for port, retry_after_ns in self.session_retry_after_ns.items()
+                if port in discovered
+            }
             for port, session in list(self.sessions.items()):
                 if not session.is_alive() and session.stream is None:
                     self.sessions.pop(port, None)
             for port in sorted(discovered):
-                if port not in self.sessions:
+                if port not in self.sessions and now_ns >= self.session_retry_after_ns.get(port, 0):
                     session = NodeSession(self, port)
                     self.sessions[port] = session
                     session.start()
@@ -204,6 +211,7 @@ class Receiver(threading.Thread):
             if existing is not None and existing is not session:
                 raise RuntimeError(f"Duplicate session for Camera {camera_id}: {uid}")
             self.sessions_by_uid[uid] = session
+            self.session_retry_after_ns.pop(session.port, None)
             connected = len(self.sessions_by_uid)
         try:
             storage_root = self.storage.resolve()
@@ -219,6 +227,11 @@ class Receiver(threading.Thread):
 
     def session_disconnected(self, session: NodeSession, exc: Exception) -> None:
         with self.lock:
+            if not self.stop.is_set():
+                reconnect_ns = int(float(self.config.get("reconnect_seconds", 1.0)) * 1e9)
+                self.session_retry_after_ns[session.port] = time.monotonic_ns() + max(
+                    reconnect_ns, 50_000_000
+                )
             active_before = self.coordinator.active_capture_id
             uid = session.node_uid
             if uid and self.sessions_by_uid.get(uid) is session:

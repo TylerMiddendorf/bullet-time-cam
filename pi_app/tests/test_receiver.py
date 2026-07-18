@@ -239,6 +239,29 @@ class ReceiverCompletionTests(unittest.TestCase):
             receiver.session_disconnected(session, OSError("cable removed"))
             self.assertEqual(receiver.coordinator._active.errors[3].code, "transfer_truncated")
 
+    def test_failed_serial_port_reconnect_is_backed_off(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            receiver.session_retry_after_ns["/dev/ttyACM0"] = 2_000_000_000
+
+            with (
+                patch(
+                    "pi_app.bullettime.receiver.discover_ports",
+                    return_value=["/dev/ttyACM0"],
+                ),
+                patch(
+                    "pi_app.bullettime.receiver.time.monotonic_ns",
+                    side_effect=[1_000_000_000, 2_000_000_000],
+                ),
+                patch("pi_app.bullettime.receiver.NodeSession") as session_class,
+            ):
+                receiver._refresh_sessions()
+                session_class.assert_not_called()
+                receiver._refresh_sessions()
+
+            session_class.assert_called_once_with(receiver, "/dev/ttyACM0")
+            session_class.return_value.start.assert_called_once_with()
+
     def test_automatic_capture_waits_until_all_four_sessions_are_connected(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, _ = self.receiver(Path(temp))
