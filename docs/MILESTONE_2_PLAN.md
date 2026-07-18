@@ -1,6 +1,6 @@
 # Milestone 2 Plan - User-Removable USB Media Qualification
 
-Status: active; complete hardware matrix executed July 18, 2026, with UI exit blockers
+Status: complete July 18, 2026
 
 ## Outcome
 
@@ -194,14 +194,20 @@ as intended without new boot-card media. Every restored state completed a
 byte-valid four-camera recovery capture, and the environment-gated four-node
 hardware test passed when supplied its existing evidence ledger.
 
-The milestone remains active because the media-removal run exposed a Tk polling
-callback crash when the currently reviewed GIF disappears, and every tested
-storage-error class renders substantially clipped text on the 800x480 display.
-The product FAT dirty bit and a pre-existing uncommitted staging directory also
-require repair/cleanup or explicit acceptance. The mid-write test used a
-serial-verified USB-storage interface unbind rather than a literal cable yank.
-Full evidence and exact capture IDs are in
-[`evidence/milestone-2/removable-media-qualification-2026-07-18.md`](evidence/milestone-2/removable-media-qualification-2026-07-18.md).
+The first qualification run exposed a Tk polling callback crash when the
+currently reviewed GIF disappeared, clipped storage-error text, a product FAT
+dirty bit, and a pre-existing uncommitted staging directory. Those findings
+were resolved and focused-retested later on July 18. The callback now survives
+the live missing-review exception, bounded error screens fit at 800x480, the
+backed-up product FAT passes an offline check after a final capture, and guarded
+age-based staging cleanup removed the stale directory. Final capture
+`20260718T175104Z_04b69c0b` passed byte validation for all four cameras. The
+mid-write test used a serial-verified USB-storage interface unbind rather than a
+literal cable yank; that method distinction remains recorded but does not keep
+the gate open. Full evidence and exact capture IDs are in
+[`evidence/milestone-2/removable-media-qualification-2026-07-18.md`](evidence/milestone-2/removable-media-qualification-2026-07-18.md)
+and
+[`evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`](evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md).
 
 ## Milestone Exit Gate
 
@@ -217,5 +223,5 @@ hardware and the evidence shows:
 - `ROADMAP.md`, `PROJECT_CONTEXT.md`, `CURRENT_SESSION.md`, `README.md`, and the
   evidence index are updated with the demonstrated result and any remaining limitation.
 
-After this gate closes, the next ordered work is aggregate electrical power
-measurement and Milestone 3 battery/safe-power design.
+This gate closed on July 18. The next ordered work is aggregate electrical
+power measurement and Milestone 3 battery/safe-power design.

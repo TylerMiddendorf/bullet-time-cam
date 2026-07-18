@@ -1,6 +1,6 @@
 # Milestone 2 Removable-Media Qualification - 2026-07-18
 
-Status: hardware matrix executed; Milestone 2 remains open on UI and media-health findings
+Status: initial hardware matrix executed; findings later closed by focused retest
 
 ## Tested Baseline
 
@@ -174,7 +174,19 @@ capture `20260718T163525Z_3a578613` is byte-valid for all four cameras.
 All five checkpoint scenario families were exercised on the Raspberry Pi. The
 fail-closed and atomic-publication safety behavior passed, no test wrote new
 media to the boot microSD, deterministic selection passed, and every isolated
-fault recovered to a byte-valid four-camera capture. Milestone 2 remains open
-until the UI poll crash and clipped storage errors are fixed and retested. The
-product FAT health and stale staging directory must also be resolved or
-explicitly accepted before the removable-media boundary is called qualified.
+fault recovered to a byte-valid four-camera capture. At this initial handoff,
+Milestone 2 remained open until the UI poll crash, clipped storage errors,
+product FAT health, and stale staging directory were resolved.
+
+## Later July 18 Resolution
+
+The follow-up deployed app 0.2.1, caught the live missing-review exception
+without terminating Tk polling, fit the storage errors within 800x480, added
+guarded expired-staging cleanup, backed up all product files with full SHA-256
+agreement, and repaired the product FAT. The FAT passed a clean offline check
+again after final byte-valid capture `20260718T175104Z_04b69c0b`. The exact
+implementation, backup, repair, focused retest, screenshots, and final state are
+recorded in
+[`focused-retest-and-fat-repair-2026-07-18.md`](focused-retest-and-fat-repair-2026-07-18.md).
+That evidence closes Milestone 2. The serial-verified USB-interface unbind
+remains recorded as the mid-write test method rather than a literal cable yank.

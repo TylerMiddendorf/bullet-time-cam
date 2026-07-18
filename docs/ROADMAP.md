@@ -85,7 +85,7 @@ Exit criteria:
 
 ## Milestone 2 - User-Removable USB Media
 
-Status: active; hardware fault matrix passed media-safety behavior, UI exit blockers remain
+Status: complete July 18, 2026
 
 The detailed real-drive procedures, safety boundaries, evidence requirements,
 and exit gates are in [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md).
@@ -110,18 +110,22 @@ four-camera capture. The final product capture was
 `20260718T163525Z_3a578613`; the environment-gated four-node E2E test also
 passed with its evidence ledger.
 
-Milestone 2 remains active because testing exposed a UI polling callback crash
-when the currently reviewed GIF disappears and substantially clipped error
-text for all storage-fault classes. The product drive also has a dirty FAT and
-one pre-existing uncommitted staging directory. Those findings require a fix
-and focused retest, or an explicit acceptance where appropriate. The active
-write-loss test used a serial-verified kernel USB-storage unbind rather than a
-literal cable yank. See
-`docs/evidence/milestone-2/removable-media-qualification-2026-07-18.md`.
+The focused follow-up deployed app 0.2.1, made Tk event polling survive removal
+of the reviewed GIF, fit storage errors within 800x480, added guarded cleanup
+for expired capture staging, backed up all 1,224 product-drive files with zero
+SHA-256 mismatches, and repaired the dirty product FAT. A clean offline FAT
+check passed again after final actual-UI capture
+`20260718T175104Z_04b69c0b`, which byte-validated all four cameras and the
+ordered GIF. The active-write test method remains a serial-verified kernel
+USB-storage unbind rather than a literal cable yank. See
+`docs/evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`.
 
 ## Milestone 3 - Integrated Battery and Safe Power
 
-Status: after measuring the bench system
+Status: active; aggregate bench-power measurement next
+
+The measurement and integration checkpoints are in
+[`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md).
 
 - Measure idle, capture, transfer, processing, display, and peak power.
 - Set a runtime or captures-per-charge target.

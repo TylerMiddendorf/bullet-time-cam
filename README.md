@@ -45,19 +45,18 @@ camera-specific partial review, timing/resource instrumentation, reconnect
 recovery, and the accepted full-screen boot presentation. A qualifying 25-cycle
 run completed 25/25 four-camera sets; artifact-level fault/recovery and reboot
 identity tests also passed. Median complete-set review latency was 3.250 seconds,
-so the soft two-second target remains an optimization item. Milestone 2 removable
-USB fault qualification is active; see [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md)
-and the roadmap for its procedures and exit gates.
+so the soft two-second target remains an optimization item. The completed
+Milestone 2 removable-media procedures and exit evidence are in
+[`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md).
 
-The complete Milestone 2 hardware matrix has now exercised normal, reboot,
-idle-reinsert, automatic-remount, missing, full, read-only,
-corrupt/unmountable, active-write removal, and two-drive selection paths on the
-four-camera Raspberry Pi rig. Media safety behavior passed: failures did not
-publish incomplete sets or fall back to the boot card, and every isolated fault
-recovered to a byte-valid capture. The milestone remains open because removal
-of the currently reviewed GIF crashes the Tk polling callback, storage errors
-are clipped on the 800x480 display, and the product drive's dirty FAT plus a
-pre-existing stale staging directory require resolution or acceptance.
+Milestone 2 removable-media qualification is complete. The real-Pi matrix
+exercised normal, reboot, idle-reinsert, automatic-remount, missing, full,
+read-only, corrupt/unmountable, active-write removal, and two-drive selection.
+App 0.2.1 keeps Tk polling alive when reviewed media disappears, presents
+bounded storage errors on the 800x480 display, and cleans expired capture
+staging safely. The fully backed-up product FAT was repaired and remained clean
+after final byte-valid four-camera capture `20260718T175104Z_04b69c0b`.
+Aggregate electrical power measurement is the next ordered work.
 
 ## Camera Firmware
 
@@ -153,8 +152,9 @@ and evidence locations. The canonical changing project state lives in:
 - [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — product goal, architecture, decisions, and current state
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — milestone ordering, status, and budget gates
 - [`docs/MILESTONE_1_PLAN.md`](docs/MILESTONE_1_PLAN.md) — completed bench milestone plan and measured exit evidence
-- [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md) — active removable-media fault-qualification procedures and exit gates
-- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — concise handoff for the active milestone
+- [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md) — completed removable-media fault-qualification procedures and exit evidence
+- [`docs/MILESTONE_3_PLAN.md`](docs/MILESTONE_3_PLAN.md) — active aggregate-power measurement and safe battery-integration plan
+- [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — concise handoff for the active work
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md) — product-owner decision history
 
 Successful hardware demonstrations are recorded under the indexed

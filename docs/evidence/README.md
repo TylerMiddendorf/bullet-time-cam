@@ -15,11 +15,14 @@ reviewed without searching one large flat directory.
 - [`removable-media-qualification-2026-07-18.md`](milestone-2/removable-media-qualification-2026-07-18.md)
   — complete real-Pi hardware matrix covering normal/reboot/reinsert/remount,
   missing/full/read-only/corrupt/mid-write loss, recovery, deterministic
-  two-drive selection, and the physical-rig E2E test; media-safety behavior
-  passed, while a UI poll crash, clipped errors, dirty FAT, and stale staging
-  keep the milestone open
+  two-drive selection, and the physical-rig E2E test; it records the initial
+  media-safety pass and the UI/filesystem findings discovered during that run
+- [`focused-retest-and-fat-repair-2026-07-18.md`](milestone-2/focused-retest-and-fat-repair-2026-07-18.md)
+  — app 0.2.1 fixes, automated tests, file-for-file product backup, FAT repair,
+  stale-staging cleanup, focused real-UI removal/error retest, clean post-capture
+  FAT check, and final byte-valid capture closing Milestone 2
 
-- [`../MILESTONE_2_PLAN.md`](../MILESTONE_2_PLAN.md) — active fault procedures,
+- [`../MILESTONE_2_PLAN.md`](../MILESTONE_2_PLAN.md) — completed fault procedures,
   safety boundaries, evidence requirements, and exit gates
 - [`milestone-2/`](milestone-2/) — USB-media discovery, mount bring-up, and
   qualifying fault/recovery evidence

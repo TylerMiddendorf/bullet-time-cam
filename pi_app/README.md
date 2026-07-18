@@ -32,18 +32,21 @@ Storage behavior is configured in `pi_app/config.json`:
 "usb_storage": {
   "capture_directory": "BulletTime",
   "preferred_mount_name": "USB DISK",
-  "auto_mount": true
+  "auto_mount": true,
+  "stale_staging_seconds": 3600
 }
 ```
 
 The repository configuration prefers the added drive's `USB DISK` mount-directory name (normally derived from its label below `/media/<user>/`). This is a preference rather than a hard requirement, so another writable USB drive can still be selected if that drive is absent. With no preference, the application selects deterministically by mount path. Each capture manifest records the selected device, filesystem, mountpoint, and capture root.
 
 Do not remove the drive while the loading screen is active during normal use.
-Missing/unplugged-drive handling is implemented, but actual-drive tests for
-full, read-only, corrupt, and removal-during-write cases remain part of the
-removable-media milestone. Follow
-[`docs/MILESTONE_2_PLAN.md`](../docs/MILESTONE_2_PLAN.md) for the controlled
-fault procedures and safety boundary.
+The real-drive qualification covers missing, full, read-only,
+corrupt/unmountable, and removal-during-write behavior. Storage failures use
+bounded actionable touchscreen messages while full details remain in the
+service journal. Capture staging directories with the exact generated naming
+form are removed when they are older than the configured threshold; fresh and
+unrelated `.part` content is retained. See the completed
+[`Milestone 2 plan`](../docs/MILESTONE_2_PLAN.md) and its linked evidence.
 
 GPIO17 is claimed as an output LOW before the receiver starts, remains LOW while idle, and is returned LOW during pulse-error and application-shutdown cleanup. The backend is the Raspberry Pi OS Trixie `python3-lgpio` package pinned in `system-requirements.txt`. Do not connect GPIO17 directly to the trigger bus; follow [`docs/TRIGGER_CIRCUIT.md`](../docs/TRIGGER_CIRCUIT.md). The product owner reports that its complete unpowered multimeter checklist passes.
 

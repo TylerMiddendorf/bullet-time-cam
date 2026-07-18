@@ -1,46 +1,44 @@
-# Current Session - Milestone 2 Removable-Media Qualification
+# Current Session - Aggregate Power Measurement
 
 Status reviewed: July 18, 2026
 
 ## Verified State
 
-- All five Milestone 2 hardware scenario families have been exercised over SSH
-  on the live four-camera Raspberry Pi rig. Fail-closed behavior, atomic
-  non-publication, no boot-card fallback, recovery after each isolated fault,
-  and preferred/fallback/deterministic two-drive selection passed.
-- The deterministic suite passed locally, and the environment-gated physical
-  four-node E2E test passed on the Pi when supplied its existing evidence ledger.
-- Final actual-UI product capture `20260718T163525Z_3a578613` passed byte
-  validation for Cameras 1-4 and recorded the correct product USB destination.
-- The product drive, serial `900049666ACEB315`, is mounted at
-  `/media/username/USB DISK`. `bullet-time-ui.service` is active and GPIO17 is
-  output LOW.
-- The expendable drive, serial `900048D90E707A22`, was intentionally erased and
-  repartitioned as a clean 64 MiB FAT32 `M2TEST` volume. It is currently
-  unmounted.
+- Milestone 2 removable USB qualification is complete at Raspberry Pi revision
+  `8fd1f17a774b2b093971b817a36d97aca0f6a806`, app version `0.2.1`.
+- The UI survives disappearance of its reviewed GIF without a service restart.
+  Missing-media and camera-disconnect messages fit the 800x480 screen.
+- Guarded one-hour cleanup removed the pre-existing stale staging directory.
+- The product FAT was backed up file-for-file, repaired, and returned a clean
+  offline `fsck.vfat -n -v` result again after final capture
+  `20260718T175104Z_04b69c0b`.
+- That final actual-UI capture passed byte validation for Cameras 1-4 and GIF
+  order `[1, 2, 3, 4, 3, 2]` on the product drive.
+- `bullet-time-ui.service` is active, GPIO17 is output LOW, all four stable
+  camera identities are present, and the product USB drive is mounted writable.
+  The clean 64 MiB `M2TEST` partition is attached and unmounted.
+- The complete focused evidence is in
+  [`evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`](evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md).
 
 ## Immediate Work
 
-Milestone 2 stays active because qualification found real exit blockers:
+Begin Milestone 3 with aggregate bench-power measurement before selecting any
+battery, regulator, charger, fuel gauge, or shutdown controller.
 
-1. Make UI polling tolerate disappearance of the currently reviewed GIF. The
-   existing process and receiver survive removal, but the Tk polling callback
-   dies and screen updates require a service restart.
-2. Wrap or otherwise fit storage failures within the 800x480 display. Missing,
-   full, read-only, corrupt, and mid-write errors are substantially clipped.
-3. Back up the product USB media, then repair its dirty FAT and reconcile the
-   one-byte primary/backup boot-sector difference. No repair was performed in
-   the qualification session.
-4. Remove or deliberately retain the pre-existing uncommitted
-   `.20260718T015549Z_273b2de6.part` directory and define startup cleanup for
-   stale staging.
-5. Rerun the focused removal/error-display checks and one final recovery
-   capture. A literal cable-yank during write is optional corroboration; the
-   completed fault used deterministic removal of the serial-verified
-   USB-storage interface while staging was active.
+1. Identify a suitable external inline power instrument and its voltage/current
+   range, sample/logging capability, burden voltage, and connection point.
+2. Measure the complete final V1 bench chain, including Raspberry Pi, display,
+   final hubs/cabling, four camera nodes, and product USB storage.
+3. Record stable idle, one real touchscreen-triggered four-camera capture,
+   transfer/processing/review, and observed peak current/power. Repeat enough
+   captures to establish representative and maximum values.
+4. Record source voltage at the load during peak activity and any Pi
+   undervoltage/throttling indication. Software resource metrics are not a
+   substitute for the electrical measurement.
+5. Use measured demand only after this evidence to set runtime/captures-per-
+   charge targets and evaluate battery, regulation, charging, monitoring, and
+   safe-power-cut hardware.
 
-The full result, screenshots, manifests, filesystem evidence, and capture IDs
-are in
-[`evidence/milestone-2/removable-media-qualification-2026-07-18.md`](evidence/milestone-2/removable-media-qualification-2026-07-18.md).
-After Milestone 2 closes, measure aggregate electrical power before choosing
-battery, charging, regulation, monitoring, or safe-power-cut hardware.
+No suitable aggregate electrical instrument has yet been identified in the
+repository evidence. Do not infer system power from USB descriptors or Linux
+software counters.
