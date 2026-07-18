@@ -1,0 +1,15 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [".build", "docs/evidence", "docs/history"]
+
+[tool.ruff.lint]
+select = [
+  "B",   # flake8-bugbear: likely defects and fragile constructs
+  "E4",  # import formatting
+  "E7",  # statement formatting
+  "E9",  # syntax and runtime errors
+  "F",   # Pyflakes correctness
+  "I",   # deterministic import ordering
+  "UP",  # syntax supported by the deployed Python version
+]

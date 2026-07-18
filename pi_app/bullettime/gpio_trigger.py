@@ -99,7 +99,7 @@ class HardwareTrigger:
                 self._closed = True
                 self._backend.close(self.pin)
 
-    def __enter__(self) -> "HardwareTrigger":
+    def __enter__(self) -> HardwareTrigger:
         return self
 
     def __exit__(self, _exc_type, _exc, _traceback) -> None:

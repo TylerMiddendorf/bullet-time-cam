@@ -52,8 +52,14 @@ def encode_frame(message_type: int, metadata: dict, payload: bytes = b"", flags:
     if len(metadata_bytes) > MAX_METADATA or len(payload) > MAX_PAYLOAD:
         raise ProtocolError("frame exceeds configured limits")
     prefix = HEADER_PREFIX.pack(
-        MAGIC, VERSION, message_type, flags, len(metadata_bytes), len(payload),
-        crc32(metadata_bytes), crc32(payload),
+        MAGIC,
+        VERSION,
+        message_type,
+        flags,
+        len(metadata_bytes),
+        len(payload),
+        crc32(metadata_bytes),
+        crc32(payload),
     )
     return prefix + struct.pack("<I", crc32(prefix)) + metadata_bytes + payload
 
@@ -85,7 +91,17 @@ def read_frame(stream: BinaryIO, *, validate_payload_crc: bool = True) -> Frame:
     _seek_magic(stream)
     rest = _read_exact(stream, HEADER.size - len(MAGIC))
     header = MAGIC + rest
-    magic, version, message_type, flags, metadata_len, payload_len, metadata_crc, payload_crc, header_crc = HEADER.unpack(header)
+    (
+        magic,
+        version,
+        message_type,
+        flags,
+        metadata_len,
+        payload_len,
+        metadata_crc,
+        payload_crc,
+        header_crc,
+    ) = HEADER.unpack(header)
     if magic != MAGIC or version != VERSION:
         raise ProtocolError("unsupported header")
     if crc32(header[: HEADER_PREFIX.size]) != header_crc:

@@ -1,7 +1,14 @@
 import io
 import unittest
 
-from pi_app.bullettime.protocol import CAPTURE_REQUEST, IMAGE, PING, ProtocolError, encode_frame, read_frame
+from pi_app.bullettime.protocol import (
+    CAPTURE_REQUEST,
+    IMAGE,
+    PING,
+    ProtocolError,
+    encode_frame,
+    read_frame,
+)
 
 
 class ProtocolTests(unittest.TestCase):

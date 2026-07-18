@@ -25,8 +25,7 @@ bool sharedTriggerPressed() {
     lastRawTriggerState = rawState;
     lastTriggerChangeMs = millis();
   }
-  if ((millis() - lastTriggerChangeMs) < TRIGGER_DEBOUNCE_MS ||
-      rawState == stableTriggerState) {
+  if ((millis() - lastTriggerChangeMs) < TRIGGER_DEBOUNCE_MS || rawState == stableTriggerState) {
     return false;
   }
   stableTriggerState = rawState;

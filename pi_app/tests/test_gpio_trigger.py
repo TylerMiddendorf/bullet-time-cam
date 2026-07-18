@@ -44,8 +44,10 @@ class TriggerTests(unittest.TestCase):
         self.assertEqual(
             backend.events[2:],
             [
-                ("write", 17, 1), ("write", 17, 0),
-                ("write", 17, 1), ("write", 17, 0),
+                ("write", 17, 1),
+                ("write", 17, 0),
+                ("write", 17, 1),
+                ("write", 17, 0),
             ],
         )
         trigger.close()

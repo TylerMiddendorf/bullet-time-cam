@@ -128,8 +128,7 @@ class Receiver(threading.Thread):
                 self.send_status("ERROR", message=str(exc))
             while not self.stop.is_set():
                 automatic_request = (
-                    self.automatic_triggers_remaining > 0
-                    and not self.automatic_trigger_in_flight
+                    self.automatic_triggers_remaining > 0 and not self.automatic_trigger_in_flight
                 )
                 request_capture = automatic_request
                 try:
@@ -159,9 +158,7 @@ class Receiver(threading.Thread):
                     trigger_issued_ns = time.monotonic_ns()
                     self.pending_trigger = {
                         "source": (
-                            "diagnostic_usb"
-                            if self.diagnostic_usb_trigger
-                            else "pi_gpio17"
+                            "diagnostic_usb" if self.diagnostic_usb_trigger else "pi_gpio17"
                         ),
                         "issued_ns": trigger_issued_ns,
                     }
@@ -188,8 +185,7 @@ class Receiver(threading.Thread):
                 if frame.message_type == CAPTURE_STARTED:
                     trigger_source = "physical_shared_bus"
                     association_ns = (
-                        int(self.config.get("trigger_event_association_ms", 1000))
-                        * 1_000_000
+                        int(self.config.get("trigger_event_association_ms", 1000)) * 1_000_000
                     )
                     if (
                         self.pending_trigger
@@ -237,9 +233,7 @@ class Receiver(threading.Thread):
                         }
                     except Exception as exc:
                         stream.write(
-                            encode_frame(
-                                NACK, response_metadata(meta, "failed", str(exc))
-                            )
+                            encode_frame(NACK, response_metadata(meta, "failed", str(exc)))
                         )
                         stream.flush()
                         self.rejected_images.add(key)
@@ -273,35 +267,27 @@ class Receiver(threading.Thread):
             image_meta["transfer_completed_us"] = metadata.get("transfer_completed_us")
             image_meta["transfer_status"] = metadata.get("status")
             state = pending["state"]
-            scalar_times = {
-                name: value for name, value in state.items() if name.endswith("_ns")
-            }
-            node_times = {
-                name: value for name, value in image_meta.items() if name.endswith("_us")
-            }
+            scalar_times = {name: value for name, value in state.items() if name.endswith("_ns")}
+            node_times = {name: value for name, value in image_meta.items() if name.endswith("_us")}
             metrics = {
                 "trigger_source": state.get("trigger_source", "unknown"),
                 "pi_monotonic_ns": scalar_times,
                 "node_monotonic_us": node_times,
                 "durations_ms": {
                     "capture_event_to_payload_received": (
-                        state["payload_received_ns"]
-                        - state["capture_event_received_ns"]
+                        state["payload_received_ns"] - state["capture_event_received_ns"]
                     )
                     / 1_000_000,
                     "host_payload_receive": (
-                        state["payload_received_ns"]
-                        - state["payload_receive_started_ns"]
+                        state["payload_received_ns"] - state["payload_receive_started_ns"]
                     )
                     / 1_000_000,
                     "jpeg_decode_validation": (
-                        pending["processing_completed_ns"]
-                        - pending["processing_started_ns"]
+                        pending["processing_completed_ns"] - pending["processing_started_ns"]
                     )
                     / 1_000_000,
                     "node_transfer": (
-                        node_times["transfer_completed_us"]
-                        - node_times["transfer_started_us"]
+                        node_times["transfer_completed_us"] - node_times["transfer_started_us"]
                     )
                     / 1000,
                 },
@@ -316,13 +302,9 @@ class Receiver(threading.Thread):
             }
             capture_root = self.storage.resolve()
             metrics["storage"] = self.storage.manifest_details()
-            path, manifest = commit_capture(
-                capture_root, image_meta, pending["payload"], metrics
-            )
+            path, manifest = commit_capture(capture_root, image_meta, pending["payload"], metrics)
             committed_ns = time.monotonic_ns()
-            manifest["metrics"]["pi_monotonic_ns"][
-                "original_committed_ns"
-            ] = committed_ns
+            manifest["metrics"]["pi_monotonic_ns"]["original_committed_ns"] = committed_ns
             manifest["metrics"]["durations_ms"]["payload_to_commit"] = (
                 committed_ns - state["payload_received_ns"]
             ) / 1_000_000
@@ -334,10 +316,6 @@ class Receiver(threading.Thread):
                 self.automatic_triggers_remaining -= 1
                 self.automatic_trigger_in_flight = False
         except Exception as exc:
-            stream.write(
-                encode_frame(
-                    NACK, response_metadata(metadata, "failed", str(exc))
-                )
-            )
+            stream.write(encode_frame(NACK, response_metadata(metadata, "failed", str(exc))))
             stream.flush()
             raise

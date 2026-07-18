@@ -15,7 +15,6 @@ from pathlib import Path
 
 from PIL import Image
 
-
 EXPECTED_CAMERA_IDS = frozenset({1, 2, 3, 4})
 
 
@@ -61,8 +60,9 @@ def _crc32(path: Path) -> str:
     return f"{checksum & 0xFFFFFFFF:08x}"
 
 
-def validate_capture(capture_root: Path, capture_id: str,
-                     logical_cameras: dict[str, int]) -> CaptureEvidence:
+def validate_capture(
+    capture_root: Path, capture_id: str, logical_cameras: dict[str, int]
+) -> CaptureEvidence:
     """Validate one complete or deliberately partial four-node capture set."""
     capture_dir = capture_root / capture_id
     manifest_path = capture_dir / "manifest.json"
@@ -111,7 +111,9 @@ def validate_capture(capture_root: Path, capture_id: str,
                     f"{capture_id}: Camera {camera_id} lacks transaction identity"
                 ) from exc
             if transaction in transactions:
-                raise EvidenceValidationError(f"{capture_id}: duplicate node transaction {transaction}")
+                raise EvidenceValidationError(
+                    f"{capture_id}: duplicate node transaction {transaction}"
+                )
             transactions.add(transaction)
             successful.add(camera_id)
         elif status == "error":
@@ -138,7 +140,9 @@ def validate_capture(capture_root: Path, capture_id: str,
             except (KeyError, TypeError, ValueError) as exc:
                 raise EvidenceValidationError(f"{capture_id}: original lacks camera ID") from exc
             if camera_id in originals:
-                raise EvidenceValidationError(f"{capture_id}: duplicate Camera {camera_id} original")
+                raise EvidenceValidationError(
+                    f"{capture_id}: duplicate Camera {camera_id} original"
+                )
             originals[camera_id] = record
         elif role == "animation":
             if animation is not None:
@@ -169,7 +173,9 @@ def validate_capture(capture_root: Path, capture_id: str,
             with Image.open(path) as image:
                 image.verify()
         except Exception as exc:
-            raise EvidenceValidationError(f"{capture_id}: invalid JPEG {expected_name}: {exc}") from exc
+            raise EvidenceValidationError(
+                f"{capture_id}: invalid JPEG {expected_name}: {exc}"
+            ) from exc
 
     if len(successful) >= 2:
         if not isinstance(animation, dict) or animation.get("path") != "bullet_time.gif":
@@ -197,7 +203,9 @@ def validate_capture(capture_root: Path, capture_id: str,
                         f"{capture_id}: animation frame count does not match camera sequence"
                     )
                 if animation.get("frame_count") != frame_count:
-                    raise EvidenceValidationError(f"{capture_id}: recorded GIF frame count mismatch")
+                    raise EvidenceValidationError(
+                        f"{capture_id}: recorded GIF frame count mismatch"
+                    )
         except EvidenceValidationError:
             raise
         except Exception as exc:
@@ -246,7 +254,11 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
 
     for name in ("corrupt_transfer", "truncated_transfer"):
         scenario = ledger.get(name)
-        if not isinstance(scenario, dict) or "capture_id" not in scenario or "failed_camera_id" not in scenario:
+        if (
+            not isinstance(scenario, dict)
+            or "capture_id" not in scenario
+            or "failed_camera_id" not in scenario
+        ):
             raise EvidenceValidationError(f"ledger lacks {name} capture/failure details")
         scenario_ids.append(str(scenario["capture_id"]))
 
@@ -268,7 +280,9 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
     for capture_id in normal_ids:
         item = evidence[str(capture_id)]
         if item.successful_camera_ids != EXPECTED_CAMERA_IDS or item.failed_camera_ids:
-            raise EvidenceValidationError(f"{capture_id}: normal capture is not a complete four-node set")
+            raise EvidenceValidationError(
+                f"{capture_id}: normal capture is not a complete four-node set"
+            )
     for camera_text, capture_id in disconnects.items():
         expected_failure = {int(camera_text)}
         if evidence[str(capture_id)].failed_camera_ids != expected_failure:
@@ -287,8 +301,12 @@ def validate_scenario_ledger(capture_root: Path, ledger_path: Path) -> dict:
         raise EvidenceValidationError("reboot scenario UID does not match its logical camera")
     before_records = evidence[str(reboot["before_capture_id"])].manifest["cameras"]
     after_records = evidence[str(reboot["after_capture_id"])].manifest["cameras"]
-    before = next(record for record in before_records if int(record["logical_camera_id"]) == camera_id)
-    after = next(record for record in after_records if int(record["logical_camera_id"]) == camera_id)
+    before = next(
+        record for record in before_records if int(record["logical_camera_id"]) == camera_id
+    )
+    after = next(
+        record for record in after_records if int(record["logical_camera_id"]) == camera_id
+    )
     if before.get("node_uid") != uid or after.get("node_uid") != uid:
         raise EvidenceValidationError("reboot changed the camera UID/logical assignment")
     if str(before.get("boot_id")) == str(after.get("boot_id")):

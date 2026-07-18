@@ -9,9 +9,9 @@ import subprocess
 import time
 import uuid
 import zlib
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable
 
 
 class StorageUnavailable(RuntimeError):
@@ -152,7 +152,9 @@ class UsbStorageResolver:
         return sorted(
             mounts,
             key=lambda mount: (
-                0 if self.preferred_mount_name and mount.mountpoint.name == self.preferred_mount_name else 1,
+                0
+                if self.preferred_mount_name and mount.mountpoint.name == self.preferred_mount_name
+                else 1,
                 str(mount.mountpoint),
             ),
         )
@@ -230,10 +232,14 @@ def commit_capture(root: Path, metadata: dict, jpeg: bytes, metrics: dict) -> tu
         "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "timing_basis": "Pi durations use monotonic_ns; node microseconds are unsynchronized",
         "node": metadata,
-        "files": [{"path": final.name, "role": "original", "bytes": len(jpeg), "crc32": f"{checksum:08x}"}],
+        "files": [
+            {"path": final.name, "role": "original", "bytes": len(jpeg), "crc32": f"{checksum:08x}"}
+        ],
         "metrics": metrics,
         "errors": [],
-        "limitations": ["display timestamp is a software render callback, not a photon measurement"],
+        "limitations": [
+            "display timestamp is a software render callback, not a photon measurement"
+        ],
     }
     atomic_json(capture_dir / "manifest.json", manifest)
     try:

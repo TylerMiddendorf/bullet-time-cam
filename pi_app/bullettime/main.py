@@ -55,9 +55,7 @@ def load_config(args: argparse.Namespace) -> dict:
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str(
-            (
-                logo_path if logo_path.is_absolute() else config_dir / logo_path
-            ).resolve()
+            (logo_path if logo_path.is_absolute() else config_dir / logo_path).resolve()
         )
     return config
 

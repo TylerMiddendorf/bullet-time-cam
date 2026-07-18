@@ -1,0 +1,52 @@
+minimum_pre_commit_version: "4.6.0"
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+exclude: ^\.agents/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: detect-private-key
+      - id: end-of-file-fixer
+        exclude: ^(?:docs/evidence|docs/history)/
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: ^(?:docs/evidence|docs/history)/
+      - id: trailing-whitespace
+        exclude: ^(?:docs/evidence|docs/history)/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.22
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        types_or: [python, pyi]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v22.1.8
+    hooks:
+      - id: clang-format
+        files: ^button_capture/.*\.(?:cpp|h|ino)$
+
+  - repo: local
+    hooks:
+      - id: python-unit-tests
+        name: Python unit tests
+        entry: python -m unittest discover -s pi_app/tests -v
+        language: python
+        additional_dependencies:
+          - Pillow==12.3.0
+          - psutil==7.2.2
+          - pyserial==3.5
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

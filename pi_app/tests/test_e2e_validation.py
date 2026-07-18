@@ -12,7 +12,6 @@ from pi_app.evidence.validation import (
     validate_scenario_ledger,
 )
 
-
 UIDS = {
     "UID-CAMERA-1": 1,
     "UID-CAMERA-2": 2,
@@ -48,20 +47,24 @@ class EvidenceBuilder:
             image = Image.new("RGB", (8, 6), (camera_id * 40, 20, 100))
             image.save(path, "JPEG")
             payload = path.read_bytes()
-            cameras.append({
-                "logical_camera_id": camera_id,
-                "node_uid": uid,
-                "boot_id": self.boot_ids[camera_id],
-                "capture_seq": self.sequence[camera_id],
-                "status": "complete",
-            })
-            files.append({
-                "path": name,
-                "role": "original",
-                "logical_camera_id": camera_id,
-                "bytes": len(payload),
-                "crc32": f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}",
-            })
+            cameras.append(
+                {
+                    "logical_camera_id": camera_id,
+                    "node_uid": uid,
+                    "boot_id": self.boot_ids[camera_id],
+                    "capture_seq": self.sequence[camera_id],
+                    "status": "complete",
+                }
+            )
+            files.append(
+                {
+                    "path": name,
+                    "role": "original",
+                    "logical_camera_id": camera_id,
+                    "bytes": len(payload),
+                    "crc32": f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}",
+                }
+            )
             frames.append(image)
         if len(frames) >= 2:
             gif_frames = frames + list(reversed(frames[1:-1]))
@@ -76,14 +79,16 @@ class EvidenceBuilder:
             )
             gif_payload = gif_path.read_bytes()
             successful_ids = sorted(set(UIDS.values()) - failed)
-            files.append({
-                "path": "bullet_time.gif",
-                "role": "animation",
-                "bytes": len(gif_payload),
-                "crc32": f"{zlib.crc32(gif_payload) & 0xFFFFFFFF:08x}",
-                "frame_count": len(gif_frames),
-                "camera_sequence": successful_ids + successful_ids[-2:0:-1],
-            })
+            files.append(
+                {
+                    "path": "bullet_time.gif",
+                    "role": "animation",
+                    "bytes": len(gif_payload),
+                    "crc32": f"{zlib.crc32(gif_payload) & 0xFFFFFFFF:08x}",
+                    "frame_count": len(gif_frames),
+                    "camera_sequence": successful_ids + successful_ids[-2:0:-1],
+                }
+            )
         manifest = {
             "schema_version": 2,
             "capture_id": capture_id,
@@ -95,9 +100,7 @@ class EvidenceBuilder:
                 for camera_id in sorted(failed)
             ],
         }
-        (capture_dir / "manifest.json").write_text(
-            json.dumps(manifest, indent=2), encoding="utf-8"
-        )
+        (capture_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         return capture_id
 
 
@@ -158,9 +161,7 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
 
             wrong_animation_id = builder.capture("wrong-animation-order")
             animation_manifest_path = root / wrong_animation_id / "manifest.json"
-            animation_manifest = json.loads(
-                animation_manifest_path.read_text(encoding="utf-8")
-            )
+            animation_manifest = json.loads(animation_manifest_path.read_text(encoding="utf-8"))
             animation_record = next(
                 item for item in animation_manifest["files"] if item.get("role") == "animation"
             )
@@ -209,9 +210,13 @@ class FourNodeEvidenceValidationTests(unittest.TestCase):
             # even if both individual manifests and files remain internally valid.
             after_manifest_path = root / after / "manifest.json"
             after_manifest = json.loads(after_manifest_path.read_text(encoding="utf-8"))
-            before_manifest = json.loads((root / before / "manifest.json").read_text(encoding="utf-8"))
+            before_manifest = json.loads(
+                (root / before / "manifest.json").read_text(encoding="utf-8")
+            )
             after_manifest["cameras"][0]["boot_id"] = before_manifest["cameras"][0]["boot_id"]
-            after_manifest["cameras"][0]["capture_seq"] = before_manifest["cameras"][0]["capture_seq"]
+            after_manifest["cameras"][0]["capture_seq"] = before_manifest["cameras"][0][
+                "capture_seq"
+            ]
             after_manifest_path.write_text(json.dumps(after_manifest), encoding="utf-8")
             with self.assertRaisesRegex(EvidenceValidationError, "appears in both"):
                 validate_scenario_ledger(root, ledger_path)

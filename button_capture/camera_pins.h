@@ -20,4 +20,3 @@
 #else
 #error "Camera model not selected. Define CAMERA_MODEL_XIAO_ESP32S3 before including camera_pins.h."
 #endif
-

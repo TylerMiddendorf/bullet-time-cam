@@ -90,6 +90,34 @@ See [`pi_app/README.md`](pi_app/README.md) and the
 [`Raspberry Pi boot runbook`](docs/RASPBERRY_PI_BOOT_RUNBOOK.md) for prerequisites,
 recovery, and hardware-specific limitations.
 
+## Development Quality Checks
+
+Install the development tooling and both Git hooks from the repository root:
+
+```bash
+python -m pip install -r requirements-dev.txt
+pre-commit install --install-hooks
+```
+
+The commit hook checks repository hygiene, detects accidentally committed private
+keys and merge markers, lints and formats Python with Ruff, and formats the
+Arduino/C++ firmware with ClangFormat. Hooks that rewrite a file stop the commit
+so the resulting change can be reviewed and staged. The push hook runs the full
+deterministic Python suite; the physical four-camera evidence test remains
+environment-gated and skips unless its live evidence paths are supplied.
+
+Run the same checks manually at any time:
+
+```bash
+pre-commit run --all-files
+pre-commit run --hook-stage pre-push --all-files
+```
+
+GitHub Actions repeats formatting, linting, and deterministic tests for every
+pull request and every push to `main`. Configure the `Formatting, linting, and
+tests` check as required in the `main` branch protection rule to prevent a
+failing change from being merged.
+
 ## Local Sample Images
 
 Images under `photos/` are never tracked. Generate the deterministic local

@@ -17,8 +17,7 @@ void setup() {
   initializeNodeIdentity();
   initializeCamera();
 
-  Serial.printf("USB protocol ready: BTC1 v%u, node UID %s.\n",
-                PROTOCOL_VERSION, nodeUid());
+  Serial.printf("USB protocol ready: BTC1 v%u, node UID %s.\n", PROTOCOL_VERSION, nodeUid());
   Serial.println("Ready. Pull the shared trigger LOW to capture.");
   sendHelloFrame();
 }

@@ -15,9 +15,7 @@ from .receiver import Receiver
 from .storage import UsbStorageResolver, atomic_json
 
 
-def run_headless(
-    config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver
-) -> None:
+def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:
     events, commands, stop = queue.Queue(), queue.Queue(), threading.Event()
     Receiver(config, events, commands, stop, trigger, storage).start()
     try:
@@ -59,9 +57,7 @@ def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) 
                 int(config.get("display_width", 800)),
                 int(config.get("display_height", 480)),
             )
-            logo = ImageOps.contain(
-                source.convert("RGB"), display_size, Image.Resampling.LANCZOS
-            )
+            logo = ImageOps.contain(source.convert("RGB"), display_size, Image.Resampling.LANCZOS)
             canvas = Image.new("RGB", display_size, "black")
             canvas.paste(
                 logo,
@@ -98,19 +94,15 @@ def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) 
                     image_ref["value"] = ImageTk.PhotoImage(display_image)
                     label.configure(image=image_ref["value"], text="")
 
-                    def rendered(
-                        path=Path(event["image"]), manifest=event["manifest"]
-                    ):
+                    def rendered(path=Path(event["image"]), manifest=event["manifest"]):
                         rendered_ns = time.monotonic_ns()
-                        manifest["metrics"]["pi_monotonic_ns"][
-                            "display_callback_ns"
-                        ] = rendered_ns
+                        manifest["metrics"]["pi_monotonic_ns"]["display_callback_ns"] = rendered_ns
                         start = manifest["metrics"]["pi_monotonic_ns"].get(
                             "capture_event_received_ns", rendered_ns
                         )
-                        manifest["metrics"]["durations_ms"][
-                            "capture_event_to_display_callback"
-                        ] = (rendered_ns - start) / 1_000_000
+                        manifest["metrics"]["durations_ms"]["capture_event_to_display_callback"] = (
+                            rendered_ns - start
+                        ) / 1_000_000
                         atomic_json(path.parent / "manifest.json", manifest)
 
                     root.after_idle(rendered)
@@ -120,9 +112,7 @@ def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) 
                         if state == "LOADING"
                         else ("#ff5050" if state == "ERROR" else "white")
                     )
-                    label.configure(
-                        image="", text=event.get("message", state), fg=color
-                    )
+                    label.configure(image="", text=event.get("message", state), fg=color)
         except queue.Empty:
             pass
         root.after(50, poll)
