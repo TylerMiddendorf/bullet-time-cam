@@ -29,6 +29,8 @@ class PresentationState:
     def __init__(self) -> None:
         self.state = "STARTING"
         self.review_image: str | None = None
+        self.review_text = ""
+        self.review_color = "white"
         self.capture_in_progress = False
 
     def apply(self, event: dict) -> Presentation:
@@ -44,17 +46,27 @@ class PresentationState:
                 self.review_image = str(event["image"])
             text = message if state == "REVIEW_WITH_ERROR" else ""
             color = "#ff5050" if state == "REVIEW_WITH_ERROR" else "white"
+            self.review_text = text
+            self.review_color = color
             presentation = Presentation(state, self.review_image, text, color)
         elif state == "READY" and self.review_image:
             self.capture_in_progress = False
             presentation = Presentation(state, self.review_image, "", "white")
         elif state == "ERROR":
             self.capture_in_progress = False
-            image = self.review_image if self.review_image and not was_capturing else None
-            presentation = Presentation(state, image, message, "#ff5050")
+            if self.review_image and self.review_text and not was_capturing:
+                presentation = Presentation(
+                    "REVIEW_WITH_ERROR",
+                    self.review_image,
+                    self.review_text,
+                    self.review_color,
+                )
+            else:
+                image = self.review_image if self.review_image and not was_capturing else None
+                presentation = Presentation(state, image, message, "#ff5050")
         else:
             presentation = Presentation(state, None, message, "white")
-        self.state = state
+        self.state = presentation.state
         return presentation
 
 

@@ -33,6 +33,14 @@ class PresentationStateTests(unittest.TestCase):
         self.assertIn("Camera 4", review.text)
         self.assertFalse(state.capture_in_progress)
 
+        retry_error = state.apply(
+            {"state": "ERROR", "message": "/dev/ttyACM0: Device or resource busy"}
+        )
+        self.assertEqual(retry_error.state, "REVIEW_WITH_ERROR")
+        self.assertEqual(retry_error.image, "partial.gif")
+        self.assertIn("Camera 4", retry_error.text)
+        self.assertNotIn("ttyACM", retry_error.text)
+
     def test_idle_ready_and_error_events_do_not_discard_latest_review(self):
         state = PresentationState()
         state.apply({"state": "REVIEW", "image": "latest.gif"})
