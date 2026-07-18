@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image, ImageOps, ImageSequence, ImageTk
+from PIL import Image, ImageOps, ImageSequence
 
 from .gpio_trigger import HardwareTrigger
 from .storage import UsbStorageResolver, atomic_json
@@ -160,6 +160,8 @@ def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageReso
 
 def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:
     import tkinter as tk
+
+    from PIL import ImageTk
 
     from .receiver import Receiver
 

@@ -30,3 +30,4 @@ htmlcov/
 .DS_Store
 Thumbs.db
 Desktop.ini
+.maintenance-backups/

@@ -112,7 +112,9 @@ class UsbStorageResolverTests(unittest.TestCase):
                 stale_staging_seconds=3600,
             )
 
-            self.assertEqual(resolver.resolve(), root)
+            with self.assertLogs("pi_app.bullettime.storage", level="WARNING") as logs:
+                self.assertEqual(resolver.resolve(), root)
+            self.assertIn("Removed stale uncommitted capture staging", logs.output[0])
             self.assertFalse(stale.exists())
             self.assertTrue(fresh.exists())
             self.assertTrue(unrelated.exists())
