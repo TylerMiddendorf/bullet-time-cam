@@ -347,8 +347,19 @@ class Receiver(threading.Thread):
         timeout_ns = int(self.config.get("no_progress_timeout_ms", 5000)) * 1_000_000
         if now_ns - self.pending_trigger["issued_ns"] >= timeout_ns:
             self.pending_trigger = None
-            self.automatic_trigger_in_flight = False
+            self._finish_automatic_attempt(now_ns)
             self.send_status("ERROR", message="No camera reported capture start")
+
+    def _finish_automatic_attempt(self, now_ns: int) -> None:
+        if not self.automatic_trigger_in_flight:
+            return
+        self.automatic_triggers_remaining = max(0, self.automatic_triggers_remaining - 1)
+        self.automatic_trigger_in_flight = False
+        if self.automatic_triggers_remaining == 0:
+            self.automatic_run_completed.set()
+        self.next_automatic_trigger_ns = (
+            now_ns + int(self.config.get("automatic_rearm_ms", 150)) * 1_000_000
+        )
 
     def handle_frame(self, session: NodeSession, frame) -> None:
         now_ns = time.monotonic_ns()
@@ -563,12 +574,4 @@ class Receiver(threading.Thread):
             self.pending_images.clear()
             self.rejected_images.clear()
             self.pending_trigger = None
-            if self.automatic_trigger_in_flight:
-                self.automatic_triggers_remaining -= 1
-                self.automatic_trigger_in_flight = False
-                if self.automatic_triggers_remaining == 0:
-                    self.automatic_run_completed.set()
-                self.next_automatic_trigger_ns = (
-                    time.monotonic_ns()
-                    + int(self.config.get("automatic_rearm_ms", 150)) * 1_000_000
-                )
+            self._finish_automatic_attempt(time.monotonic_ns())

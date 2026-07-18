@@ -272,6 +272,22 @@ class ReceiverCompletionTests(unittest.TestCase):
             self.assertEqual(receiver.trigger.pulse_count, 1)
             self.assertTrue(receiver.automatic_trigger_in_flight)
 
+    def test_unanswered_automatic_trigger_exits_without_repeating(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            receiver.automatic_triggers_remaining = 1
+            receiver.automatic_trigger_in_flight = True
+            receiver.pending_trigger = {"source": "pi_gpio17", "issued_ns": 1}
+
+            receiver._expire_unanswered_trigger(600_000_001)
+            receiver._process_commands()
+
+            self.assertEqual(receiver.automatic_triggers_remaining, 0)
+            self.assertFalse(receiver.automatic_trigger_in_flight)
+            self.assertTrue(receiver.automatic_run_completed.is_set())
+            self.assertEqual(receiver.trigger.pulse_count, 0)
+            self.assertEqual(events.get_nowait()["message"], "No camera reported capture start")
+
     def test_response_metadata_truncates_errors_for_bounded_control_frames(self):
         response = response_metadata(
             {"node_uid": "UID-1", "boot_id": "boot-1", "capture_seq": 1},
