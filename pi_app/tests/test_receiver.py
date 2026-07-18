@@ -4,18 +4,17 @@ import queue
 import tempfile
 import threading
 import unittest
+import zlib
 from pathlib import Path
 from unittest.mock import patch
 
 from PIL import Image
 
-from pi_app.bullettime.protocol import ACK, NACK, read_frame
-from pi_app.bullettime.receiver import Receiver, response_metadata
+from pi_app.bullettime.coordinator import CaptureSetCoordinator
+from pi_app.bullettime.protocol import ACK, IMAGE, NACK, Frame
+from pi_app.bullettime.receiver import Receiver, response_metadata, transaction_key
 
-
-class FakeStream(io.BytesIO):
-    def flush(self):
-        pass
+UIDS = {f"UID-{camera_id}": camera_id for camera_id in range(1, 5)}
 
 
 class FakeStorage:
@@ -37,111 +36,202 @@ class FakeTrigger:
         pass
 
 
-def jpeg():
+class FakeSession:
+    def __init__(self, camera_id):
+        self.port = f"test-port-{camera_id}"
+        self.node_uid = f"UID-{camera_id}"
+        self.current_metadata = None
+        self.sent = []
+        self.fault_armed = threading.Event()
+
+    def send(self, message_type, metadata):
+        self.sent.append((message_type, metadata))
+
+
+def jpeg(camera_id):
     output = io.BytesIO()
-    Image.new("RGB", (8, 6), "teal").save(output, "JPEG")
+    Image.new("RGB", (16, 12), (camera_id * 50, 30, 90)).save(output, "JPEG")
     return output.getvalue()
 
 
+def metadata(camera_id, sequence=1):
+    payload = jpeg(camera_id)
+    return {
+        "node_uid": f"UID-{camera_id}",
+        "boot_id": f"boot-{camera_id}",
+        "capture_seq": sequence,
+        "logical_camera_id": camera_id,
+        "jpeg_bytes": len(payload),
+        "jpeg_crc32": f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}",
+        "trigger_accepted_us": 100,
+        "acquisition_started_us": 200,
+        "frame_ready_us": 300,
+        "transfer_started_us": 400,
+    }
+
+
 class ReceiverCompletionTests(unittest.TestCase):
+    def setUp(self):
+        self.resource_patch = patch(
+            "pi_app.bullettime.receiver.resource_sample", return_value={"phase": "test"}
+        )
+        self.resource_patch.start()
+
+    def tearDown(self):
+        self.resource_patch.stop()
+
     def receiver(self, root):
         events = queue.Queue()
         receiver = Receiver(
-            {"logical_cameras": {"UID-1": 1}},
+            {
+                "logical_cameras": UIDS,
+                "capture_association_ms": 100,
+                "no_progress_timeout_ms": 500,
+            },
             events,
             queue.Queue(),
             threading.Event(),
             FakeTrigger(),
             FakeStorage(root),
         )
+        receiver.coordinator = CaptureSetCoordinator(
+            UIDS,
+            association_window_ms=100,
+            no_progress_timeout_ms=500,
+            capture_id_factory=lambda: "capture-a",
+        )
         return receiver, events
 
-    def pending(self, receiver, key):
-        payload = jpeg()
-        receiver.pending_images[key] = {
-            "metadata": {
-                "node_uid": "UID-1",
-                "boot_id": "boot-1",
-                "capture_seq": 1,
-                "transfer_started_us": 100,
+    def transfer(self, receiver, session, camera_id, *, bad_crc=False, start_ns=1_000_000):
+        meta = metadata(camera_id)
+        receiver._capture_started(session, meta, start_ns)
+        payload = jpeg(camera_id)
+        if bad_crc:
+            meta["jpeg_crc32"] = "00000000"
+        frame = Frame(
+            IMAGE,
+            meta,
+            payload,
+            payload_started_ns=start_ns + 1_000_000,
+            payload_completed_ns=start_ns + 2_000_000,
+        )
+        receiver._image_received(session, meta, frame, start_ns + 2_000_000)
+        receiver._transfer_complete(
+            session,
+            {
+                **meta,
+                "transfer_completed_us": 900,
+                "status": "written",
             },
-            "payload": payload,
-            "state": {
-                "capture_event_received_ns": 1_000_000,
-                "payload_receive_started_ns": 2_000_000,
-                "payload_received_ns": 3_000_000,
-                "resource_samples": [],
-                "trigger_source": "physical_shared_bus",
-            },
-            "processing_started_ns": 3_100_000,
-            "processing_completed_ns": 3_200_000,
-            "expected_crc32": "00000000",
-            "computed_crc32": "00000000",
-            "serial_port": "test-port",
-        }
+            start_ns + 3_000_000,
+        )
 
-    def test_ack_is_sent_only_after_manifest_and_original_are_committed(self):
+    def test_acks_all_nodes_only_after_atomic_set_and_gif_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, events = self.receiver(Path(temp))
-            key = ("UID-1", "boot-1", 1)
-            self.pending(receiver, key)
-            stream = FakeStream()
-            receiver._complete_transfer(
-                stream,
-                key,
-                {
-                    "node_uid": "UID-1",
-                    "boot_id": "boot-1",
-                    "capture_seq": 1,
-                    "transfer_completed_us": 300,
-                    "status": "written",
-                },
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            for camera_id in (3, 1, 4, 2):
+                self.transfer(
+                    receiver,
+                    sessions[camera_id],
+                    camera_id,
+                    start_ns=camera_id * 1_000_000,
+                )
+
+            for session in sessions.values():
+                self.assertEqual([message for message, _ in session.sent], [ACK])
+            review = None
+            while not events.empty():
+                event = events.get_nowait()
+                if event["state"] == "REVIEW":
+                    review = event
+            self.assertIsNotNone(review)
+            image_path = Path(review["image"])
+            self.assertEqual(image_path.name, "bullet_time.gif")
+            manifest = json.loads((image_path.parent / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["status"], "complete")
+            self.assertEqual(len(manifest["cameras"]), 4)
+            self.assertEqual(
+                len([item for item in manifest["files"] if item["role"] == "original"]), 4
             )
 
-            response = read_frame(io.BytesIO(stream.getvalue()))
-            self.assertEqual(response.message_type, ACK)
-            event = events.get_nowait()
-            self.assertEqual(event["state"], "REVIEW")
-            image_path = Path(event["image"])
-            self.assertTrue(image_path.is_file())
-            manifest = json.loads((image_path.parent / "manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["capture_id"], image_path.parent.name)
+    def test_timeout_commits_three_view_partial_and_identifies_missing_camera(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            for camera_id in (1, 2, 3):
+                self.transfer(
+                    receiver, sessions[camera_id], camera_id, start_ns=camera_id * 1_000_000
+                )
+            receiver._finalize_if_ready(600_000_000)
 
-    def test_commit_failure_sends_nack_and_never_sends_ack(self):
+            event = None
+            while not events.empty():
+                candidate = events.get_nowait()
+                if candidate["state"] == "REVIEW_WITH_ERROR":
+                    event = candidate
+            self.assertIsNotNone(event)
+            self.assertIn("Camera 4", event["message"])
+            self.assertEqual(event["manifest"]["status"], "partial")
+            self.assertEqual([message for message, _ in sessions[1].sent], [ACK])
+            self.assertEqual(sessions[4].sent, [])
+
+    def test_corrupt_camera_is_nacked_while_other_views_are_committed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            self.transfer(receiver, sessions[2], 2, bad_crc=True, start_ns=2_000_000)
+            for camera_id in (1, 3, 4):
+                self.transfer(
+                    receiver, sessions[camera_id], camera_id, start_ns=camera_id * 1_000_000
+                )
+
+            self.assertEqual([message for message, _ in sessions[2].sent], [NACK])
+            for camera_id in (1, 3, 4):
+                self.assertEqual([message for message, _ in sessions[camera_id].sent], [ACK])
+            reviews = []
+            while not events.empty():
+                event = events.get_nowait()
+                if event["state"] == "REVIEW_WITH_ERROR":
+                    reviews.append(event)
+            self.assertEqual(reviews[-1]["manifest"]["errors"][0]["logical_camera_id"], 2)
+            self.assertEqual(reviews[-1]["manifest"]["errors"][0]["code"], "jpeg_checksum_mismatch")
+
+    def test_commit_failure_nacks_every_success_and_publishes_no_directory(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, _ = self.receiver(Path(temp))
-            key = ("UID-1", "boot-1", 1)
-            self.pending(receiver, key)
-            stream = FakeStream()
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
             with patch(
-                "pi_app.bullettime.receiver.commit_capture", side_effect=OSError("drive full")
+                "pi_app.bullettime.receiver.commit_capture_set", side_effect=OSError("drive full")
             ):
-                with self.assertRaisesRegex(OSError, "drive full"):
-                    receiver._complete_transfer(
-                        stream,
-                        key,
-                        {
-                            "node_uid": "UID-1",
-                            "boot_id": "boot-1",
-                            "capture_seq": 1,
-                            "transfer_completed_us": 300,
-                        },
+                for camera_id in range(1, 5):
+                    self.transfer(
+                        receiver, sessions[camera_id], camera_id, start_ns=camera_id * 1_000_000
                     )
-            responses = []
-            encoded = io.BytesIO(stream.getvalue())
-            while encoded.tell() < len(stream.getvalue()):
-                responses.append(read_frame(encoded).message_type)
-            self.assertEqual(responses, [NACK])
+            for session in sessions.values():
+                self.assertEqual([message for message, _ in session.sent], [NACK])
+            self.assertEqual(list(Path(temp).iterdir()), [])
 
     def test_missing_image_sends_targeted_nack(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, _ = self.receiver(Path(temp))
-            stream = FakeStream()
-            metadata = {"node_uid": "UID-1", "boot_id": "boot-1", "capture_seq": 9}
-            receiver._complete_transfer(stream, ("UID-1", "boot-1", 9), metadata)
-            response = read_frame(io.BytesIO(stream.getvalue()))
-            self.assertEqual(response.message_type, NACK)
-            self.assertEqual(response.metadata["error"], "missing matching IMAGE")
+            session = FakeSession(1)
+            meta = metadata(1)
+            receiver._capture_started(session, meta, 1_000_000)
+            receiver._transfer_complete(session, meta, 2_000_000)
+            self.assertEqual(session.sent[0][0], NACK)
+            self.assertEqual(session.sent[0][1]["error"], "missing matching IMAGE")
+
+    def test_disconnect_during_transfer_becomes_typed_camera_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            session = FakeSession(3)
+            meta = metadata(3)
+            receiver._capture_started(session, meta, 1_000_000)
+            session.current_metadata = meta
+            receiver.sessions_by_uid[session.node_uid] = session
+            receiver.session_disconnected(session, OSError("cable removed"))
+            self.assertEqual(receiver.coordinator._active.errors[3].code, "transfer_truncated")
 
     def test_response_metadata_truncates_errors_for_bounded_control_frames(self):
         response = response_metadata(
@@ -150,6 +240,7 @@ class ReceiverCompletionTests(unittest.TestCase):
             "x" * 200,
         )
         self.assertEqual(len(response["error"]), 96)
+        self.assertEqual(transaction_key(response), ("UID-1", "boot-1", 1))
 
 
 if __name__ == "__main__":

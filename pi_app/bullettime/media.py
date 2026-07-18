@@ -107,6 +107,7 @@ def commit_capture_set(
                         "boot_id": image.boot_id,
                         "capture_seq": image.capture_seq,
                         "status": "complete",
+                        "metrics": image.metadata.get("host_metrics", {}),
                     }
                 )
             else:

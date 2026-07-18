@@ -186,7 +186,7 @@ def run_ui(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) 
                         rendered_ns = time.monotonic_ns()
                         manifest["metrics"]["pi_monotonic_ns"]["display_callback_ns"] = rendered_ns
                         start = manifest["metrics"]["pi_monotonic_ns"].get(
-                            "capture_event_received_ns", rendered_ns
+                            "first_capture_started_ns", rendered_ns
                         )
                         manifest["metrics"]["durations_ms"]["capture_event_to_display_callback"] = (
                             rendered_ns - start

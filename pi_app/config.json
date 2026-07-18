@@ -5,7 +5,10 @@
     "auto_mount": true
   },
   "logical_cameras": {
-    "E072A1F9A190": 1
+    "E072A1F9A190": 1,
+    "E072A1F99CC0": 2,
+    "E072A1F99CF8": 3,
+    "E072A1F9B3E4": 4
   },
   "serial_baud": 115200,
   "fullscreen": true,
@@ -16,6 +19,11 @@
   "trigger_gpio_bcm": 17,
   "trigger_pulse_ms": 100,
   "trigger_event_association_ms": 1000,
+  "capture_association_ms": 250,
+  "no_progress_timeout_ms": 1500,
+  "automatic_rearm_ms": 150,
+  "gif_frame_ms": 150,
+  "gif_max_width": 800,
   "display_width": 800,
   "display_height": 480,
   "reconnect_seconds": 1.0
