@@ -258,6 +258,20 @@ class ReceiverCompletionTests(unittest.TestCase):
             self.assertEqual(receiver.trigger.pulse_count, 1)
             self.assertTrue(receiver.automatic_trigger_in_flight)
 
+    def test_explicit_incomplete_node_mode_allows_bounded_automatic_capture(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            receiver.allow_incomplete_node_set = True
+            receiver.automatic_triggers_remaining = 1
+            receiver.sessions_by_uid = {
+                f"UID-{camera_id}": FakeSession(camera_id) for camera_id in range(1, 4)
+            }
+
+            receiver._process_commands()
+
+            self.assertEqual(receiver.trigger.pulse_count, 1)
+            self.assertTrue(receiver.automatic_trigger_in_flight)
+
     def test_response_metadata_truncates_errors_for_bounded_control_frames(self):
         response = response_metadata(
             {"node_uid": "UID-1", "boot_id": "boot-1", "capture_seq": 1},

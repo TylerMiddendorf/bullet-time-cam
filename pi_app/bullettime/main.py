@@ -36,6 +36,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="arm test-only corruption of the next requested USB image",
     )
+    parser.add_argument(
+        "--allow-incomplete-node-set",
+        action="store_true",
+        help="test-only: allow bounded automatic capture with one or more nodes missing",
+    )
     return parser.parse_args()
 
 
@@ -52,6 +57,7 @@ def load_config(args: argparse.Namespace) -> dict:
         config.get("corrupt_next_payload", False)
     )
     config["diagnostic_usb_trigger"] = args.diagnostic_usb_trigger
+    config["allow_incomplete_node_set"] = args.allow_incomplete_node_set
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str(

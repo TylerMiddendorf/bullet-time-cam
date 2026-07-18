@@ -163,6 +163,7 @@ class Receiver(threading.Thread):
         self.next_automatic_trigger_ns = 0
         self.diagnostic_usb_trigger = bool(config.get("diagnostic_usb_trigger", False))
         self.corrupt_next_payload = bool(config.get("corrupt_next_payload", False))
+        self.allow_incomplete_node_set = bool(config.get("allow_incomplete_node_set", False))
         self.pending_trigger: dict | None = None
         self.automatic_run_completed = threading.Event()
 
@@ -263,7 +264,11 @@ class Receiver(threading.Thread):
             automatic = (
                 self.automatic_triggers_remaining > 0
                 and not self.automatic_trigger_in_flight
-                and len(self.sessions_by_uid) == len(self.logical_cameras)
+                and (
+                    self.allow_incomplete_node_set
+                    and len(self.sessions_by_uid) > 0
+                    or len(self.sessions_by_uid) == len(self.logical_cameras)
+                )
                 and all(
                     session.current_metadata is None for session in self.sessions_by_uid.values()
                 )

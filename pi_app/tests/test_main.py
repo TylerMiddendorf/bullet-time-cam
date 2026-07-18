@@ -28,12 +28,14 @@ class MainConfigurationTests(unittest.TestCase):
                 trigger_once=False,
                 corrupt_next_payload=True,
                 diagnostic_usb_trigger=True,
+                allow_incomplete_node_set=True,
             )
             config = load_config(args)
 
             self.assertEqual(config["trigger_count"], 3)
             self.assertTrue(config["corrupt_next_payload"])
             self.assertTrue(config["diagnostic_usb_trigger"])
+            self.assertTrue(config["allow_incomplete_node_set"])
             self.assertEqual(
                 Path(config["startup_logo"]),
                 (config_path.parent / "../assets/logo.png").resolve(),
@@ -49,6 +51,7 @@ class MainConfigurationTests(unittest.TestCase):
                 trigger_once=True,
                 corrupt_next_payload=False,
                 diagnostic_usb_trigger=False,
+                allow_incomplete_node_set=False,
             )
             self.assertEqual(load_config(args)["trigger_count"], 5)
 
@@ -57,6 +60,7 @@ class MainConfigurationTests(unittest.TestCase):
             args = parse_args()
         self.assertFalse(args.headless)
         self.assertFalse(args.diagnostic_usb_trigger)
+        self.assertFalse(args.allow_incomplete_node_set)
         self.assertEqual(args.trigger_count, 0)
 
 
