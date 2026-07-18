@@ -143,7 +143,7 @@ class Receiver(threading.Thread):
         self.coordinator = CaptureSetCoordinator(
             self.logical_cameras,
             association_window_ms=int(config.get("capture_association_ms", 250)),
-            no_progress_timeout_ms=int(config.get("no_progress_timeout_ms", 1500)),
+            no_progress_timeout_ms=int(config.get("no_progress_timeout_ms", 5000)),
         )
         self.lock = threading.RLock()
         self.sessions: dict[str, NodeSession] = {}
@@ -249,11 +249,13 @@ class Receiver(threading.Thread):
         except queue.Empty:
             pass
         now_ns = time.monotonic_ns()
-        automatic = (
-            self.automatic_triggers_remaining > 0
-            and not self.automatic_trigger_in_flight
-            and now_ns >= self.next_automatic_trigger_ns
-        )
+        with self.lock:
+            automatic = (
+                self.automatic_triggers_remaining > 0
+                and not self.automatic_trigger_in_flight
+                and len(self.sessions_by_uid) == len(self.logical_cameras)
+                and now_ns >= self.next_automatic_trigger_ns
+            )
         if requested or automatic:
             self._request_capture(automatic=automatic)
 
@@ -317,7 +319,7 @@ class Receiver(threading.Thread):
     def _expire_unanswered_trigger(self, now_ns: int) -> None:
         if self.pending_trigger is None or self.coordinator.active_capture_id is not None:
             return
-        timeout_ns = int(self.config.get("no_progress_timeout_ms", 1500)) * 1_000_000
+        timeout_ns = int(self.config.get("no_progress_timeout_ms", 5000)) * 1_000_000
         if now_ns - self.pending_trigger["issued_ns"] >= timeout_ns:
             self.pending_trigger = None
             self.automatic_trigger_in_flight = False

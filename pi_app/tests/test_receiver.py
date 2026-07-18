@@ -32,8 +32,11 @@ class FakeStorage:
 class FakeTrigger:
     pulse_seconds = 0.1
 
+    def __init__(self):
+        self.pulse_count = 0
+
     def pulse(self):
-        pass
+        self.pulse_count += 1
 
 
 class FakeSession:
@@ -232,6 +235,21 @@ class ReceiverCompletionTests(unittest.TestCase):
             receiver.sessions_by_uid[session.node_uid] = session
             receiver.session_disconnected(session, OSError("cable removed"))
             self.assertEqual(receiver.coordinator._active.errors[3].code, "transfer_truncated")
+
+    def test_automatic_capture_waits_until_all_four_sessions_are_connected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            receiver.automatic_triggers_remaining = 1
+            receiver._process_commands()
+            self.assertEqual(receiver.trigger.pulse_count, 0)
+            self.assertIsNone(receiver.pending_trigger)
+
+            receiver.sessions_by_uid = {
+                f"UID-{camera_id}": FakeSession(camera_id) for camera_id in range(1, 5)
+            }
+            receiver._process_commands()
+            self.assertEqual(receiver.trigger.pulse_count, 1)
+            self.assertTrue(receiver.automatic_trigger_in_flight)
 
     def test_response_metadata_truncates_errors_for_bounded_control_frames(self):
         response = response_metadata(
