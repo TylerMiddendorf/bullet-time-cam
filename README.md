@@ -27,6 +27,7 @@ the project roadmap.
 | `pi_app/tools/` | Serial smoke, capture summaries, evidence validation, and local sample-data tools |
 | `pi_app/scripts/`, `session/`, `systemd/` | Reproducible Raspberry Pi boot and product-session deployment |
 | `photos/` | Local-only ignored camera/sample images; only its instructions are tracked |
+| `designs/ux-mockups/` | Non-binding V1, fast-follow, and future touchscreen design concepts |
 | `docs/` | Canonical product context, roadmap, plans, decisions, runbooks, and indexed evidence |
 | `.agents/skills/` | Repository-scoped Codex deployment workflow for attached camera nodes |
 

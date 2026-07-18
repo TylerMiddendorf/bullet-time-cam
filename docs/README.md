@@ -29,3 +29,8 @@ status narratives between files.
 Evidence proves only the checkpoint and hardware state named by its plan. Code
 existence or an older successful demonstration is not evidence that a later
 integration gate works.
+
+## Design References
+
+- [`../designs/ux-mockups/README.md`](../designs/ux-mockups/README.md) —
+  non-binding touchscreen concepts organized by V1, fast-follow, and later scope

@@ -182,6 +182,12 @@ Planned sequence:
 3. Version 2: user-adjustable camera settings
 4. Much later: network-based media access, remote control, and other Wi-Fi features after the onboard experience is polished
 
+Provisional visual explorations for these phases are indexed under
+[`../designs/ux-mockups/`](../designs/ux-mockups/README.md). They are design
+references, not validated UI behavior or product decisions; in particular, the
+live-preview, settings, library, and viewer concepts do not expand version 1
+scope.
+
 ### Power - prototype and planned
 
 Current prototype power:

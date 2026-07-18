@@ -9,6 +9,12 @@
 # Local camera application output.
 pi_app/captures/
 
+# Canonical UX concepts live under designs/ux-mockups. Keep duplicate working
+# copies and closed-checkpoint exploratory logs local unless explicitly promoted
+# to qualifying evidence.
+assets/ux-mockups/
+docs/evidence/milestone-1/checkpoint-5/*.log
+
 # Python environments, bytecode, and tool caches.
 .venv/
 venv/
