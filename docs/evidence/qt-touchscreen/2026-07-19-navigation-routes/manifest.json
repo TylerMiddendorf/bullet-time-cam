@@ -1,0 +1,13 @@
+{
+  "date": "2026-07-19",
+  "git_commit": "1d880c159fee364b48040c429fa469907a7ef800",
+  "platform": "wayland",
+  "viewport": [800, 480],
+  "artifacts": [
+    {"file": "01-ready-800x480.png", "sha256": "23d4456c66dc0bdaa30c623764099a5ef17d7e917d1351826e297a3cd8b7599a"},
+    {"file": "04-capture-800x480.png", "sha256": "bf7bb65ee5a57867bbb107f28e62ef26d327d1451f6c3c8ebb4ef2cb5e4a624a"},
+    {"file": "05-settings-800x480.png", "sha256": "d2caae9fdd887e41f782a493601ac632d0bf424dfef12b6e81ca7e4332451aac"},
+    {"file": "06-library-800x480.png", "sha256": "c0706edde2f61c53794f18c76b443aed53c8dcd9445fcca1b79cc57a1ab03abd"},
+    {"file": "live-service-800x480.png", "sha256": "4367e1cb219eb941d0384c0b42a0d23aef816b6140028da15553af86f54121a2"}
+  ]
+}

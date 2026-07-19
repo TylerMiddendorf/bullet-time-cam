@@ -51,6 +51,9 @@ Status reviewed: July 18, 2026
 - App 0.2.5 reorganizes Ready into status plus gear/Settings, Library, and
   Capture navigation. Capture is the only touchscreen photo-taking route; its
   surface remains a truthfully labeled static placeholder pending live preview.
+  Final commit `1d880c1` is deployed on the Pi and passed the final suite,
+  native-Wayland renders, boot verifier, and live-screen inspection. The camera
+  nodes were not enumerated, so no new physical capture was made in this pass.
 
 ## Immediate Work
 

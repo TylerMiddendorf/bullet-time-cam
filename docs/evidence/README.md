@@ -42,6 +42,11 @@ reviewed without searching one large flat directory.
   - app 0.2.4 used/available USB capacity metric, post-deployment asynchronous
   refresh regression and fix, exact real-capture/volume check, corrected native
   800x480 render, and final Pi runtime state
+- [`navigation-reorganization-2026-07-19.md`](qt-touchscreen/navigation-reorganization-2026-07-19.md)
+  - app 0.2.5 Ready/Settings/Library/Capture navigation, Capture-only
+  touchscreen command boundary, commit/push/Pi-pull chain, final Pi tests,
+  native-Wayland renders, actual live status screen, and the disconnected-node
+  limitation
 
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,

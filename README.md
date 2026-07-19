@@ -89,6 +89,11 @@ and drove correction of an asynchronous refresh defect; the fix now has an
 exact regression test and passed the Pi's full deterministic suite against the
 new capture and live filesystem. See the
 [`storage-capacity evidence`](docs/evidence/qt-touchscreen/storage-capacity-2026-07-19.md).
+App 0.2.5 reorganizes Ready into status plus gear/Settings, Library, and Capture
+navigation and makes Capture the sole touchscreen photo-taking route. Commit
+`1d880c1` passed the final Pi suite and native-Wayland render review; the camera
+nodes were not enumerated during that UI-only pass. See the
+[`navigation evidence`](docs/evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.

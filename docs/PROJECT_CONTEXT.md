@@ -357,6 +357,13 @@ As of July 18, 2026:
   evidence skip, and the corrected path returned the valid new capture plus
   `3.8 MB` used / `248.0 GB` available from `/dev/sdb1`. See
   `docs/evidence/qt-touchscreen/storage-capacity-2026-07-19.md`.
+- App 0.2.5 reorganizes Ready into status plus gear/Settings, Library, and
+  Capture navigation. Capture is the only touchscreen route that can enqueue a
+  photo. Final commit `1d880c1` passed 124 Pi tests (one expected live-evidence
+  skip), native Wayland route rendering, the boot/session verifier, and a live
+  service-screen inspection. The camera nodes were not enumerated during that
+  UI pass, so no new four-camera capture is claimed. See
+  `docs/evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,

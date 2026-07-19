@@ -197,6 +197,12 @@ Library, and Capture navigation. The former Preview Demo route is Capture and
 is the sole touchscreen route allowed to enqueue a photo; Review and Settings
 link there. Media Demo and other generic media-navigation labels are now
 Library. App 0.2.5 implements and regression-tests this command boundary.
+Final commit `1d880c1` passed the 124-test Pi suite with one expected
+live-evidence skip, native-Wayland Ready/Capture/Settings/Library rendering,
+the boot/session verifier, and live service-screen inspection. The camera nodes
+were not enumerated, so this was a UI deployment pass rather than new physical
+capture evidence. See
+[`navigation-reorganization-2026-07-19.md`](evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md).
 
 ## Milestone 4 - Compact Version 1 Enclosure
 

@@ -5,6 +5,7 @@
 
 # Arduino/ESP32 build output.
 .build/
+build/
 
 # Local camera application output.
 pi_app/captures/
