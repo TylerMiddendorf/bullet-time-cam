@@ -1,0 +1,152 @@
+{
+  "contract_version": 1,
+  "baseline_commit": "1ef1ba6",
+  "viewport": {
+    "width": 800,
+    "height": 480
+  },
+  "touch": {
+    "minimum_target_width": 48,
+    "minimum_target_height": 48,
+    "capture_target_minimum": [680, 72],
+    "maximum_capture_commands_per_state_entry": 1
+  },
+  "forbidden_ui_terms": [
+    "battery",
+    "charging",
+    "charge level",
+    "power source",
+    "low power",
+    "live preview",
+    "live camera",
+    "video stream",
+    "streaming"
+  ],
+  "preview_fixture": {
+    "path": "assets/ui/preview-placeholder.png",
+    "required_label": "DEMO PLACEHOLDER",
+    "forbidden_label": "LIVE"
+  },
+  "required_scenarios": [
+    "UX-001",
+    "UX-002",
+    "UX-003",
+    "UX-004",
+    "UX-005",
+    "UX-006",
+    "UX-007",
+    "UX-008",
+    "UX-009",
+    "UX-010",
+    "UX-011",
+    "UX-012",
+    "UX-013",
+    "UX-014",
+    "UX-015",
+    "UX-016"
+  ],
+  "states": {
+    "STARTING": {
+      "required_objects": ["rootSurface", "startupLogo"],
+      "forbidden_objects": ["captureButton"],
+      "interactive": false
+    },
+    "READY_EMPTY": {
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "readyGlyph",
+        "stateHeading",
+        "stateDetail",
+        "captureButton"
+      ],
+      "required_text": ["READY", "USB READY", "PRESS SHUTTER OR TAP TO CAPTURE"],
+      "interactive": true
+    },
+    "READY_WITH_LATEST": {
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "reviewMedia",
+        "captureButton"
+      ],
+      "interactive": true
+    },
+    "CAPTURE_PROGRESS": {
+      "required_objects": [
+        "rootSurface",
+        "progressHeading",
+        "progressHero",
+        "cameraProgress1",
+        "cameraProgress2",
+        "cameraProgress3",
+        "cameraProgress4",
+        "phaseRail",
+        "steadyHint"
+      ],
+      "required_text": [
+        "CREATING BULLET-TIME",
+        "CAPTURING",
+        "TRANSFERRING",
+        "BUILDING ANIMATION",
+        "KEEP CAMERA STEADY"
+      ],
+      "forbidden_objects": ["captureButton", "reviewMedia"],
+      "interactive": false
+    },
+    "REVIEW_COMPLETE": {
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "reviewMedia",
+        "captureButton"
+      ],
+      "required_text": ["USB SAVED", "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"],
+      "interactive": true
+    },
+    "REVIEW_PARTIAL": {
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "reviewMedia",
+        "partialHeading",
+        "partialDetail",
+        "captureButton"
+      ],
+      "required_text": [
+        "USB SAVED",
+        "SAVED WITH",
+        "CAMERA",
+        "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"
+      ],
+      "interactive": true
+    },
+    "ERROR_BLOCKING": {
+      "required_objects": ["rootSurface", "errorHeading", "errorDetail"],
+      "interactive": false
+    }
+  },
+  "named_bounds": {
+    "rootSurface": [0, 0, 800, 480],
+    "productMark": [18, 10, 74, 58],
+    "cameraStrip": [145, 10, 310, 58],
+    "storageBadge": [610, 10, 180, 58],
+    "captureButton": [52, 374, 696, 88]
+  },
+  "allowed_camera_progress": [
+    "WAITING",
+    "CAPTURING",
+    "TRANSFERRING",
+    "COMPLETE",
+    "FAILED"
+  ],
+  "ordered_phases": ["CAPTURING", "TRANSFERRING", "BUILDING ANIMATION"]
+}
