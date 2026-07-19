@@ -62,6 +62,15 @@ class MediaTests(unittest.TestCase):
             )
             with Image.open(review_path) as image:
                 self.assertEqual(len(list(ImageSequence.Iterator(image))), 6)
+            preview_record = next(
+                item for item in manifest["files"] if item["role"] == "library_preview"
+            )
+            preview_path = review_path.parent / preview_record["path"]
+            self.assertTrue(preview_path.is_file())
+            with Image.open(preview_path) as preview:
+                self.assertEqual(preview.format, "JPEG")
+                self.assertLessEqual(preview.width, 240)
+                self.assertLessEqual(preview.height, 135)
             self.assertEqual(
                 validate_capture(root, "capture-a", UIDS).failed_camera_ids, frozenset()
             )

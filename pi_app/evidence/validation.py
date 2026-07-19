@@ -148,6 +148,7 @@ def validate_capture(
         raise EvidenceValidationError(f"{capture_id}: manifest files must be a list")
     originals: dict[int, dict] = {}
     animation = None
+    library_preview = None
     for record in file_records:
         if not isinstance(record, dict):
             raise EvidenceValidationError(f"{capture_id}: file record must be an object")
@@ -166,6 +167,10 @@ def validate_capture(
             if animation is not None:
                 raise EvidenceValidationError(f"{capture_id}: multiple animations recorded")
             animation = record
+        elif role == "library_preview":
+            if library_preview is not None:
+                raise EvidenceValidationError(f"{capture_id}: multiple library previews recorded")
+            library_preview = record
         else:
             raise EvidenceValidationError(f"{capture_id}: unsupported file role {role!r}")
 
@@ -174,6 +179,37 @@ def validate_capture(
             f"{capture_id}: committed originals {sorted(originals)} do not match successful cameras "
             f"{sorted(successful)}"
         )
+    if library_preview is not None:
+        if library_preview.get("path") != "library_preview.jpg":
+            raise EvidenceValidationError(
+                f"{capture_id}: library preview path must be library_preview.jpg"
+            )
+        preview_path = _safe_file(capture_dir, "library_preview.jpg")
+        try:
+            preview_size = preview_path.stat().st_size
+            if library_preview.get("bytes") != preview_size:
+                raise EvidenceValidationError(f"{capture_id}: library preview byte count mismatch")
+            if str(library_preview.get("crc32", "")).lower() != _crc32(preview_path):
+                raise EvidenceValidationError(f"{capture_id}: library preview CRC32 mismatch")
+            with Image.open(preview_path) as image:
+                image.verify()
+            with Image.open(preview_path) as image:
+                valid_size = 0 < image.width <= 240 and 0 < image.height <= 135
+                if image.format != "JPEG" or not valid_size:
+                    raise EvidenceValidationError(
+                        f"{capture_id}: library preview must be a JPEG no larger than 240x135"
+                    )
+                if (
+                    library_preview.get("width") != image.width
+                    or library_preview.get("height") != image.height
+                ):
+                    raise EvidenceValidationError(
+                        f"{capture_id}: library preview dimensions do not match manifest"
+                    )
+        except EvidenceValidationError:
+            raise
+        except Exception as exc:
+            raise EvidenceValidationError(f"{capture_id}: invalid library preview: {exc}") from exc
     original_images: dict[int, Image.Image] = {}
     for camera_id, record in originals.items():
         expected_name = f"camera_{camera_id:02d}.jpg"

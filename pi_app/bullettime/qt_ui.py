@@ -127,8 +127,9 @@ class QtUiController:
                 "viewCount": item.view_count,
                 "partial": item.status == "partial",
                 "thumbnail": (
-                    "data:image/png;base64," + base64.b64encode(item.thumbnail_png).decode("ascii")
-                    if item.thumbnail_png
+                    f"data:{item.thumbnail_mime};base64,"
+                    + base64.b64encode(item.thumbnail_bytes).decode("ascii")
+                    if item.thumbnail_bytes
                     else ""
                 ),
             }

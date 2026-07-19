@@ -30,6 +30,22 @@ def _display_frame(payload: bytes, max_width: int | None) -> Image.Image:
     return frame
 
 
+def _write_library_preview(frame: Image.Image, path: Path) -> dict:
+    """Write the small still used by the library without reopening the GIF."""
+    preview = frame.copy()
+    preview.thumbnail((240, 135), Image.Resampling.LANCZOS)
+    preview.save(path, format="JPEG", quality=72, optimize=True)
+    payload = path.read_bytes()
+    return {
+        "path": path.name,
+        "role": "library_preview",
+        "bytes": len(payload),
+        "crc32": f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}",
+        "width": preview.width,
+        "height": preview.height,
+    }
+
+
 def commit_capture_set(
     root: Path,
     capture: CompletedCapture,
@@ -74,6 +90,11 @@ def commit_capture_set(
                 for camera_id in ordered_ids
             }
             frames = [frames_by_id[camera_id] for camera_id in sequence]
+            files.append(
+                _write_library_preview(
+                    frames_by_id[ordered_ids[0]], staging_dir / "library_preview.jpg"
+                )
+            )
             gif_path = staging_dir / "bullet_time.gif"
             frames[0].save(
                 gif_path,

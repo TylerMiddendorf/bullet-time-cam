@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import io
 import json
 import shutil
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
@@ -21,7 +21,8 @@ class CatalogEntry:
     status: str
     view_count: int
     failed_camera_ids: tuple[int, ...]
-    thumbnail_png: bytes
+    thumbnail_bytes: bytes
+    thumbnail_mime: str
 
 
 @dataclass(frozen=True)
@@ -60,17 +61,43 @@ def _published_entry(directory: Path, *, decode_thumbnail: bool) -> CatalogEntry
             signature = stream.read(6)
         if signature not in {b"GIF87a", b"GIF89a"}:
             return None
-        thumbnail_png = b""
-        if decode_thumbnail:
+        thumbnail_bytes = b""
+        thumbnail_mime = ""
+        preview_file = next(
+            (
+                item
+                for item in files
+                if isinstance(item, dict) and item.get("role") == "library_preview"
+            ),
+            None,
+        )
+        if preview_file is not None:
+            preview_relative = Path(str(preview_file.get("path", "")))
+            if (
+                not preview_relative.is_absolute()
+                and ".." not in preview_relative.parts
+                and preview_relative != Path(".")
+            ):
+                preview = directory / preview_relative
+                try:
+                    thumbnail_bytes = preview.read_bytes()
+                    if thumbnail_bytes.startswith(b"\xff\xd8\xff"):
+                        thumbnail_mime = "image/jpeg"
+                    else:
+                        thumbnail_bytes = b""
+                except OSError:
+                    thumbnail_bytes = b""
+        if not thumbnail_bytes and decode_thumbnail:
             # Only decode the initially visible row in this worker. Reading all
-            # historical GIFs made a 200-set catalog take tens of seconds.
+            # legacy GIFs made a 200-set catalog take tens of seconds.
             with Image.open(animation) as source:
                 source.seek(0)
                 thumbnail = source.convert("RGB")
                 thumbnail.thumbnail((240, 135))
-                thumbnail_output = io.BytesIO()
-                thumbnail.save(thumbnail_output, format="PNG")
-                thumbnail_png = thumbnail_output.getvalue()
+                thumbnail_output = BytesIO()
+                thumbnail.save(thumbnail_output, format="JPEG", quality=72)
+                thumbnail_bytes = thumbnail_output.getvalue()
+                thumbnail_mime = "image/jpeg"
         completed = sorted(
             int(camera["logical_camera_id"])
             for camera in cameras
@@ -97,7 +124,8 @@ def _published_entry(directory: Path, *, decode_thumbnail: bool) -> CatalogEntry
             status=status,
             view_count=len(completed),
             failed_camera_ids=tuple(failed),
-            thumbnail_png=thumbnail_png,
+            thumbnail_bytes=thumbnail_bytes,
+            thumbnail_mime=thumbnail_mime,
         )
     except (KeyError, TypeError, ValueError, json.JSONDecodeError, OSError):
         return None

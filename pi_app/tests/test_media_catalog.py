@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from PIL import Image
 
@@ -13,7 +14,9 @@ from pi_app.bullettime.media_catalog import (
 )
 
 
-def published_capture(root: Path, capture_id: str, *, partial: bool = False) -> Path:
+def published_capture(
+    root: Path, capture_id: str, *, partial: bool = False, preview: bool = True
+) -> Path:
     directory = root / capture_id
     directory.mkdir()
     animation = directory / "bullet_time.gif"
@@ -31,12 +34,17 @@ def published_capture(root: Path, capture_id: str, *, partial: bool = False) -> 
     ]
     if partial:
         cameras.append({"logical_camera_id": 4, "status": "error"})
+    files = [{"path": animation.name, "role": "animation"}]
+    if preview:
+        preview_path = directory / "library_preview.jpg"
+        frames[0].copy().save(preview_path, "JPEG", quality=72)
+        files.append({"path": preview_path.name, "role": "library_preview"})
     manifest = {
         "schema_version": 2,
         "capture_id": capture_id,
         "status": "partial" if partial else "complete",
         "cameras": cameras,
-        "files": [{"path": animation.name, "role": "animation"}],
+        "files": files,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     return directory
@@ -60,7 +68,8 @@ class MediaCatalogTests(unittest.TestCase):
             self.assertEqual(catalog.entries[0].view_count, 3)
             self.assertEqual(catalog.entries[0].failed_camera_ids, (4,))
             self.assertEqual(catalog.entries[1].view_count, 4)
-            self.assertTrue(catalog.entries[1].thumbnail_png.startswith(b"\x89PNG"))
+            self.assertTrue(catalog.entries[1].thumbnail_bytes.startswith(b"\xff\xd8\xff"))
+            self.assertEqual(catalog.entries[1].thumbnail_mime, "image/jpeg")
 
     def test_corrupt_missing_and_unreadable_entries_are_skipped(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -96,14 +105,30 @@ class MediaCatalogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             for index in range(8):
-                published_capture(root, f"20260718T12{index:02d}00Z_capture{index}")
+                published_capture(root, f"20260718T12{index:02d}00Z_capture{index}", preview=False)
 
             catalog = scan_capture_catalog(root)
 
             self.assertEqual(len(catalog.entries), 8)
-            self.assertTrue(all(entry.thumbnail_png for entry in catalog.entries[:6]))
-            self.assertTrue(all(not entry.thumbnail_png for entry in catalog.entries[6:]))
+            self.assertTrue(all(entry.thumbnail_bytes for entry in catalog.entries[:6]))
+            self.assertTrue(all(not entry.thumbnail_bytes for entry in catalog.entries[6:]))
             self.assertEqual(catalog.skipped_count, 0)
+
+    def test_capture_time_previews_load_for_the_entire_catalog_without_gif_decode(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for index in range(12):
+                published_capture(root, f"capture-{index:02d}")
+
+            with patch(
+                "pi_app.bullettime.media_catalog.Image.open",
+                side_effect=AssertionError("catalog should not decode GIFs with previews"),
+            ):
+                catalog = scan_capture_catalog(root)
+
+            self.assertEqual(len(catalog.entries), 12)
+            self.assertTrue(all(entry.thumbnail_bytes for entry in catalog.entries))
+            self.assertTrue(all(entry.thumbnail_mime == "image/jpeg" for entry in catalog.entries))
 
     def test_removed_media_is_reported_during_scan_and_open(self):
         with tempfile.TemporaryDirectory() as temp:
