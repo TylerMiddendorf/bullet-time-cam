@@ -61,10 +61,13 @@ The product owner accepted an external battery pack with separate rated
 display. Aggregate measurement and internal battery/safe-power integration are
 retired as V1 gates.
 
-The physical Pi now runs the native Qt Quick/PySide6 touchscreen at 800x480 on
-Wayland. Seven mockup-derived routes cover ready, progress, partial review, a
-logo-based static preview placeholder, four-camera controls, a removable-USB
-library, and a detached GIF viewer. The library and viewer can permanently
+The physical Pi runs the native Qt Quick/PySide6 touchscreen at 800x480 on
+Wayland. Seven routes cover Ready, progress, partial review, Capture, Settings,
+Library, and a detached GIF viewer. Ready retains camera/USB status and offers
+gear/Settings, Library, and Capture navigation without taking a photo itself;
+Capture is the sole touchscreen photo-taking route. Its camera surface remains
+a truthfully labeled static placeholder until live preview is implemented. The
+Library and viewer can permanently
 delete a confirmed capture set, including its JPEG originals, GIF, and manifest.
 The application includes no live-preview
 backend and no battery UI. The library supports touch flicking plus visible
@@ -80,7 +83,7 @@ Confirmed whole-set deletion was deployed at `3f99e76`; Pi tests, native
 viewer/confirmation renders, and a disposable six-file capture set on the real
 product USB all passed without changing any pre-existing capture directory. See
 the [`library deletion evidence`](docs/evidence/qt-touchscreen/library-deletion-2026-07-19.md).
-App 0.2.4 also reports used and available capacity from the selected removable
+App 0.2.4 added used and available capacity from the selected removable
 USB filesystem in the library sidebar. A post-deployment real capture exposed
 and drove correction of an asynchronous refresh defect; the fix now has an
 exact regression test and passed the Pi's full deterministic suite against the

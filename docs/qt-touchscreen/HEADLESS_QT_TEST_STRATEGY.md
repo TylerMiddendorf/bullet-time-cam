@@ -8,8 +8,8 @@ track. Passing these layers does not claim physical-touchscreen or Pi acceptance
 - Logical render size: native 800x480 landscape
 - Visual references: all seven 1619x971 PNGs under `designs/ux-mockups/`
 - Contract: `pi_app/qt_validation/ux_contract.json`
-- Route order: ready, progress, partial review, static preview placeholder,
-  four-camera control center, removable-media library, GIF viewer
+- Route order: Ready, progress, partial review, Capture, Settings, Library,
+  GIF viewer
 - Headless seed/timezone/locale: fixed test seed, UTC, `C.UTF-8`
 - Headless renderer: `QT_QPA_PLATFORM=offscreen`, software RHI, basic render
   loop, Basic Controls style
@@ -66,7 +66,7 @@ Assertions cover:
 
 1. State/event transitions and non-regressing capture phases.
 2. Ten rapid/multi-touch inputs producing one capture command.
-3. No command from progress or static-preview routes.
+3. No capture command from any route except Capture.
 4. No node command from any disabled control-center setting.
 5. Library enumeration limited to committed removable-USB capture directories,
    with no mutation or boot-card fallback.
@@ -101,7 +101,7 @@ Use these filenames exactly:
 01-ready-800x480.png
 02-progress-800x480.png
 03-partial-review-800x480.png
-04-static-preview-placeholder-800x480.png
+04-capture-800x480.png
 05-four-camera-control-center-800x480.png
 06-removable-media-library-800x480.png
 07-gif-viewer-800x480.png
@@ -114,8 +114,8 @@ scope. Visual review checks visible text, target sizing, clipping, missing
 assets, and overflow; the current harness does not programmatically walk every
 semantic identifier or compare pixels to the source mockups.
 
-The preview screenshot must show both `DEMO PLACEHOLDER` and
-`PREVIEW NOT CONNECTED`. The viewer screenshot uses a named real GIF fixture,
+The Capture screenshot must show `CAPTURE`, `STATIC PLACEHOLDER`, and
+`CAMERA VIEW NOT CONNECTED`. The viewer screenshot uses a named real GIF fixture,
 not the design raster.
 
 ## Layer 4 - timing and fault tests

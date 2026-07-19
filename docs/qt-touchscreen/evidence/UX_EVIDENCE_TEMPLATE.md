@@ -60,10 +60,10 @@ Status: `PASS | PARTIAL | FAIL`
 
 | Design / route | Source raster | Native screenshot | SHA-256 | Required route-specific evidence |
 | --- | --- | --- | --- | --- |
-| 01 ready | `1619x971` | `01-ready-800x480.png` | | Four IDs, USB READY, one capture target |
+| 01 ready | `1619x971` | `01-ready-800x480.png` | | Four IDs, USB READY, gear/Settings, Library, Capture navigation; no capture command |
 | 02 progress | `1619x971` | `02-progress-800x480.png` | | No stale review; no touch command |
 | 03 partial review | `1619x971` | `03-partial-review-800x480.png` | | Logical failed camera and real/fixture GIF |
-| 04 static preview placeholder | `1619x971` | `04-static-preview-placeholder-800x480.png` | | `DEMO PLACEHOLDER`; `PREVIEW NOT CONNECTED`; no backend |
+| 04 Capture | `1619x971` | `04-capture-800x480.png` | | `CAPTURE`; `STATIC PLACEHOLDER`; `CAMERA VIEW NOT CONNECTED`; sole touch capture command |
 | 05 four-camera control center | `1619x971` | `05-four-camera-control-center-800x480.png` | | Four IDs; disabled settings; zero node commands |
 | 06 removable-media library | `1619x971` | `06-removable-media-library-800x480.png` | | USB-only, read-only catalog |
 | 07 GIF viewer | `1619x971` | `07-gif-viewer-800x480.png` | | Named real GIF; detached PNG frames; no Qt Multimedia |
@@ -142,17 +142,18 @@ service result, recovery action, and first successful post-recovery capture.
 
 - [ ] No live camera stream or live-preview pipeline was exercised or claimed.
 - [ ] The only preview-like asset is `assets/ui/preview-placeholder.png`.
-- [ ] Whenever the preview fixture is visible, it says `DEMO PLACEHOLDER` and
+- [ ] Whenever the camera-view fixture is visible, it says `STATIC PLACEHOLDER` and
       never `LIVE`.
 - [ ] No battery level, icon, charge, power-source, or battery-status UI appears.
 - [ ] No empty battery compartment, divider, spacer, or reserved header region
       remains.
-- [ ] No enabled settings, media mutation, Wi-Fi control, hotspot claim, or
+- [ ] No enabled settings, unsupported media mutation, Wi-Fi control, hotspot claim, or
       12-camera UI appears; library/control-center content is confined to its
       bounded validation route.
 - [ ] The control-center test route has exactly four cameras; unsupported
       settings are disabled and emit no node commands.
-- [ ] The library test route reads only removable USB and offers no mutation.
+- [ ] The library test route reads only removable USB and offers only confirmed
+      whole-capture-set deletion as a mutation.
 - [ ] The viewer test route decodes a real GIF to detached PNG frames without
       Qt Multimedia.
 - [ ] `docs/MILESTONE_4_PLAN.md` is unchanged from the track baseline.

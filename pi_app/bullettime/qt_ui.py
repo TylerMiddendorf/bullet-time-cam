@@ -516,7 +516,7 @@ def run_qt_ui(
             return controller.pending_delete_title
 
         @Property(str, constant=True)
-        def previewPlaceholder(self) -> str:  # noqa: N802
+        def capturePlaceholder(self) -> str:  # noqa: N802
             return QUrl.fromLocalFile(str(placeholder)).toString()
 
         @Property(str, constant=True)

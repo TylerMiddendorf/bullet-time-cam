@@ -19,7 +19,8 @@ python3 -m unittest discover -s pi_app/tests -v
 
 The normal local run currently discovers 118 tests: 117 pass and one
 environment-gated physical-rig test is skipped until a live ledger is supplied.
-Coverage includes Qt state/routes, detached playback, historical USB catalog
+Coverage includes Qt state/routes, the Capture-only touchscreen command
+boundary, detached playback, historical USB catalog
 browsing and deletion, corrupt and removed catalog entries, grouping, persistence,
 protocol, GPIO, and evidence validation.
 
@@ -36,6 +37,11 @@ Use `--headless` for receiver/storage testing without the fullscreen UI. The app
 Insert a writable USB mass-storage drive before capturing. For every commit, the application reads Linux mount information and sysfs, accepts only filesystems backed by an actual USB block device, and writes the capture set below `BulletTime/` on that drive. If no suitable filesystem is mounted, it asks `udisks2` to mount detected USB media and rescans. The product installer includes `udisks2`.
 
 The application deliberately does not fall back to the Raspberry Pi boot microSD. A touchscreen capture is blocked with a visible error when USB storage is unavailable. If a physical shutter capture arrives while storage is unavailable, the Pi sends a NACK and does not commit the JPEG internally.
+
+Ready displays the current USB and four-camera state and navigates to Settings,
+Library, or Capture. It does not enqueue a photo. Capture is the only
+touchscreen route that can enqueue a shot; the physical shutter remains an
+independent hardware input.
 
 Storage behavior is configured in `pi_app/config.json`:
 

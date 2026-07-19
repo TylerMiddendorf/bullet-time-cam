@@ -24,8 +24,8 @@ requirements for this track.
   pack is the V1 charge indicator.
 - The screen MUST NOT show or imply a live camera feed. The deterministic
   `assets/ui/preview-placeholder.png` fixture MAY be used for layout and
-  headless tests. Whenever it is visible, `previewPlaceholderLabel` MUST overlay
-  the exact text `DEMO PLACEHOLDER`; the UI MUST never use `LIVE` or imply that
+  headless tests. Whenever it is visible, the surface MUST overlay
+  the exact text `STATIC PLACEHOLDER`; the UI MUST never use `LIVE` or imply that
   the fixture came from camera transport.
 - The validation route selector MUST be test-only. A deterministic route is not
   automatically a shipped V1 feature or part of production navigation.
@@ -120,19 +120,11 @@ is retained, and writable USB storage resolves successfully.
 - Persistent header is visible.
 - `readyGlyph` occupies approximately `x=80..285`, `y=130..335` and uses the
   blue aperture motif from `01-v1-ready.png` or a code-native equivalent.
-- When `previewPlaceholder` is enabled for migration testing, it MAY replace
-  the decorative ready body but MUST remain behind a persistent, high-contrast
-  `previewPlaceholderLabel` reading `DEMO PLACEHOLDER`. It does not change the
-  READY interaction or state model.
 - `stateHeading` reads `READY`.
 - `stateDetail` reads `N OF 4 CAMERAS CONNECTED`, using the actual `N`.
-- `captureButton` reads `PRESS SHUTTER OR TAP TO CAPTURE` and occupies
-  approximately `x=52..748`, `y=374..462`.
-- Touch anywhere inside `captureButton` queues exactly one `CAPTURE` command.
-  A touch outside the button MUST NOT trigger. The physical shutter remains
-  independent of the Qt touch target.
-- The button MUST debounce repeated press/release/tap input until the view model
-  leaves READY. Multi-touch MUST still queue at most one command.
+- The bottom row contains a gear-icon Settings target, Library, and Capture.
+- Ready MUST NOT enqueue `CAPTURE`; its Capture target navigates to `/capture`.
+- The physical shutter remains independent of touchscreen route navigation.
 - If `N < 4`, the screen MAY remain ready only if the runtime permits that
   workflow; it MUST show the true count and gray missing camera indicators.
 
@@ -141,7 +133,7 @@ is retained, and writable USB storage resolves successfully.
 Entry: READY arrives while a successfully loaded latest review is retained.
 
 - The latest animation remains visible and playing; READY MUST NOT discard it.
-- The persistent header and `captureButton` overlay remain available.
+- The persistent header and navigation targets remain available.
 - A successful review carries no error banner. A retained partial review keeps
   its camera-specific banner until a new capture begins.
 
@@ -185,13 +177,12 @@ Entry: REVIEW event includes a loadable committed GIF.
   containment; faces/subjects MUST not be distorted.
 - The header camera indicators are all green and `storageBadge` reads
   `USB SAVED`.
-- A translucent bottom panel, no taller than 122 px, contains
-  `captureButton` text `PRESS SHUTTER OR TAP FOR NEXT CAPTURE`.
+- A translucent bottom panel contains navigation to Capture, Viewer, and
+  Library.
 - The GIF loops until the next capture begins. Decoded frames MUST be detached
   from removable media so unplugging the drive after load does not stop Qt event
   processing.
-- A tap on `captureButton` queues one capture and immediately disables further
-  taps. Tapping the image outside the button does nothing.
+- The Capture target navigates to `/capture`; Review MUST NOT queue a shot.
 
 ### 4.6 REVIEW_PARTIAL
 
@@ -204,7 +195,7 @@ two successful views.
 - `partialDetail` names every failed logical camera, for example
   `CAMERA 4 DID NOT RESPOND`. If the raw diagnostic differs, user-facing text
   stays bounded while the journal/manifest retains full detail.
-- The bottom action reads `PRESS SHUTTER OR TAP FOR NEXT CAPTURE`.
+- The bottom Capture action navigates to `/capture`.
 - Failure identity MUST come from logical camera IDs, never transient serial
   port names.
 
@@ -226,18 +217,20 @@ no camera nodes, or review-media load failure.
 - A review-media load failure reads `REVIEW UNAVAILABLE`, explains that the USB
   drive was removed, and permits recovery without terminating the event loop.
 
-### 4.8 STATIC_PREVIEW_PLACEHOLDER test route
+### 4.8 CAPTURE
 
-Route: `/preview-placeholder`; visual source:
+Route: `/capture`; visual source:
 `designs/ux-mockups/04-fast-follow-live-preview.png`.
 
 - The route MUST use only `assets/ui/preview-placeholder.png` as its image-like
-  content and MUST render `DEMO PLACEHOLDER` over that asset.
-- It MUST also render `PREVIEW NOT CONNECTED`. It MUST NOT render `LIVE`, create
+  content and MUST render `STATIC PLACEHOLDER` over that asset.
+- It MUST also render `CAMERA VIEW NOT CONNECTED`. It MUST NOT render `LIVE`, create
   a camera-stream object, open camera transport, or import Qt Multimedia.
 - It shows exactly four camera identities and USB readiness without battery,
   Wi-Fi, hotspot, timer, or user-setting claims.
-- It is non-interactive and emits no capture or node commands.
+- It is the only touchscreen route allowed to emit the existing product
+  `CAPTURE` command. It also navigates to Settings or Ready and emits no node
+  setting commands.
 
 ### 4.9 FOUR_CAMERA_CONTROL_CENTER test route
 
@@ -251,9 +244,9 @@ Route: `/control-center`; visual source:
   visibly marked `V2 · DISABLED` beneath a `SETTINGS` heading.
 - Disabled setting objects MUST have no signal binding capable of sending a
   node command. The route's `node_commands` contract remains an empty list.
-- Capture may emit the existing product `CAPTURE` command when the receiver is
-  ready. The other active targets are navigation to the ready or library
-  routes; settings remain inert.
+- Its Capture target navigates to `/capture`; the control center MUST NOT emit
+  `CAPTURE`. Its other active targets navigate to Ready or Library; settings
+  remain inert.
 
 ### 4.10 REMOVABLE_MEDIA_LIBRARY test route
 
@@ -305,7 +298,7 @@ Route: `/viewer`; visual source:
 | ERROR while capture active | ERROR_BLOCKING with no stale image |
 | ERROR while idle partial review retained | retain REVIEW_PARTIAL and its original camera error |
 | invalid/removed review image | ERROR_BLOCKING; continue polling |
-| test route `/preview-placeholder` | static fixture; no command/backend |
+| route `/capture` | static fixture; sole touchscreen capture command/backend |
 | test route `/control-center` | four cameras; settings disabled; no node command |
 | test route `/library` | removable-media enumeration and confirmed whole-set deletion |
 | test route `/viewer` | real GIF decoded to detached PNG frames |
@@ -337,9 +330,9 @@ headless evidence and the Pi-only subset has physical-device evidence.
 | UX-012 | READY after review | Latest review remains visible and animated |
 | UX-013 | Error after new capture | Stale review is not restored |
 | UX-014 | Geometry | Every screenshot is exactly 800x480; required bounds fit viewport |
-| UX-015 | Scope guard | No battery/power region or live/video/stream label; any preview fixture says DEMO PLACEHOLDER |
+| UX-015 | Scope guard | No battery/power region or live/video/stream label; the camera fixture says STATIC PLACEHOLDER |
 | UX-016 | Shutdown | Receiver stop and Qt exit complete within service timeout |
-| UX-017 | Static preview route | Fixture says `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`; no backend or command |
+| UX-017 | Capture route | Fixture says `STATIC PLACEHOLDER` and `CAMERA VIEW NOT CONNECTED`; sole touchscreen capture command |
 | UX-018 | Four-camera control center | Exactly four IDs; no battery/hotspot region; settings disabled; no node commands |
 | UX-019 | Removable-media library | Only committed USB captures; confirmed whole-set deletion; missing/removal fault survives |
 | UX-020 | Real GIF viewer | Real GIF decodes to detached looping PNG frames; no Qt Multimedia import |

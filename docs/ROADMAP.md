@@ -147,9 +147,10 @@ Status: complete July 18, 2026
   preserving the receiver, GPIO17 trigger, atomic media pipeline, and headless
   operation.
 - Implement seven native 800x480 routes derived from the approved UX
-  explorations: ready, progress, partial review, static preview placeholder,
-  four-camera controls, removable-media library, and detached viewer.
-- Keep the preview demonstrably static and logo-based. Do not add live camera
+  explorations: Ready, progress, partial review, Capture, Settings, Library,
+  and detached viewer.
+- Keep the Capture camera surface demonstrably static and logo-based until live
+  preview is implemented. Do not add live camera
   transport, Qt Multimedia, battery UI/state, network claims, rename/edit/share
   operations, or operative camera-setting commands.
 - Deploy through commit, push, and fast-forward Pi pull; validate native
@@ -189,6 +190,13 @@ and adds an exact regression test. The corrected 122-test Pi suite passed with
 only the expected live-evidence skip, and the fixed path returned the user's
 real capture plus `3.8 MB` used / `248.0 GB` available from `/dev/sdb1`. See
 [`storage-capacity-2026-07-19.md`](evidence/qt-touchscreen/storage-capacity-2026-07-19.md).
+
+On July 19, the product owner reorganized the start-screen flow. Ready remains
+the complete camera/USB status surface but now contains only gear/Settings,
+Library, and Capture navigation. The former Preview Demo route is Capture and
+is the sole touchscreen route allowed to enqueue a photo; Review and Settings
+link there. Media Demo and other generic media-navigation labels are now
+Library. App 0.2.5 implements and regression-tests this command boundary.
 
 ## Milestone 4 - Compact Version 1 Enclosure
 

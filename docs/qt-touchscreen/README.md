@@ -12,9 +12,8 @@ recorded in `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
 ## Scope
 
 - 800x480 full-screen touchscreen presentation
-- Seven deterministic test routes covering ready, progress, partial review,
-  static preview placeholder, current four-camera control center,
-  removable-media library, and real-GIF viewer compositions
+- Seven deterministic test routes covering Ready, progress, partial review,
+  Capture, Settings, Library, and real-GIF viewer compositions
 - Product-logo handoff, complete review, actionable error states, and safe
   receiver/shutdown behavior
 - Headless Qt tests and screenshot evidence
@@ -51,8 +50,10 @@ operations other than confirmed whole-capture-set deletion, or node setting comm
 The later compositions are deliberately adapted into bounded validation
 routes:
 
-- Design 4 uses only the generated static preview fixture and must say
-  `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`.
+- Design 4 is the Capture route. It uses only the generated static camera
+  fixture and must say `STATIC PLACEHOLDER` and
+  `CAMERA VIEW NOT CONNECTED` until live preview exists. It is the only
+  touchscreen route allowed to emit `CAPTURE`.
 - Design 5 reports the current four cameras. Unsupported settings are visible
   only as disabled/unavailable controls and have no node-command binding.
 - Design 6 reads only committed captures on removable USB media. It can delete
@@ -61,9 +62,9 @@ routes:
 - Design 7 decodes a selected real GIF into detached PNG data-URL frames and
   presents them with Qt Quick `Image`; it does not import Qt Multimedia.
 
-`assets/ui/preview-placeholder.png` is the only approved preview-like fixture
+`assets/ui/preview-placeholder.png` is the only approved camera-view fixture
 for this track. Whenever it is visible, the UI must overlay the exact text
-`DEMO PLACEHOLDER`; it must never call the image live or imply camera transport.
+`STATIC PLACEHOLDER`; it must never call the image live or imply camera transport.
 
 ## Documents
 

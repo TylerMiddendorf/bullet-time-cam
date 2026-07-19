@@ -8,7 +8,7 @@ Item {
 
     Image {
         anchors.fill: parent
-        source: bridge.previewPlaceholder
+        source: bridge.capturePlaceholder
         fillMode: Image.PreserveAspectCrop
     }
 

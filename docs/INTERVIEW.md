@@ -331,3 +331,19 @@ Implementation status:
   reporting capacity from the protected Raspberry Pi boot card.
 - Commit and push the change, fast-forward pull it on the Pi, and verify the
   behavior on the physical Pi before treating it as complete.
+
+### 2026-07-19 - Ready navigation and dedicated Capture screen
+
+- Keep all existing USB, four-camera, READY/ATTENTION, and detail statuses on
+  the Ready/start screen.
+- Remove direct touchscreen photo taking from Ready. Its three actions are a
+  gear icon opening Settings/control center, Library, and Capture.
+- Rename the former Preview Demo route to Capture everywhere in current UI and
+  operating documentation.
+- Make Capture the only touchscreen photo-taking screen. Review and Settings
+  may link to Capture but must not enqueue a photo themselves.
+- Replace Media Demo and generic media-navigation labels with Library.
+- Preserve the independent physical shutter and the existing capture-progress,
+  review, camera-status, and USB-status behavior.
+- Commit changes incrementally, push them, fast-forward pull the same commits
+  on the Raspberry Pi, and test the reorganized UI there.

@@ -266,7 +266,7 @@ class QmlContractTests(unittest.TestCase):
         setting = (QML_ROOT / "components" / "SettingCard.qml").read_text(encoding="utf-8")
         self.assertIn('text: "STATIC PLACEHOLDER"', placeholder)
         self.assertIn('text: "CAMERA VIEW NOT CONNECTED"', placeholder)
-        self.assertIn("bridge.previewPlaceholder", placeholder)
+        self.assertIn("bridge.capturePlaceholder", placeholder)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
 

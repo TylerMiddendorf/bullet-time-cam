@@ -206,7 +206,7 @@ Item {
                 Image {
                     anchors.fill: parent
                     anchors.bottomMargin: 30
-                    source: modelData.thumbnail === "" ? bridge.previewPlaceholder : modelData.thumbnail
+                    source: modelData.thumbnail === "" ? bridge.capturePlaceholder : modelData.thumbnail
                     fillMode: Image.PreserveAspectCrop
                     opacity: modelData.thumbnail === "" ? 0.45 : 1.0
                 }

@@ -19,7 +19,7 @@ Item {
         y: 78
         width: 752
         height: 300
-        source: bridge.imageSource === "" ? bridge.previewPlaceholder : bridge.imageSource
+        source: bridge.imageSource === "" ? bridge.capturePlaceholder : bridge.imageSource
         fillMode: Image.PreserveAspectFit
         cache: false
     }

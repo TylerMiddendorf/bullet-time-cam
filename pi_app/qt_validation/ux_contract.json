@@ -71,7 +71,7 @@
     "video stream",
     "streaming"
   ],
-  "preview_fixture": {
+  "capture_fixture": {
     "path": "assets/ui/preview-placeholder.png",
     "required_label": "STATIC PLACEHOLDER",
     "forbidden_label": "LIVE",
@@ -180,7 +180,7 @@
         "productMark",
         "cameraStrip",
         "storageBadge",
-        "previewPlaceholder",
+        "capturePlaceholder",
         "captureButton"
       ],
       "forbidden_objects": ["previewStream", "videoOutput"],

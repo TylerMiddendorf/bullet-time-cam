@@ -171,18 +171,23 @@ The Raspberry Pi also initiates the same simultaneous hardware capture through B
 
 ### Display and controls
 
-The deployed touchscreen application uses Qt Quick/QML with a PySide6 bridge on
-the Raspberry Pi. Its seven native 800x480 routes cover ready, capture progress,
-camera-specific partial review, a static preview placeholder, a four-camera
-control-center concept, a removable-media library, and a detached GIF
+The touchscreen application uses Qt Quick/QML with a PySide6 bridge on the
+Raspberry Pi. Its seven native 800x480 routes cover Ready, capture progress,
+camera-specific partial review, Capture, Settings, Library, and a detached GIF
 viewer. Runtime QML implements the layouts directly; it does not display the
 mockup screenshots.
 
-The preview route is deliberately a logo-derived static placeholder marked
-`DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`. There is no live camera
-transport, Qt Multimedia dependency, or `LIVE` claim. Camera settings are
-visible only as disabled future controls and emit no node commands. The
-historical library validates published schema-2 capture sets and decodes
+Ready is a status-and-navigation screen. It retains USB state, all four camera
+statuses, and the READY/ATTENTION detail while offering a gear icon for
+Settings, Library, and Capture. It cannot enqueue a touchscreen capture.
+Capture is the only touchscreen route that can take a photo; Review and
+Settings link to it instead of emitting capture commands. The Capture route
+currently uses a logo-derived static placeholder marked `STATIC PLACEHOLDER`
+and `CAMERA VIEW NOT CONNECTED`. There is no live camera transport, Qt
+Multimedia dependency, or `LIVE` claim. The independent physical shutter
+continues to use the shared hardware trigger. Camera settings are visible only
+as disabled future controls and emit no node commands. The Library validates
+published schema-2 capture sets and decodes
 selected GIFs away from removable media before viewer display. A confirmed
 delete action is available from the library and viewer; it revalidates the
 selected set and removes that set's originals, GIF, and manifest together from
@@ -197,8 +202,9 @@ The installed display is an 800x480 HDMI touchscreen. A July 17 query of the run
 
 Planned capability sequence:
 
-1. Version 1: capture/loading state, persistent latest-result review, essential
-   status, removable-media browsing/deletion, and the static preview placeholder
+1. Version 1: status-only Ready navigation, a dedicated Capture route,
+   capture/loading state, persistent latest-result review, and removable-media
+   Library browsing/deletion
 2. Fast follow: live preview
 3. Version 2: user-adjustable camera settings
 4. Much later: network-based media access, remote control, and other Wi-Fi features after the onboard experience is polished
@@ -379,11 +385,13 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The initial animation uses the four captured photographs and plays back and forth.
 - Version 1 uses the raw captured images without alignment or appearance normalization.
 - Every original image and the generated GIF are preserved.
-- Version 1 provides post-capture review but no live preview.
+- Version 1 provides post-capture review but no live preview. Ready is a
+  status-and-navigation screen, and Capture is the only touchscreen route that
+  can enqueue a photo.
 - During capture, version 1 displays a loading/capture screen.
 - After capture, the latest result remains displayed until the next capture.
 - During boot, the display shows only `assets/Logo_800x480.png` and transitions directly to the full-screen camera application; Raspberry Pi firmware artwork, desktop UI, boot logs, cursors, and startup diagnostics are not user-visible.
-- Version 1 provides browsing of published capture sets, a detached GIF viewer,
+- Version 1 provides a Library for browsing published capture sets, a detached GIF viewer,
   and confirmed deletion of a complete selected set. Deletion removes the set's
   original JPEGs, animation GIF, and manifest together from removable USB media;
   rename, editing, sharing, and boot-card browsing remain unsupported.

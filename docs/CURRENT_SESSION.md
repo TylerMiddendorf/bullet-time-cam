@@ -48,6 +48,9 @@ Status reviewed: July 18, 2026
 - The first Qt soft reboot failed to return to the LAN and required a physical
   power cycle. Recovery checks passed, but no persistent journal was available;
   the cause and clean Qt soft-reboot lifecycle remain open.
+- App 0.2.5 reorganizes Ready into status plus gear/Settings, Library, and
+  Capture navigation. Capture is the only touchscreen photo-taking route; its
+  surface remains a truthfully labeled static placeholder pending live preview.
 
 ## Immediate Work
 

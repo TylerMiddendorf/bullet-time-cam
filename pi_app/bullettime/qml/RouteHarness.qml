@@ -38,9 +38,9 @@ Window {
         property var failedCameraIds: route === "review" ? [4] : []
         property int viewCount: route === "review" ? 3 : 4
         property int viewerViewCount: 4
-        property string previewPlaceholder: Qt.resolvedUrl("../../../assets/ui/preview-placeholder.png")
+        property string capturePlaceholder: Qt.resolvedUrl("../../../assets/ui/preview-placeholder.png")
         property string startupLogo: Qt.resolvedUrl("../../../assets/Logo_800x480.png")
-        property string fixtureMedia: harnessWindow.argumentValue("--media=", previewPlaceholder)
+        property string fixtureMedia: harnessWindow.argumentValue("--media=", capturePlaceholder)
         property string imageSource: fixtureMedia
         property int selectedLibraryIndex: 0
         property string catalogStatus: "ready"

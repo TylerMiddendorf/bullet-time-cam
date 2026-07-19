@@ -228,7 +228,7 @@ def _validate_route(
             errors.append(f"route {route_id!r} renders forbidden term {term!r}")
 
     if route_id == "capture":
-        fixture = contract.get("preview_fixture", {})
+        fixture = contract.get("capture_fixture", {})
         if fixture.get("required_label") not in route.get("rendered_text", []):
             errors.append("capture route must render STATIC PLACEHOLDER")
         if route.get("fixture") != fixture.get("path"):
