@@ -47,6 +47,9 @@ reviewed without searching one large flat directory.
   touchscreen command boundary, commit/push/Pi-pull chain, final Pi tests,
   native-Wayland renders, actual live status screen, and the disconnected-node
   limitation
+- [`navigation-icon-sizing-2026-07-19.md`](qt-touchscreen/navigation-icon-sizing-2026-07-19.md)
+  - app 0.2.6 large Ready gear and Library home icon, native Pi render and
+  interaction checks, commit/push/Pi-pull chain, and restarted-service health
 
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,

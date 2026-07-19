@@ -366,6 +366,13 @@ As of July 18, 2026:
   service-screen inspection. The camera nodes were not enumerated during that
   UI pass, so no new four-camera capture is claimed. See
   `docs/evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md`.
+- App 0.2.6 replaces the Library screen's text return action with a large home
+  icon and enlarges Ready's Settings gear. Final commit `4be243c` passed 124 Pi
+  tests (one expected live-evidence skip), native Wayland renders, a
+  Library-to-Ready QML interaction smoke, the boot/session verifier, and live
+  service inspection. The camera nodes remained disconnected during this
+  UI-only pass. See
+  `docs/evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,

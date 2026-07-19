@@ -54,6 +54,11 @@ Status reviewed: July 18, 2026
   Final commit `1d880c1` is deployed on the Pi and passed the final suite,
   native-Wayland renders, boot verifier, and live-screen inspection. The camera
   nodes were not enumerated, so no new physical capture was made in this pass.
+- App 0.2.6 is deployed at `4be243c`. Ready's Settings gear and Library's home
+  icon now fill most of their touch buttons. The final Pi suite, native route
+  renders, Library-to-Ready interaction smoke, boot verifier, and restarted
+  live service passed. Evidence is in
+  [`evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md`](evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
 
 ## Immediate Work
 

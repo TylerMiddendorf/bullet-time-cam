@@ -204,6 +204,13 @@ were not enumerated, so this was a UI deployment pass rather than new physical
 capture evidence. See
 [`navigation-reorganization-2026-07-19.md`](evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md).
 
+App 0.2.6 replaces the Library screen's text-based return action with a large
+home icon and enlarges Ready's Settings gear to fill its touch target. Final
+commit `4be243c` passed the 124-test Pi suite with one expected live-evidence
+skip, native-Wayland icon renders, a Library-to-Ready QML interaction smoke,
+the complete boot/session verifier, and restarted live-service inspection. See
+[`navigation-icon-sizing-2026-07-19.md`](evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026

@@ -94,6 +94,11 @@ navigation and makes Capture the sole touchscreen photo-taking route. Commit
 `1d880c1` passed the final Pi suite and native-Wayland render review; the camera
 nodes were not enumerated during that UI-only pass. See the
 [`navigation evidence`](docs/evidence/qt-touchscreen/navigation-reorganization-2026-07-19.md).
+App 0.2.6 replaces the Library screen's text return action with a large home
+icon and enlarges Ready's Settings gear. Commit `4be243c` passed the full Pi
+suite, native-Wayland renders, a Library-to-Ready interaction smoke, the boot
+verifier, and live-service inspection. See the
+[`navigation icon evidence`](docs/evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.
