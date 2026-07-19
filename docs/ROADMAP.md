@@ -180,12 +180,14 @@ and a disposable real-product-USB deletion check that retained all 222
 pre-existing capture directories. See
 [`library-deletion-2026-07-19.md`](evidence/qt-touchscreen/library-deletion-2026-07-19.md).
 
-App 0.2.3 adds used and available capacity from the selected removable USB
-filesystem to the media-library sidebar. Feature commit `81a2a49` and visual
-correction `6398f3a` were each pushed and fast-forward pulled on the Pi. The
-121-test Pi suite passed with only the expected live-evidence skip; the backend
-matched `/dev/sdb1` byte-for-byte with `df`, and the corrected native 800x480
-Wayland render passed without QML errors. See
+App 0.2.4 adds used and available capacity from the selected removable USB
+filesystem to the media-library sidebar. Initial commits `81a2a49` and
+`6398f3a` passed separate backend and layout checks, but a later real capture
+exposed that the running UI remained stuck refreshing because its asynchronous
+result tuple was not unpacked. Commit `00d7531` fixes the common result handoff
+and adds an exact regression test. The corrected 122-test Pi suite passed with
+only the expected live-evidence skip, and the fixed path returned the user's
+real capture plus `3.8 MB` used / `248.0 GB` available from `/dev/sdb1`. See
 [`storage-capacity-2026-07-19.md`](evidence/qt-touchscreen/storage-capacity-2026-07-19.md).
 
 ## Milestone 4 - Compact Version 1 Enclosure

@@ -80,10 +80,11 @@ Confirmed whole-set deletion was deployed at `3f99e76`; Pi tests, native
 viewer/confirmation renders, and a disposable six-file capture set on the real
 product USB all passed without changing any pre-existing capture directory. See
 the [`library deletion evidence`](docs/evidence/qt-touchscreen/library-deletion-2026-07-19.md).
-App 0.2.3 also reports used and available capacity from the selected removable
-USB filesystem in the library sidebar. The final corrected layout passed the
-Pi's full deterministic suite, an exact live-filesystem comparison, and a
-warning-free native 800x480 Wayland render; see the
+App 0.2.4 also reports used and available capacity from the selected removable
+USB filesystem in the library sidebar. A post-deployment real capture exposed
+and drove correction of an asynchronous refresh defect; the fix now has an
+exact regression test and passed the Pi's full deterministic suite against the
+new capture and live filesystem. See the
 [`storage-capacity evidence`](docs/evidence/qt-touchscreen/storage-capacity-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
