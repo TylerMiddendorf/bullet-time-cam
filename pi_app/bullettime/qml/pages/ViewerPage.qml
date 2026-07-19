@@ -53,25 +53,31 @@ Item {
         border.color: "#414950"
 
         Text {
-            x: 24
-            width: 190
+            x: 20
+            width: 175
             anchors.verticalCenter: parent.verticalCenter
             text: "ANIMATION PLAYBACK"
             color: "white"
             font.pixelSize: 15
+            fontSizeMode: Text.Fit
+            minimumPixelSize: 11
             font.bold: true
             font.letterSpacing: 1.5
+            elide: Text.ElideRight
         }
 
         Text {
-            x: 210
-            width: 205
+            x: 195
+            width: 220
             anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             text: bridge.imageSource === "" ? "NO MEDIA" : bridge.viewerViewCount + " CAPTURED VIEWS"
             color: "#63adf2"
             font.pixelSize: 15
+            fontSizeMode: Text.Fit
+            minimumPixelSize: 11
             font.bold: true
+            elide: Text.ElideRight
         }
 
         TouchButton {

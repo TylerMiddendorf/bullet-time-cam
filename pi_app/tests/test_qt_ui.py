@@ -234,6 +234,7 @@ class QmlContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('objectName: "viewerDeleteButton"', viewer)
+        self.assertIn("fontSizeMode: Text.Fit", viewer)
         self.assertIn('objectName: "confirmDeleteButton"', confirmation)
         self.assertIn("This cannot be undone", confirmation)
 

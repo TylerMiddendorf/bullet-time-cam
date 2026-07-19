@@ -45,8 +45,8 @@ Window {
         property int selectedLibraryIndex: 0
         property string catalogStatus: "ready"
         property string catalogMessage: "Fixture catalog"
-        property bool deleteConfirmationVisible: false
-        property string pendingDeleteTitle: ""
+        property bool deleteConfirmationVisible: fixtureMedia === "confirm-delete"
+        property string pendingDeleteTitle: "codex_delete_test_95961ff"
         property bool fullscreen: false
         property bool canCapture: true
         property var libraryItems: [
