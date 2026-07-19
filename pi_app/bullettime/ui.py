@@ -8,44 +8,21 @@ import queue
 import threading
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
 
 from PIL import Image, ImageOps, ImageSequence
 
 from .gpio_trigger import HardwareTrigger
 from .storage import UsbStorageResolver, atomic_json
+from .ui_model import PresentationState, compact_ui_message
 
 LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class Presentation:
-    state: str
-    image: str | None
-    text: str
-    color: str
-
-
 def _compact_ui_message(message: str) -> str:
-    """Keep common storage failures actionable and readable on an 800x480 display."""
-    lowered = message.lower()
-    if "no space left" in lowered or "errno 28" in lowered:
-        return (
-            "USB storage is full\nFree space or insert another USB drive,\nthen tap to try again."
-        )
-    if "read-only" in lowered or "errno 30" in lowered:
-        return "USB storage is read-only\nInsert a writable USB drive,\nthen tap to try again."
-    if "automatic mount errors" in lowered or any(
-        detail in lowered
-        for detail in ("wrong fs type", "bad superblock", "unknown filesystem", "mount failed")
-    ):
-        return "USB storage could not be mounted\nRepair or replace the USB drive,\nthen tap to try again."
-    if "input/output error" in lowered or "errno 5" in lowered:
-        return "USB storage was removed or failed\nReconnect or replace the USB drive,\nthen tap to try again."
-    if "no writable usb storage" in lowered:
-        return "USB storage unavailable\nInsert a writable USB drive,\nthen tap to try again."
-    return message
+    """Compatibility alias retained for existing callers and tests."""
+
+    return compact_ui_message(message)
 
 
 def _load_review_frames(
@@ -80,53 +57,6 @@ def _drain_events(
             handle(event)
         except Exception as exc:
             handle_failure(event, exc)
-
-
-class PresentationState:
-    """Pure UI reducer used by both Tk and deterministic tests."""
-
-    def __init__(self) -> None:
-        self.state = "STARTING"
-        self.review_image: str | None = None
-        self.review_text = ""
-        self.review_color = "white"
-        self.capture_in_progress = False
-
-    def apply(self, event: dict) -> Presentation:
-        state = str(event["state"])
-        message = _compact_ui_message(str(event.get("message", state)))
-        was_capturing = self.capture_in_progress
-        if state == "LOADING":
-            self.capture_in_progress = True
-            presentation = Presentation(state, None, message, "#ffb000")
-        elif state in {"REVIEW", "REVIEW_WITH_ERROR"}:
-            self.capture_in_progress = False
-            if event.get("image"):
-                self.review_image = str(event["image"])
-            text = message if state == "REVIEW_WITH_ERROR" else ""
-            color = "#ff5050" if state == "REVIEW_WITH_ERROR" else "white"
-            self.review_text = text
-            self.review_color = color
-            presentation = Presentation(state, self.review_image, text, color)
-        elif state == "READY" and self.review_image:
-            self.capture_in_progress = False
-            presentation = Presentation(state, self.review_image, "", "white")
-        elif state == "ERROR":
-            self.capture_in_progress = False
-            if self.review_image and self.review_text and not was_capturing:
-                presentation = Presentation(
-                    "REVIEW_WITH_ERROR",
-                    self.review_image,
-                    self.review_text,
-                    self.review_color,
-                )
-            else:
-                image = self.review_image if self.review_image and not was_capturing else None
-                presentation = Presentation(state, image, message, "#ff5050")
-        else:
-            presentation = Presentation(state, None, message, "white")
-        self.state = presentation.state
-        return presentation
 
 
 def run_headless(config: dict, trigger: HardwareTrigger, storage: UsbStorageResolver) -> None:

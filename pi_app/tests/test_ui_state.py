@@ -16,6 +16,57 @@ from pi_app.bullettime.ui import (
 
 
 class PresentationStateTests(unittest.TestCase):
+    def test_structured_ready_and_capture_progress_are_exposed_to_qt(self):
+        state = PresentationState()
+        state.apply(
+            {
+                "state": "READY",
+                "message": "4/4 cameras connected",
+                "connected_camera_ids": [4, 2, 1, 3],
+            }
+        )
+        self.assertEqual(state.snapshot.connected_camera_ids, (1, 2, 3, 4))
+        self.assertEqual(state.snapshot.camera_states, ("ready",) * 4)
+        self.assertEqual(state.snapshot.usb_status, "ready")
+
+        state.apply(
+            {
+                "state": "LOADING",
+                "message": "Camera 2 transfer started",
+                "phase": "transferring",
+                "camera_id": 2,
+                "camera_status": "transferring",
+            }
+        )
+        self.assertEqual(state.snapshot.screen, "progress")
+        self.assertEqual(state.snapshot.capture_phase, "transferring")
+        self.assertEqual(state.snapshot.camera_states[1], "transferring")
+
+    def test_review_manifest_drives_view_count_and_failed_camera_indicators(self):
+        state = PresentationState()
+        state.apply(
+            {
+                "state": "REVIEW_WITH_ERROR",
+                "image": "partial.gif",
+                "message": "Camera 4: no progress timeout",
+                "manifest": {
+                    "cameras": [
+                        {"logical_camera_id": 1, "status": "complete"},
+                        {"logical_camera_id": 2, "status": "complete"},
+                        {"logical_camera_id": 3, "status": "complete"},
+                        {"logical_camera_id": 4, "status": "error"},
+                    ]
+                },
+            }
+        )
+        self.assertEqual(state.snapshot.view_count, 3)
+        self.assertEqual(state.snapshot.failed_camera_ids, (4,))
+        self.assertEqual(
+            state.snapshot.camera_states,
+            ("complete", "complete", "complete", "error"),
+        )
+        self.assertEqual(state.snapshot.usb_status, "saved")
+
     def test_loading_replaces_the_previous_review_and_blocks_idle_preservation(self):
         state = PresentationState()
         state.apply({"state": "REVIEW", "image": "old.gif"})

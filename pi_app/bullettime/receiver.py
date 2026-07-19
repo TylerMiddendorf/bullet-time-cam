@@ -219,6 +219,9 @@ class Receiver(threading.Thread):
             self.sessions_by_uid[uid] = session
             self.session_retry_after_ns.pop(session.port, None)
             connected = len(self.sessions_by_uid)
+            connected_camera_ids = sorted(
+                self.logical_cameras[connected_uid] for connected_uid in self.sessions_by_uid
+            )
         try:
             storage_root = self.storage.resolve()
             self.send_status(
@@ -226,6 +229,8 @@ class Receiver(threading.Thread):
                 message=(
                     f"{connected}/4 cameras connected\nUSB storage: {storage_root}\nTap to capture"
                 ),
+                connected_camera_count=connected,
+                connected_camera_ids=connected_camera_ids,
             )
         except StorageUnavailable as exc:
             self.send_status("ERROR", message=str(exc))
@@ -262,6 +267,9 @@ class Receiver(threading.Thread):
                 session.current_metadata = None
                 self._finalize_if_ready(time.monotonic_ns())
             connected = len(self.sessions_by_uid)
+            connected_camera_ids = sorted(
+                self.logical_cameras[connected_uid] for connected_uid in self.sessions_by_uid
+            )
             capture_was_finalized = bool(
                 active_before and self.coordinator.active_capture_id is None
             )
@@ -276,6 +284,11 @@ class Receiver(threading.Thread):
             self.send_status(
                 "LOADING" if self.coordinator.active_capture_id else "ERROR",
                 message=message,
+                phase="transferring" if self.coordinator.active_capture_id else "idle",
+                camera_id=camera_id,
+                camera_status="error",
+                connected_camera_count=connected,
+                connected_camera_ids=connected_camera_ids,
             )
 
     def _process_commands(self) -> None:
@@ -365,7 +378,7 @@ class Receiver(threading.Thread):
                 )
             if automatic:
                 self.automatic_trigger_in_flight = True
-            self.send_status("LOADING", message=loading_message)
+            self.send_status("LOADING", message=loading_message, phase="capturing")
 
     def _expire_unanswered_trigger(self, now_ns: int) -> None:
         if self.pending_trigger is None or self.coordinator.active_capture_id is not None:
@@ -454,6 +467,9 @@ class Receiver(threading.Thread):
         self.send_status(
             "LOADING",
             message=f"Capture {capture_id}: Camera {metadata['logical_camera_id']} started",
+            phase="capturing",
+            camera_id=int(metadata["logical_camera_id"]),
+            camera_status="capturing",
         )
 
     def _image_received(self, session: NodeSession, metadata: dict, frame, now_ns: int) -> None:
@@ -490,6 +506,13 @@ class Receiver(threading.Thread):
                 "computed_crc32": computed_crc,
                 "serial_port": session.port,
             }
+            self.send_status(
+                "LOADING",
+                message=f"Camera {metadata['logical_camera_id']} image received",
+                phase="transferring",
+                camera_id=int(metadata["logical_camera_id"]),
+                camera_status="transferring",
+            )
         except Exception as exc:
             code = (
                 "jpeg_checksum_mismatch"
@@ -501,6 +524,10 @@ class Receiver(threading.Thread):
             self.send_status(
                 "LOADING",
                 message=f"Camera {metadata['logical_camera_id']} failed; finishing remaining views",
+                phase="transferring",
+                camera_id=int(metadata["logical_camera_id"]),
+                camera_status="error",
+                failed_camera_ids=[int(metadata["logical_camera_id"])],
             )
 
     def _transfer_complete(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
@@ -559,6 +586,14 @@ class Receiver(threading.Thread):
         camera_id = int(image_metadata["logical_camera_id"])
         self.pending_acks[camera_id] = (session, image_metadata)
         session.current_metadata = None
+        self.send_status(
+            "LOADING",
+            message=f"Camera {camera_id} transfer complete",
+            phase="transferring",
+            camera_id=camera_id,
+            camera_status="complete",
+            completed_camera_ids=sorted(self.pending_acks),
+        )
         self._finalize_if_ready(now_ns)
 
     def _node_error(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
@@ -577,6 +612,13 @@ class Receiver(threading.Thread):
             return
         completed = self.coordinator.finalize(now_ns)
         try:
+            self.send_status(
+                "LOADING",
+                message="Building bullet-time animation",
+                phase="building",
+                completed_camera_ids=sorted(completed.images),
+                failed_camera_ids=sorted(completed.errors),
+            )
             capture_root = self.storage.resolve()
             review_path, manifest = commit_capture_set(
                 capture_root,
