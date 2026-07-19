@@ -169,6 +169,10 @@ class HeadlessQtUtilityTests(unittest.TestCase):
         arguments = build_qml_smoke_parser().parse_args(["--qml", "Main.qml"])
         self.assertEqual(arguments.platform, "offscreen")
         self.assertEqual(arguments.timeout_ms, 5000)
+        smoke_source = (REPOSITORY_ROOT / "pi_app" / "tools" / "smoke_qt_qml.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("from PySide6.QtQuick import QQuickWindow", smoke_source)
         self.assertEqual(arguments.required_object, "startupLogo")
 
 

@@ -135,6 +135,7 @@ class QmlContractTests(unittest.TestCase):
             self.assertIn(f'bridge.route === "{route}"', harness)
         self.assertIn("return readyPage", harness)
         self.assertIn('argumentValue("--media="', harness)
+        self.assertIn("flags: Qt.FramelessWindowHint", harness)
 
     def test_runtime_is_fixed_800x480_and_contains_no_power_or_network_status_space(self):
         content = "\n".join(path.read_text(encoding="utf-8") for path in QML_ROOT.rglob("*.qml"))

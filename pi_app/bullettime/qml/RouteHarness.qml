@@ -7,6 +7,11 @@ Window {
     objectName: "routeHarness"
     width: 800
     height: 480
+    minimumWidth: 800
+    maximumWidth: 800
+    minimumHeight: 480
+    maximumHeight: 480
+    flags: Qt.FramelessWindowHint
     visible: true
     color: "black"
 

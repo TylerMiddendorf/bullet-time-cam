@@ -45,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
         from PySide6.QtCore import QObject, QTimer, QUrl, qInstallMessageHandler
         from PySide6.QtGui import QGuiApplication
         from PySide6.QtQml import QQmlApplicationEngine
+        from PySide6.QtQuick import QQuickWindow
     except ImportError as exc:
         return _emit({"status": "FAIL", "errors": [f"PySide6 import failed: {exc}"]})
 
@@ -95,6 +96,9 @@ def main(argv: list[str] | None = None) -> int:
         return _emit(report)
 
     root = roots[0]
+    if not isinstance(root, QQuickWindow):
+        report["errors"].append("root object is not a QQuickWindow")
+        return _emit(report)
     required = root.findChild(QObject, args.required_object)
     report["required_object_found"] = required is not None
     if required is None:
@@ -105,7 +109,13 @@ def main(argv: list[str] | None = None) -> int:
         report["errors"].append("root object has no frameSwapped signal")
         return _emit(report)
 
+    completed = False
+
     def on_frame_swapped() -> None:
+        nonlocal completed
+        if completed:
+            return
+        completed = True
         report["frame_swapped"] = True
         report["width"] = int(root.width())
         report["height"] = int(root.height())
@@ -115,12 +125,15 @@ def main(argv: list[str] | None = None) -> int:
             )
         if args.screenshot:
             args.screenshot.parent.mkdir(parents=True, exist_ok=True)
-            image = root.grabWindow()
-            if not image.save(str(args.screenshot), "PNG"):
-                report["errors"].append("failed to save first-frame screenshot")
-            else:
-                report["screenshot"] = str(args.screenshot)
-                report["screenshot_sha256"] = sha256_file(args.screenshot)
+            try:
+                image = root.grabWindow()
+                if not image.save(str(args.screenshot), "PNG"):
+                    report["errors"].append("failed to save first-frame screenshot")
+                else:
+                    report["screenshot"] = str(args.screenshot)
+                    report["screenshot_sha256"] = sha256_file(args.screenshot)
+            except Exception as exc:
+                report["errors"].append(f"first-frame screenshot failed: {exc}")
         report["errors"].extend(messages)
         if not report["errors"]:
             report["status"] = "PASS"
