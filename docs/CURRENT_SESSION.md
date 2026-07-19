@@ -40,6 +40,11 @@ Status reviewed: July 18, 2026
   library passed SSH-accessible validation. Preview remains a labeled static
   logo fixture and the UI contains no battery state. Evidence is in
   [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+- Confirmed deletion from the library and viewer is deployed at `3f99e76`.
+  Pi tests, corrected native viewer/confirmation renders, and a disposable
+  four-JPEG/GIF/manifest set on the real product USB passed while retaining all
+  222 pre-existing capture directories. Evidence is in
+  [`evidence/qt-touchscreen/library-deletion-2026-07-19.md`](evidence/qt-touchscreen/library-deletion-2026-07-19.md).
 - The first Qt soft reboot failed to return to the LAN and required a physical
   power cycle. Recovery checks passed, but no persistent journal was available;
   the cause and clean Qt soft-reboot lifecycle remain open.

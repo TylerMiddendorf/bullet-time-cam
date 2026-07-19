@@ -174,7 +174,11 @@ boundary. App 0.2.2 adds confirmed deletion from both the library and detached
 viewer. The operation is limited to a revalidated published capture-set
 directory on the active removable USB root and removes its JPEG originals, GIF,
 and manifest together. Rename, edit, share, and boot-card operations remain out
-of scope.
+of scope. Final commit `3f99e76` passed the Pi's 118-test suite (one expected
+live-evidence skip), native viewer/confirmation rendering, production-QML load,
+and a disposable real-product-USB deletion check that retained all 222
+pre-existing capture directories. See
+[`library-deletion-2026-07-19.md`](evidence/qt-touchscreen/library-deletion-2026-07-19.md).
 
 ## Milestone 4 - Compact Version 1 Enclosure
 

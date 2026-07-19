@@ -333,6 +333,13 @@ As of July 18, 2026:
   six-item pagination controls. UI code commit `ce5871f` passed the Qt tests,
   seven-route contract, native 800x480 Wayland render, and an on-Pi page-change
   interaction smoke with correct first/last-page button states.
+- On July 19, confirmed whole-capture-set deletion was deployed on the Pi at
+  `3f99e76`. The final Pi suite passed 117/118 tests with only the expected live
+  evidence skip; production QML and native 800x480 viewer/confirmation renders
+  passed without QML errors. A disposable real-USB set containing four JPEGs,
+  one GIF, and one manifest was deleted, the valid catalog returned from 220 to
+  219 entries, and all 222 pre-existing capture directories remained unchanged.
+  See `docs/evidence/qt-touchscreen/library-deletion-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,

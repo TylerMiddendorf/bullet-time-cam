@@ -76,6 +76,10 @@ zero QML warnings. The final runtime completed capture
 seconds. Follow-up UI code at `ce5871f` corrected the ready and USB-label
 overflows and passed native Pi rendering plus functional pagination checks. See the
 [`Qt deployment evidence`](docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+Confirmed whole-set deletion was deployed at `3f99e76`; Pi tests, native
+viewer/confirmation renders, and a disposable six-file capture set on the real
+product USB all passed without changing any pre-existing capture directory. See
+the [`library deletion evidence`](docs/evidence/qt-touchscreen/library-deletion-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.
