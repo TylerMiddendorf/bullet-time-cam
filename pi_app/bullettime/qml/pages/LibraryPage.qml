@@ -2,6 +2,27 @@ import QtQuick 2.15
 import "../components"
 
 Item {
+    id: libraryPage
+    readonly property int libraryPageSize: 6
+    readonly property int libraryPageCount: Math.max(
+        1, Math.ceil(bridge.libraryItems.length / libraryPageSize)
+    )
+    property int libraryPageIndex: 0
+
+    function changeLibraryPage(offset) {
+        var targetPage = Math.max(
+            0, Math.min(libraryPageCount - 1, libraryPageIndex + offset)
+        )
+        libraryPageIndex = targetPage
+        if (captureGrid.count > 0) {
+            var targetIndex = Math.min(
+                captureGrid.count - 1, targetPage * libraryPageSize
+            )
+            bridge.selectLibraryItem(targetIndex)
+            captureGrid.positionViewAtIndex(targetIndex, GridView.Beginning)
+        }
+    }
+
     Rectangle { anchors.fill: parent; color: "black" }
 
     StatusHeader {
@@ -53,19 +74,34 @@ Item {
         id: captureGrid
         x: 212
         y: 80
-        width: 570
+        width: 500
         height: 310
         clip: true
-        cellWidth: 190
+        cellWidth: 166
         cellHeight: 154
         model: bridge.libraryItems
         boundsBehavior: Flickable.StopAtBounds
+        snapMode: GridView.SnapToRow
         highlightMoveDuration: 120
         currentIndex: bridge.selectedLibraryIndex
+        onCountChanged: {
+            libraryPage.libraryPageIndex = Math.min(
+                libraryPage.libraryPageIndex,
+                libraryPage.libraryPageCount - 1
+            )
+        }
+        onMovementEnded: {
+            var pageFromPosition = atYEnd
+                ? libraryPage.libraryPageCount - 1
+                : Math.round(contentY / (cellHeight * 2))
+            libraryPage.libraryPageIndex = Math.max(
+                0, Math.min(libraryPage.libraryPageCount - 1, pageFromPosition)
+            )
+        }
         delegate: Item {
             required property int index
             required property var modelData
-            width: 182
+            width: 158
             height: 144
 
             Rectangle {
@@ -110,6 +146,74 @@ Item {
                     onClicked: bridge.selectLibraryItem(index)
                 }
             }
+        }
+    }
+
+    Column {
+        x: 726
+        y: 80
+        width: 56
+        height: 310
+        spacing: 8
+
+        TouchButton {
+            objectName: "libraryPageUp"
+            width: parent.width
+            height: 72
+            label: "\u25B2"
+            enabled: libraryPage.libraryPageIndex > 0
+            onTapped: libraryPage.changeLibraryPage(-1)
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 150
+            radius: 8
+            color: "#0d1116"
+            border.color: "#38414a"
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 4
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "PAGE"
+                    color: "#7f8891"
+                    font.pixelSize: 10
+                    font.bold: true
+                    font.letterSpacing: 1
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: libraryPage.libraryPageIndex + 1
+                    color: "white"
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "OF"
+                    color: "#7f8891"
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: libraryPage.libraryPageCount
+                    color: "#63adf2"
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+            }
+        }
+
+        TouchButton {
+            objectName: "libraryPageDown"
+            width: parent.width
+            height: 72
+            label: "\u25BC"
+            enabled: libraryPage.libraryPageIndex < libraryPage.libraryPageCount - 1
+            onTapped: libraryPage.changeLibraryPage(1)
         }
     }
 
