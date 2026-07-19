@@ -32,9 +32,9 @@ from .ui_model import PresentationState, UiSnapshot
 
 LOGGER = logging.getLogger(__name__)
 RUNTIME_ROUTES = frozenset({"ready", "progress", "review"})
-DEMO_ROUTES = frozenset({"preview", "control", "library", "viewer"})
-ALL_ROUTES = RUNTIME_ROUTES | DEMO_ROUTES
-CAPTURE_ROUTES = frozenset({"ready", "review", "preview", "control"})
+SECONDARY_ROUTES = frozenset({"capture", "control", "library", "viewer"})
+ALL_ROUTES = RUNTIME_ROUTES | SECONDARY_ROUTES
+CAPTURE_ROUTES = frozenset({"capture"})
 CAPTURE_STATES = frozenset({"READY", "REVIEW", "REVIEW_WITH_ERROR", "ERROR"})
 
 

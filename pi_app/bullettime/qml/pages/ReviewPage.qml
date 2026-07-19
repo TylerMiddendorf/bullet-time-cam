@@ -86,16 +86,17 @@ Item {
         }
 
         TouchButton {
+            objectName: "captureNavigationButton"
             x: 540
             y: 16
             width: 238
             height: 54
             label: "NEXT CAPTURE"
-            enabled: bridge.canCapture
-            onTapped: bridge.capture()
+            onTapped: bridge.navigate("capture")
         }
 
         TouchButton {
+            objectName: "viewerButton"
             x: 540
             y: 82
             width: 112
@@ -105,11 +106,12 @@ Item {
         }
 
         TouchButton {
+            objectName: "libraryButton"
             x: 666
             y: 82
             width: 112
             height: 46
-            label: "MEDIA"
+            label: "LIBRARY"
             onTapped: bridge.navigate("library")
         }
     }

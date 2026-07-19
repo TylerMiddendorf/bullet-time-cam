@@ -135,8 +135,8 @@ class HeadlessQtUtilityTests(unittest.TestCase):
 
     def test_screenshot_names_are_deterministic(self):
         self.assertEqual(
-            expected_screenshot_name(4, "static-preview-placeholder"),
-            "04-static-preview-placeholder-800x480.png",
+            expected_screenshot_name(4, "capture"),
+            "04-capture-800x480.png",
         )
         with self.assertRaises(ValueError):
             expected_screenshot_name(8, "extra")

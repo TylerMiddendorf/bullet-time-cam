@@ -53,31 +53,33 @@ Item {
     }
 
     TouchButton {
+        objectName: "settingsButton"
         x: 48
         y: 355
-        width: 474
+        width: 82
         height: 82
-        label: "PRESS SHUTTER OR TAP TO CAPTURE"
-        enabled: bridge.canCapture
-        onTapped: bridge.capture()
-    }
-
-    TouchButton {
-        x: 540
-        y: 350
-        width: 212
-        height: 44
-        label: "PREVIEW DEMO"
-        onTapped: bridge.navigate("preview")
-    }
-
-    TouchButton {
-        x: 540
-        y: 404
-        width: 212
-        height: 44
-        label: "UI CONCEPTS"
+        label: "\u2699"
         accent: "#8f98a1"
         onTapped: bridge.navigate("control")
+    }
+
+    TouchButton {
+        objectName: "libraryButton"
+        x: 148
+        y: 355
+        width: 286
+        height: 82
+        label: "LIBRARY"
+        onTapped: bridge.navigate("library")
+    }
+
+    TouchButton {
+        objectName: "captureNavigationButton"
+        x: 452
+        y: 355
+        width: 300
+        height: 82
+        label: "CAPTURE"
+        onTapped: bridge.navigate("capture")
     }
 }

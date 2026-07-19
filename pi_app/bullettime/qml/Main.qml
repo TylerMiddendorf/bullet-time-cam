@@ -21,7 +21,7 @@ Window {
         sourceComponent: {
             if (bridge.route === "progress") return progressPage
             if (bridge.route === "review") return reviewPage
-            if (bridge.route === "preview") return previewPage
+            if (bridge.route === "capture") return capturePage
             if (bridge.route === "control") return controlPage
             if (bridge.route === "library") return libraryPage
             if (bridge.route === "viewer") return viewerPage
@@ -46,7 +46,7 @@ Window {
     Component { id: readyPage; ReadyPage {} }
     Component { id: progressPage; ProgressPage {} }
     Component { id: reviewPage; ReviewPage {} }
-    Component { id: previewPage; PreviewPage {} }
+    Component { id: capturePage; CapturePage {} }
     Component { id: controlPage; ControlCenterPage {} }
     Component { id: libraryPage; LibraryPage {} }
     Component { id: viewerPage; ViewerPage {} }

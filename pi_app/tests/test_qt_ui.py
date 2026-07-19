@@ -98,7 +98,7 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertEqual(controller.route, "library")
         self.assertEqual(controller.snapshot.state, "READY")
 
-        self.assertTrue(controller.navigate("control"))
+        self.assertTrue(controller.navigate("capture"))
         self.assertTrue(controller.request_capture())
         self.assertEqual(commands.get_nowait(), "CAPTURE")
         self.assertEqual(controller.route, "progress")
@@ -111,6 +111,18 @@ class QtUiControllerTests(unittest.TestCase):
         controller.navigate("library")
         self.assertFalse(controller.request_capture())
         self.assertTrue(commands.empty())
+
+    def test_capture_route_is_the_only_touchscreen_route_that_can_take_a_photo(self):
+        controller = QtUiController(queue.Queue())
+        controller.handle_event({"state": "READY", "connected_camera_ids": [1, 2, 3, 4]})
+
+        for route in ALL_ROUTES - {"capture"}:
+            with self.subTest(route=route):
+                self.assertTrue(controller.navigate(route))
+                self.assertFalse(controller.can_capture)
+
+        self.assertTrue(controller.navigate("capture"))
+        self.assertTrue(controller.can_capture)
 
     def test_delete_requires_confirmation_and_returns_to_refreshed_library(self):
         controller = QtUiController(queue.Queue())
@@ -219,7 +231,7 @@ class QmlContractTests(unittest.TestCase):
             "ready": "ReadyPage.qml",
             "progress": "ProgressPage.qml",
             "review": "ReviewPage.qml",
-            "preview": "PreviewPage.qml",
+            "capture": "CapturePage.qml",
             "control": "ControlCenterPage.qml",
             "library": "LibraryPage.qml",
             "viewer": "ViewerPage.qml",
@@ -247,16 +259,26 @@ class QmlContractTests(unittest.TestCase):
         self.assertNotIn("HOTSPOT", content.upper())
         self.assertNotIn(" LIVE", content.upper())
 
-    def test_placeholder_is_truthfully_labeled_and_settings_are_inert(self):
+    def test_capture_placeholder_is_truthfully_labeled_and_settings_are_inert(self):
         placeholder = (QML_ROOT / "components" / "PlaceholderSurface.qml").read_text(
             encoding="utf-8"
         )
         setting = (QML_ROOT / "components" / "SettingCard.qml").read_text(encoding="utf-8")
-        self.assertIn('text: "DEMO PLACEHOLDER"', placeholder)
-        self.assertIn('text: "PREVIEW NOT CONNECTED"', placeholder)
+        self.assertIn('text: "STATIC PLACEHOLDER"', placeholder)
+        self.assertIn('text: "CAMERA VIEW NOT CONNECTED"', placeholder)
         self.assertIn("bridge.previewPlaceholder", placeholder)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
+
+    def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
+        ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
+        self.assertIn('objectName: "settingsButton"', ready)
+        self.assertIn('label: "\\u2699"', ready)
+        self.assertIn('objectName: "libraryButton"', ready)
+        self.assertIn('label: "LIBRARY"', ready)
+        self.assertIn('objectName: "captureNavigationButton"', ready)
+        self.assertIn('bridge.navigate("capture")', ready)
+        self.assertNotIn("bridge.capture()", ready)
 
     def test_library_is_scrollable_and_primary_touch_targets_are_not_tiny(self):
         library = (QML_ROOT / "pages" / "LibraryPage.qml").read_text(encoding="utf-8")

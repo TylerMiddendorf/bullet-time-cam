@@ -1,6 +1,6 @@
 {
   "status": "UNRUN",
-  "contract_version": 2,
+  "contract_version": 4,
   "git_sha": "<sha>",
   "qt": {
     "platform": "<offscreen-or-wayland>",
@@ -37,14 +37,14 @@
       "result": "UNRUN"
     },
     {
-      "id": "static-preview-placeholder",
+      "id": "capture",
       "source": "designs/ux-mockups/04-fast-follow-live-preview.png",
       "source_dimensions": [1619, 971],
-      "screenshot": "04-static-preview-placeholder-800x480.png",
+      "screenshot": "04-capture-800x480.png",
       "screenshot_sha256": "<sha256>",
       "result": "UNRUN",
       "backend": false,
-      "required_labels": ["DEMO PLACEHOLDER", "PREVIEW NOT CONNECTED"]
+      "required_labels": ["CAPTURE", "STATIC PLACEHOLDER", "CAMERA VIEW NOT CONNECTED"]
     },
     {
       "id": "four-camera-control-center",

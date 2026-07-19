@@ -1,5 +1,5 @@
 {
-  "contract_version": 3,
+  "contract_version": 4,
   "baseline_commit": "1ef1ba6",
   "contract_commit": "1f6ff70",
   "viewport": {
@@ -44,7 +44,7 @@
   "touch": {
     "minimum_target_width": 48,
     "minimum_target_height": 48,
-    "capture_target_minimum": [680, 72],
+    "capture_target_minimum": [260, 66],
     "maximum_capture_commands_per_state_entry": 1
   },
   "scope": {
@@ -73,7 +73,7 @@
   ],
   "preview_fixture": {
     "path": "assets/ui/preview-placeholder.png",
-    "required_label": "DEMO PLACEHOLDER",
+    "required_label": "STATIC PLACEHOLDER",
     "forbidden_label": "LIVE",
     "source": "generated-static-fixture",
     "camera_transport": false
@@ -89,7 +89,9 @@
         "READY",
         "4 OF 4 CAMERAS CONNECTED",
         "USB READY",
-        "PRESS SHUTTER OR TAP TO CAPTURE"
+        "SETTINGS",
+        "LIBRARY",
+        "CAPTURE"
       ],
       "required_objects": [
         "rootSurface",
@@ -99,10 +101,12 @@
         "readyGlyph",
         "stateHeading",
         "stateDetail",
-        "captureButton"
+        "settingsButton",
+        "libraryButton",
+        "captureNavigationButton"
       ],
-      "allowed_commands": ["CAPTURE"],
-      "interactive_objects": ["captureButton"]
+      "allowed_commands": ["NAVIGATE_SETTINGS", "NAVIGATE_LIBRARY", "NAVIGATE_CAPTURE"],
+      "interactive_objects": ["settingsButton", "libraryButton", "captureNavigationButton"]
     },
     {
       "id": "progress",
@@ -142,7 +146,8 @@
         "USB SAVED",
         "SAVED WITH 3 VIEWS",
         "CAMERA 4 DID NOT RESPOND",
-        "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"
+        "NEXT CAPTURE",
+        "LIBRARY"
       ],
       "required_objects": [
         "rootSurface",
@@ -152,22 +157,23 @@
         "reviewMedia",
         "partialHeading",
         "partialDetail",
-        "captureButton"
+        "captureNavigationButton"
       ],
-      "allowed_commands": ["CAPTURE"],
-      "interactive_objects": ["captureButton"]
+      "allowed_commands": ["NAVIGATE_CAPTURE", "NAVIGATE_LIBRARY", "NAVIGATE_VIEWER"],
+      "interactive_objects": ["captureNavigationButton", "libraryButton", "viewerButton"]
     },
     {
-      "id": "static-preview-placeholder",
-      "path": "/preview-placeholder",
+      "id": "capture",
+      "path": "/capture",
       "source_mockup": "designs/ux-mockups/04-fast-follow-live-preview.png",
       "source_design": 4,
-      "product_tier": "validation-only",
+      "product_tier": "v1",
       "rendered_text": [
-        "DEMO PLACEHOLDER",
+        "CAPTURE",
+        "STATIC PLACEHOLDER",
         "4 CAMERAS CONNECTED",
         "USB READY",
-        "PREVIEW NOT CONNECTED"
+        "CAMERA VIEW NOT CONNECTED"
       ],
       "required_objects": [
         "rootSurface",
@@ -175,12 +181,11 @@
         "cameraStrip",
         "storageBadge",
         "previewPlaceholder",
-        "previewPlaceholderLabel",
-        "previewUnavailableLabel"
+        "captureButton"
       ],
       "forbidden_objects": ["previewStream", "videoOutput"],
-      "allowed_commands": [],
-      "interactive_objects": [],
+      "allowed_commands": ["CAPTURE", "NAVIGATE_SETTINGS", "NAVIGATE_READY"],
+      "interactive_objects": ["captureButton", "settingsButton", "backButton"],
       "fixture": "assets/ui/preview-placeholder.png"
     },
     {
@@ -199,7 +204,7 @@
         "AI INTERPOLATION",
         "V2 DISABLED",
         "CAPTURE",
-        "MEDIA DEMO"
+        "LIBRARY"
       ],
       "required_objects": [
         "rootSurface",
@@ -214,8 +219,8 @@
         "interpolationSetting",
         "mediaButton"
       ],
-      "allowed_commands": ["CAPTURE", "NAVIGATE_LIBRARY", "NAVIGATE_READY"],
-      "interactive_objects": ["captureButton", "mediaButton", "backButton"],
+      "allowed_commands": ["NAVIGATE_CAPTURE", "NAVIGATE_LIBRARY", "NAVIGATE_READY"],
+      "interactive_objects": ["captureNavigationButton", "mediaButton", "backButton"],
       "camera_count": 4,
       "settings_mode": "disabled",
       "disabled_settings": [
@@ -279,7 +284,7 @@
         "ANIMATION PLAYBACK",
         "CAPTURED VIEWS",
         "DELETE",
-        "BACK TO MEDIA"
+        "BACK TO LIBRARY"
       ],
       "required_objects": [
         "rootSurface",
@@ -319,7 +324,10 @@
     "productMark": [18, 10, 74, 58],
     "cameraStrip": [145, 10, 310, 58],
     "storageBadge": [610, 10, 180, 58],
-    "captureButton": [52, 374, 696, 88],
+    "settingsButton": [48, 355, 82, 82],
+    "libraryButton": [148, 355, 286, 82],
+    "captureNavigationButton": [452, 355, 300, 82],
+    "captureButton": [270, 378, 260, 66],
     "mediaButton": [414, 405, 376, 60],
     "openButton": [20, 405, 376, 60],
     "backToCameraButton": [414, 405, 376, 60],

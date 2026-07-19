@@ -29,7 +29,7 @@ Item {
         id: header
         anchors.left: parent.left
         anchors.right: parent.right
-        title: "REMOVABLE MEDIA"
+        title: "LIBRARY"
         subtitle: bridge.libraryItems.length + " CAPTURE SETS"
         showBack: true
         onBack: bridge.navigate("control")

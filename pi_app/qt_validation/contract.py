@@ -18,7 +18,7 @@ EXPECTED_ROUTE_IDS = (
     "ready",
     "progress",
     "partial-review",
-    "static-preview-placeholder",
+    "capture",
     "four-camera-control-center",
     "removable-media-library",
     "gif-viewer",
@@ -227,14 +227,14 @@ def _validate_route(
         if str(term).casefold() in rendered_text:
             errors.append(f"route {route_id!r} renders forbidden term {term!r}")
 
-    if route_id == "static-preview-placeholder":
+    if route_id == "capture":
         fixture = contract.get("preview_fixture", {})
         if fixture.get("required_label") not in route.get("rendered_text", []):
-            errors.append("static preview route must render DEMO PLACEHOLDER")
+            errors.append("capture route must render STATIC PLACEHOLDER")
         if route.get("fixture") != fixture.get("path"):
-            errors.append("static preview route must use the approved fixture path")
-        if route.get("allowed_commands"):
-            errors.append("static preview route must not emit commands")
+            errors.append("capture route must use the approved fixture path")
+        if route.get("allowed_commands") != ["CAPTURE", "NAVIGATE_SETTINGS", "NAVIGATE_READY"]:
+            errors.append("capture route must be the sole touchscreen capture-command route")
     elif route_id == "four-camera-control-center":
         if route.get("camera_count") != 4:
             errors.append("control center must model exactly four cameras")
@@ -277,8 +277,8 @@ def validate_contract(
             return ContractReport(0, 0, (f"contract cannot be loaded: {exc}",))
 
     version = contract.get("contract_version", 0)
-    if version != 3:
-        errors.append("contract_version must be 3")
+    if version != 4:
+        errors.append("contract_version must be 4")
     if contract.get("source_raster") != {
         "width": 1619,
         "height": 971,

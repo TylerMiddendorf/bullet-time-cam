@@ -52,7 +52,7 @@ Item {
             spacing: 1
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "DEMO PLACEHOLDER"
+                text: "STATIC PLACEHOLDER"
                 color: "white"
                 font.pixelSize: 16
                 font.bold: true
@@ -60,7 +60,7 @@ Item {
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "PREVIEW NOT CONNECTED"
+                text: "CAMERA VIEW NOT CONNECTED"
                 color: "#63adf2"
                 font.pixelSize: 13
                 font.bold: true

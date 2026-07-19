@@ -97,7 +97,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 162
             height: 48
-            label: "BACK TO MEDIA"
+            label: "BACK TO LIBRARY"
             onTapped: bridge.navigate("library")
         }
     }

@@ -9,7 +9,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         title: bridge.connectedCameraIds.length + "/4 CAMERAS READY"
-        subtitle: "CONCEPT DEMO"
+        subtitle: "SETTINGS"
         showBack: true
         onBack: bridge.navigate("ready")
     }
@@ -47,21 +47,22 @@ Item {
     }
 
     TouchButton {
+        objectName: "captureNavigationButton"
         x: 18
         y: 386
         width: 500
         height: 72
         label: "CAPTURE"
-        enabled: bridge.canCapture
-        onTapped: bridge.capture()
+        onTapped: bridge.navigate("capture")
     }
 
     TouchButton {
+        objectName: "libraryButton"
         x: 536
         y: 386
         width: 246
         height: 72
-        label: "MEDIA DEMO"
+        label: "LIBRARY"
         onTapped: bridge.navigate("library")
     }
 }

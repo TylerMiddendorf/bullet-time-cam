@@ -10,8 +10,8 @@ Item {
     StatusHeader {
         anchors.left: parent.left
         anchors.right: parent.right
-        title: "CAMERA PREVIEW DEMO"
-        subtitle: "4 CAMERAS · USB"
+        title: "CAPTURE"
+        subtitle: "4 CAMERAS \u00b7 USB"
         showBack: true
         onBack: bridge.navigate("ready")
     }
@@ -29,7 +29,7 @@ Item {
             x: 26
             width: 190
             anchors.verticalCenter: parent.verticalCenter
-            text: "DEMO PLACEHOLDER\nPREVIEW NOT CONNECTED"
+            text: "STATIC PLACEHOLDER\nCAMERA VIEW NOT CONNECTED"
             color: "#aeb7c0"
             font.pixelSize: 12
             font.bold: true
@@ -37,6 +37,7 @@ Item {
         }
 
         TouchButton {
+            objectName: "captureButton"
             anchors.centerIn: parent
             width: 260
             height: 66
@@ -46,12 +47,13 @@ Item {
         }
 
         TouchButton {
+            objectName: "settingsButton"
             anchors.right: parent.right
             anchors.rightMargin: 20
             anchors.verticalCenter: parent.verticalCenter
             width: 160
             height: 54
-            label: "CONTROLS"
+            label: "SETTINGS"
             onTapped: bridge.navigate("control")
         }
     }
