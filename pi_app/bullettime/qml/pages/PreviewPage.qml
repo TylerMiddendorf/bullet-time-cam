@@ -27,10 +27,11 @@ Item {
 
         Text {
             x: 26
+            width: 190
             anchors.verticalCenter: parent.verticalCenter
             text: "DEMO PLACEHOLDER\nPREVIEW NOT CONNECTED"
             color: "#aeb7c0"
-            font.pixelSize: 14
+            font.pixelSize: 12
             font.bold: true
             font.letterSpacing: 1.2
         }

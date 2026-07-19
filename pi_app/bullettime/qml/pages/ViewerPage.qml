@@ -78,7 +78,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
-            width: 178
+            width: 210
             height: 48
             label: "BACK TO MEDIA"
             onTapped: bridge.navigate("library")

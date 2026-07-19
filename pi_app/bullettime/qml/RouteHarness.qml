@@ -49,12 +49,12 @@ Window {
         property bool canCapture: true
         property var libraryItems: [
             {"title": "20260718T175104Z_04b69c0b", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
-            {"title": "20260718T171500Z_partial", "viewCount": 3, "partial": true, "thumbnail": fixtureMedia},
-            {"title": "20260718T164500Z", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
-            {"title": "20260718T160000Z", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
-            {"title": "20260718T153000Z", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
-            {"title": "20260718T150000Z", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
-            {"title": "20260718T143000Z", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia}
+            {"title": "20260718T171500Z_a31c4f90", "viewCount": 3, "partial": true, "thumbnail": fixtureMedia},
+            {"title": "20260718T164500Z_28c8b391", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
+            {"title": "20260718T160000Z_d5a0082e", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
+            {"title": "20260718T153000Z_b1c5e607", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
+            {"title": "20260718T150000Z_83f10a9c", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
+            {"title": "20260718T143000Z_091b6aa4", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia}
         ]
 
         function capture() { return false }
