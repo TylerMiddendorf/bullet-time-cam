@@ -17,7 +17,8 @@ fi
 TARGET_UID="$(id -u "${TARGET_USER}")"
 
 mapfile -t controllers < <(
-  find /sys/bus/pci/drivers/xhci_hcd -maxdepth 1 -type l -printf '%f\n' | sort
+  find /sys/bus/pci/drivers/xhci_hcd -maxdepth 1 -type l \
+    -name '????:??:??.?' -printf '%f\n' | sort
 )
 if [ "${#controllers[@]}" -ne 1 ]; then
   echo "Expected exactly one xHCI PCI controller; found ${#controllers[@]}." >&2

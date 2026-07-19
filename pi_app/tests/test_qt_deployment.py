@@ -46,6 +46,7 @@ class QtDeploymentContractTests(unittest.TestCase):
         exact_command = "/usr/bin/systemctl start --no-block bullet-time-usb-recovery.service"
         self.assertIn(f"NOPASSWD: {exact_command}", installer)
         self.assertIn("visudo -cf", installer)
+        self.assertIn("-name '????:??:??.?'", installer)
         self.assertNotIn("NOPASSWD: ALL", installer)
         self.assertIn("user_systemctl stop bullet-time-ui.service", helper)
         self.assertIn("udisksctl unmount", helper)
