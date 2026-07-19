@@ -142,3 +142,13 @@ at PID 2116 with `NRestarts=0`. GPIO17 was output LOW, all four stable serial
 devices were present, product VFAT media was writable with 230 GiB free, no
 Xwayland or current service warning was present, temperature was 38.9 C, and
 `get_throttled=0x0`.
+
+Independent audit corrections were committed as
+`02cac21a2d731d36e80fcea609155e8b90fe7e85`, pushed, and fast-forward pulled
+onto the Pi. At that exact clean checkout, 114 tests ran: 113 passed and the
+same environment-gated test skipped. The aligned contract again passed seven
+routes with zero errors, every boot verifier check passed, and the service
+remained active at PID 2116 with zero restarts. All four serial identities were
+present, GPIO17 was output LOW, product media remained writable with 230 GiB
+free, temperature was 38.4 C, `get_throttled=0x0`, and no Xwayland or current
+service warning was present.

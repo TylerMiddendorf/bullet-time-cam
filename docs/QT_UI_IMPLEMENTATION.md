@@ -63,8 +63,8 @@ validated runtime commit is `fb1d1e7`.
 
 - Runtime validation local and on Pi passed 112 tests with one expected
   live-hardware-evidence skip. The final contract-alignment audit added one
-  implementation-to-contract test; the resulting local suite passed 113 tests
-  with the same expected skip.
+  implementation-to-contract test; the resulting local and Pi suites passed
+  113 tests with the same expected skip at `02cac21`.
 - UX contract validator: PASS, contract v2, seven routes, zero errors.
 - Production QML tree: loads and tears down without warnings.
 - Native Pi Wayland route harness: seven 800x480 screenshots rendered across
