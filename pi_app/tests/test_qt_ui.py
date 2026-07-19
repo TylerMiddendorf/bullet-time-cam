@@ -7,7 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 from pi_app.bullettime.media_catalog import load_catalog_animation, scan_capture_catalog
-from pi_app.bullettime.qt_ui import ALL_ROUTES, QtUiController
+from pi_app.bullettime.qt_ui import ALL_ROUTES, QtUiController, _AsyncResultQueue
 from pi_app.bullettime.storage import StorageUsage
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -181,6 +181,36 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertEqual(controller.storage_used_text, "--")
         self.assertEqual(controller.storage_available_text, "UNAVAILABLE")
         self.assertEqual(controller.storage_used_fraction, 0.0)
+
+    def test_async_library_refresh_applies_catalog_and_capacity_arguments(self):
+        controller = QtUiController(queue.Queue())
+        results = _AsyncResultQueue()
+        usage = StorageUsage(
+            available=True,
+            total_bytes=250_000_000_000,
+            used_bytes=3_800_000,
+            free_bytes=249_996_200_000,
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            published_capture(root, "capture-from-new-photo")
+            controller.set_catalog_callbacks(
+                lambda: results.put(scan_capture_catalog(root), usage),
+                lambda _entry: None,
+            )
+
+            self.assertTrue(controller.navigate("library"))
+            self.assertEqual(controller.catalog_status, "loading")
+            self.assertEqual(results.drain(controller.apply_catalog), 1)
+
+        self.assertEqual(controller.catalog_status, "ready")
+        self.assertEqual(
+            [entry.capture_id for entry in controller.library_items],
+            ["capture-from-new-photo"],
+        )
+        self.assertEqual(controller.storage_used_text, "3.8 MB")
+        self.assertEqual(controller.storage_available_text, "250.0 GB")
+        self.assertEqual(results.drain(controller.apply_catalog), 0)
 
 
 class QmlContractTests(unittest.TestCase):

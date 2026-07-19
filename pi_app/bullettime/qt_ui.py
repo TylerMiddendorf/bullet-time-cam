@@ -38,6 +38,26 @@ CAPTURE_ROUTES = frozenset({"ready", "review", "preview", "control"})
 CAPTURE_STATES = frozenset({"READY", "REVIEW", "REVIEW_WITH_ERROR", "ERROR"})
 
 
+class _AsyncResultQueue:
+    """Transfer worker results to Qt while preserving callback arguments."""
+
+    def __init__(self) -> None:
+        self._results: queue.Queue = queue.Queue()
+
+    def put(self, *values: object) -> None:
+        self._results.put(values)
+
+    def drain(self, apply_result: Callable[..., None]) -> int:
+        applied = 0
+        while True:
+            try:
+                values = self._results.get_nowait()
+            except queue.Empty:
+                return applied
+            apply_result(*values)
+            applied += 1
+
+
 def _format_storage_bytes(value: int) -> str:
     if value >= 1_000_000_000:
         return f"{value / 1_000_000_000:.1f} GB"
@@ -563,9 +583,9 @@ def run_qt_ui(
         return
 
     receiver = Receiver(config, events, commands, stop, trigger, storage)
-    catalog_results: queue.Queue = queue.Queue()
-    catalog_open_results: queue.Queue = queue.Queue()
-    catalog_delete_results: queue.Queue = queue.Queue()
+    catalog_results = _AsyncResultQueue()
+    catalog_open_results = _AsyncResultQueue()
+    catalog_delete_results = _AsyncResultQueue()
     catalog_scan_running = threading.Event()
     catalog_open_running = threading.Event()
     catalog_delete_running = threading.Event()
@@ -581,7 +601,7 @@ def run_qt_ui(
                     root = storage.resolve()
                 except StorageUnavailable:
                     root = None
-                catalog_results.put((scan_capture_catalog(root), read_storage_usage(root)))
+                catalog_results.put(scan_capture_catalog(root), read_storage_usage(root))
             finally:
                 catalog_scan_running.clear()
 
@@ -595,9 +615,9 @@ def run_qt_ui(
         def decode() -> None:
             try:
                 frames, durations = load_catalog_animation(entry, controller.display_size)
-                catalog_open_results.put((entry, frames, durations, None))
+                catalog_open_results.put(entry, frames, durations, None)
             except Exception as exc:
-                catalog_open_results.put((entry, None, None, exc))
+                catalog_open_results.put(entry, None, None, exc)
             finally:
                 catalog_open_running.clear()
 
@@ -613,15 +633,13 @@ def run_qt_ui(
             try:
                 delete_catalog_entry(root, entry)
                 catalog_delete_results.put(
-                    (
-                        entry,
-                        scan_capture_catalog(root),
-                        None,
-                        read_storage_usage(root),
-                    )
+                    entry,
+                    scan_capture_catalog(root),
+                    None,
+                    read_storage_usage(root),
                 )
             except Exception as exc:
-                catalog_delete_results.put((entry, None, exc, read_storage_usage(root)))
+                catalog_delete_results.put(entry, None, exc, read_storage_usage(root))
             finally:
                 catalog_delete_running.clear()
 
@@ -641,11 +659,7 @@ def run_qt_ui(
             except queue.Empty:
                 break
             controller.handle_event(event)
-        try:
-            while True:
-                controller.apply_catalog(catalog_results.get_nowait())
-        except queue.Empty:
-            pass
+        catalog_results.drain(controller.apply_catalog)
         if (
             int(config.get("trigger_count", 0)) > 0
             and receiver.automatic_run_completed.is_set()
@@ -653,16 +667,8 @@ def run_qt_ui(
         ):
             automatic_quit_scheduled = True
             QTimer.singleShot(1000, app.quit)
-        try:
-            while True:
-                controller.apply_opened_catalog(*catalog_open_results.get_nowait())
-        except queue.Empty:
-            pass
-        try:
-            while True:
-                controller.apply_deleted_catalog(*catalog_delete_results.get_nowait())
-        except queue.Empty:
-            pass
+        catalog_open_results.drain(controller.apply_opened_catalog)
+        catalog_delete_results.drain(controller.apply_deleted_catalog)
 
     poll_timer.timeout.connect(poll_events)
 
