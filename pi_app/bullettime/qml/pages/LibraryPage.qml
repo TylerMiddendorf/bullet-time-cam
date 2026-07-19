@@ -8,7 +8,7 @@ Item {
         id: header
         anchors.left: parent.left
         anchors.right: parent.right
-        title: "SESSION MEDIA"
+        title: "REMOVABLE MEDIA"
         subtitle: "READ ONLY · " + bridge.libraryItems.length + " ITEMS"
         showBack: true
         onBack: bridge.navigate("control")
@@ -86,10 +86,18 @@ Item {
                     color: "#d9000000"
                     Text {
                         anchors.centerIn: parent
-                        text: modelData.title + " · " + modelData.viewCount + " VIEWS"
+                        width: parent.width - 10
+                        horizontalAlignment: Text.AlignHCenter
+                        text: {
+                            var title = String(modelData.title)
+                            var separator = title.lastIndexOf("_")
+                            var shortTitle = separator >= 0 ? title.substring(separator + 1) : title
+                            return shortTitle.toUpperCase() + " · " + modelData.viewCount + " VIEWS"
+                        }
                         color: modelData.partial ? "#ff7b80" : "white"
-                        font.pixelSize: 12
+                        font.pixelSize: 11
                         font.bold: true
+                        elide: Text.ElideRight
                     }
                 }
                 MouseArea {

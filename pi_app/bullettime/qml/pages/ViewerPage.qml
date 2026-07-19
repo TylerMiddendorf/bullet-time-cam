@@ -54,19 +54,23 @@ Item {
 
         Text {
             x: 24
+            width: 220
             anchors.verticalCenter: parent.verticalCenter
             text: "ANIMATION PLAYBACK"
             color: "white"
-            font.pixelSize: 17
+            font.pixelSize: 15
             font.bold: true
             font.letterSpacing: 1.5
         }
 
         Text {
-            anchors.centerIn: parent
+            x: 250
+            width: 280
+            anchors.verticalCenter: parent.verticalCenter
+            horizontalAlignment: Text.AlignHCenter
             text: bridge.imageSource === "" ? "NO MEDIA" : bridge.viewerViewCount + " CAPTURED VIEWS"
             color: "#63adf2"
-            font.pixelSize: 16
+            font.pixelSize: 15
             font.bold: true
         }
 

@@ -28,7 +28,7 @@ Item {
         Text {
             x: 26
             anchors.verticalCenter: parent.verticalCenter
-            text: "STATIC DEMO\nNO PREVIEW TRANSPORT"
+            text: "DEMO PLACEHOLDER\nPREVIEW NOT CONNECTED"
             color: "#aeb7c0"
             font.pixelSize: 14
             font.bold: true

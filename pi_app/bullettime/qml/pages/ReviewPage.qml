@@ -65,11 +65,13 @@ Item {
         Text {
             x: 272
             y: 15
-            text: bridge.viewCount > 0 ? "SAVED WITH " + bridge.viewCount + " VIEWS" : "CAPTURE SAVED"
+            width: 250
+            text: bridge.viewCount > 0 ? bridge.viewCount + " VIEWS SAVED" : "CAPTURE SAVED"
             color: "white"
-            font.pixelSize: 25
+            font.pixelSize: 22
             font.bold: true
             font.letterSpacing: 2
+            elide: Text.ElideRight
         }
 
         Text {
