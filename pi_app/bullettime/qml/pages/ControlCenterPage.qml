@@ -50,10 +50,21 @@ Item {
         objectName: "captureNavigationButton"
         x: 18
         y: 386
-        width: 500
+        width: 246
         height: 72
         label: "CAPTURE"
         onTapped: bridge.navigate("capture")
+    }
+
+    TouchButton {
+        objectName: "cameraRecoveryButton"
+        x: 268
+        y: 386
+        width: 250
+        height: 72
+        label: bridge.cameraRecoveryPending ? bridge.cameraRecoveryMessage : "RECONNECT CAMERAS"
+        enabled: bridge.canRecoverCameras
+        onTapped: bridge.recoverCameras()
     }
 
     TouchButton {

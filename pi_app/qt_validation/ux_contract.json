@@ -204,6 +204,7 @@
         "AI INTERPOLATION",
         "V2 DISABLED",
         "CAPTURE",
+        "RECONNECT CAMERAS",
         "LIBRARY"
       ],
       "required_objects": [
@@ -217,10 +218,21 @@
         "whiteBalanceSetting",
         "smoothMotionSetting",
         "interpolationSetting",
+        "cameraRecoveryButton",
         "mediaButton"
       ],
-      "allowed_commands": ["NAVIGATE_CAPTURE", "NAVIGATE_LIBRARY", "NAVIGATE_READY"],
-      "interactive_objects": ["captureNavigationButton", "mediaButton", "backButton"],
+      "allowed_commands": [
+        "NAVIGATE_CAPTURE",
+        "RECOVER_CAMERA_USB",
+        "NAVIGATE_LIBRARY",
+        "NAVIGATE_READY"
+      ],
+      "interactive_objects": [
+        "captureNavigationButton",
+        "cameraRecoveryButton",
+        "mediaButton",
+        "backButton"
+      ],
       "camera_count": 4,
       "settings_mode": "disabled",
       "disabled_settings": [

@@ -32,6 +32,29 @@ class QtDeploymentContractTests(unittest.TestCase):
         self.assertIn("Environment=QT_QPA_PLATFORM=wayland", service)
         self.assertNotIn("Environment=DISPLAY=", service)
 
+    def test_usb_recovery_installs_one_narrow_privileged_entrypoint(self):
+        installer = (REPO_ROOT / "pi_app" / "scripts" / "install_usb_recovery.sh").read_text(
+            encoding="utf-8"
+        )
+        helper = (REPO_ROOT / "pi_app" / "scripts" / "recover_camera_usb.sh").read_text(
+            encoding="utf-8"
+        )
+        service = (REPO_ROOT / "pi_app" / "systemd" / "bullet-time-usb-recovery.service").read_text(
+            encoding="utf-8"
+        )
+
+        exact_command = "/usr/bin/systemctl start --no-block bullet-time-usb-recovery.service"
+        self.assertIn(f"NOPASSWD: {exact_command}", installer)
+        self.assertIn("visudo -cf", installer)
+        self.assertNotIn("NOPASSWD: ALL", installer)
+        self.assertIn("user_systemctl stop bullet-time-ui.service", helper)
+        self.assertIn("udisksctl unmount", helper)
+        self.assertIn('>"${DRIVER_ROOT}/unbind"', helper)
+        self.assertIn('>"${DRIVER_ROOT}/bind"', helper)
+        self.assertIn("trap restart_ui EXIT", helper)
+        self.assertIn("camera_count", helper)
+        self.assertIn("ExecStart=/usr/local/libexec/bullet-time-recover-usb", service)
+
     def test_verifier_loads_qt_qml_and_checks_wayland(self):
         verifier = (REPO_ROOT / "pi_app" / "scripts" / "verify_boot_experience.sh").read_text(
             encoding="utf-8"

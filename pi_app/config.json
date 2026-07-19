@@ -28,5 +28,13 @@
   "gif_max_width": 800,
   "display_width": 800,
   "display_height": 480,
+  "camera_recovery_command": [
+    "/usr/bin/sudo",
+    "-n",
+    "/usr/bin/systemctl",
+    "start",
+    "--no-block",
+    "bullet-time-usb-recovery.service"
+  ],
   "reconnect_seconds": 1.0
 }

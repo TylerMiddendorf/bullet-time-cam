@@ -1,0 +1,7 @@
+[Unit]
+Description=Recover the Bullet-Time camera USB controller
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/bullet-time-recover-usb
+TimeoutStartSec=45

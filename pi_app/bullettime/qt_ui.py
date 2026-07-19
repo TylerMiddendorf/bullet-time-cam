@@ -6,6 +6,7 @@ import base64
 import io
 import logging
 import queue
+import subprocess
 import threading
 import time
 from collections.abc import Callable
@@ -99,10 +100,13 @@ class QtUiController:
         self.pending_delete_entry: CatalogEntry | None = None
         self.last_manifest: dict | None = None
         self.display_timing_recorded = False
+        self.camera_recovery_pending = False
+        self.camera_recovery_message = ""
         self._on_changed = on_changed or (lambda: None)
         self._refresh_catalog: Callable[[], None] = lambda: None
         self._open_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
         self._delete_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
+        self._recover_cameras: Callable[[], None] = lambda: None
 
     @property
     def snapshot(self) -> UiSnapshot:
@@ -133,6 +137,15 @@ class QtUiController:
     @property
     def can_capture(self) -> bool:
         return self.route in CAPTURE_ROUTES and self.snapshot.state in CAPTURE_STATES
+
+    @property
+    def can_recover_cameras(self) -> bool:
+        return (
+            self.route == "control"
+            and self.snapshot.state in CAPTURE_STATES
+            and not self.snapshot.capture_in_progress
+            and not self.camera_recovery_pending
+        )
 
     @property
     def viewer_view_count(self) -> int:
@@ -176,6 +189,9 @@ class QtUiController:
         if delete_entry is not None:
             self._delete_catalog_entry = delete_entry
 
+    def set_camera_recovery_callback(self, recover: Callable[[], None]) -> None:
+        self._recover_cameras = recover
+
     def navigate(self, route: str) -> bool:
         if route not in ALL_ROUTES or self.snapshot.capture_in_progress:
             return False
@@ -197,6 +213,23 @@ class QtUiController:
         self.commands.put("CAPTURE")
         self._on_changed()
         return True
+
+    def request_camera_recovery(self) -> bool:
+        if not self.can_recover_cameras:
+            return False
+        self.camera_recovery_pending = True
+        self.camera_recovery_message = "RESTARTING CAMERA USB"
+        self._on_changed()
+        self._recover_cameras()
+        return True
+
+    def apply_camera_recovery_result(self, error: Exception | None) -> None:
+        if error is None:
+            self.camera_recovery_message = "CAMERA USB RECOVERY STARTED"
+        else:
+            self.camera_recovery_pending = False
+            self.camera_recovery_message = f"RECOVERY FAILED: {error}"
+        self._on_changed()
 
     def open_library_item(self, index: int) -> bool:
         if not 0 <= index < len(self.library_items) or self.snapshot.capture_in_progress:
@@ -531,9 +564,25 @@ def run_qt_ui(
         def canCapture(self) -> bool:  # noqa: N802
             return controller.can_capture
 
+        @Property(bool, notify=changed)
+        def canRecoverCameras(self) -> bool:  # noqa: N802
+            return controller.can_recover_cameras
+
+        @Property(bool, notify=changed)
+        def cameraRecoveryPending(self) -> bool:  # noqa: N802
+            return controller.camera_recovery_pending
+
+        @Property(str, notify=changed)
+        def cameraRecoveryMessage(self) -> str:  # noqa: N802
+            return controller.camera_recovery_message
+
         @Slot(result=bool)
         def capture(self) -> bool:
             return controller.request_capture()
+
+        @Slot(result=bool)
+        def recoverCameras(self) -> bool:  # noqa: N802
+            return controller.request_camera_recovery()
 
         @Slot(str, result=bool)
         def navigate(self, route: str) -> bool:
@@ -586,9 +635,11 @@ def run_qt_ui(
     catalog_results = _AsyncResultQueue()
     catalog_open_results = _AsyncResultQueue()
     catalog_delete_results = _AsyncResultQueue()
+    camera_recovery_results = _AsyncResultQueue()
     catalog_scan_running = threading.Event()
     catalog_open_running = threading.Event()
     catalog_delete_running = threading.Event()
+    camera_recovery_running = threading.Event()
 
     def refresh_catalog() -> None:
         if catalog_scan_running.is_set():
@@ -647,6 +698,42 @@ def run_qt_ui(
 
     controller.set_catalog_callbacks(refresh_catalog, open_catalog_entry, remove_catalog_entry)
 
+    def recover_cameras() -> None:
+        if camera_recovery_running.is_set():
+            return
+        camera_recovery_running.set()
+        command = config.get("camera_recovery_command", [])
+
+        def request_recovery() -> None:
+            error: Exception | None = None
+            try:
+                if (
+                    not isinstance(command, list)
+                    or not command
+                    or not all(isinstance(part, str) and part for part in command)
+                ):
+                    raise RuntimeError("camera recovery is not installed")
+                subprocess.run(
+                    command,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+            except Exception as exc:
+                error = exc
+            finally:
+                camera_recovery_results.put(error)
+                camera_recovery_running.clear()
+
+        threading.Thread(
+            target=request_recovery,
+            name="camera-usb-recovery",
+            daemon=True,
+        ).start()
+
+    controller.set_camera_recovery_callback(recover_cameras)
+
     poll_timer = QTimer()
     poll_timer.setInterval(50)
     automatic_quit_scheduled = False
@@ -669,6 +756,7 @@ def run_qt_ui(
             QTimer.singleShot(1000, app.quit)
         catalog_open_results.drain(controller.apply_opened_catalog)
         catalog_delete_results.drain(controller.apply_deleted_catalog)
+        camera_recovery_results.drain(controller.apply_camera_recovery_result)
 
     poll_timer.timeout.connect(poll_events)
 

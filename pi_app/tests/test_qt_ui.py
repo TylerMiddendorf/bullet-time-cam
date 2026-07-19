@@ -124,6 +124,27 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertTrue(controller.navigate("capture"))
         self.assertTrue(controller.can_capture)
 
+    def test_camera_recovery_is_settings_only_idle_and_single_flight(self):
+        requests = []
+        controller = QtUiController(queue.Queue())
+        controller.set_camera_recovery_callback(lambda: requests.append("recover"))
+        controller.handle_event({"state": "ERROR", "connected_camera_ids": []})
+
+        self.assertFalse(controller.request_camera_recovery())
+        self.assertTrue(controller.navigate("control"))
+        self.assertTrue(controller.can_recover_cameras)
+        self.assertTrue(controller.request_camera_recovery())
+        self.assertEqual(requests, ["recover"])
+        self.assertTrue(controller.camera_recovery_pending)
+        self.assertFalse(controller.request_camera_recovery())
+
+        controller.apply_camera_recovery_result(RuntimeError("helper unavailable"))
+        self.assertFalse(controller.camera_recovery_pending)
+        self.assertIn("helper unavailable", controller.camera_recovery_message)
+
+        controller.handle_event({"state": "LOADING", "message": "Capturing"})
+        self.assertFalse(controller.can_recover_cameras)
+
     def test_delete_requires_confirmation_and_returns_to_refreshed_library(self):
         controller = QtUiController(queue.Queue())
         with tempfile.TemporaryDirectory() as temp:
@@ -271,6 +292,12 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn("bridge.capturePlaceholder", placeholder)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
+
+        control = (QML_ROOT / "pages" / "ControlCenterPage.qml").read_text(encoding="utf-8")
+        self.assertIn('objectName: "cameraRecoveryButton"', control)
+        self.assertIn('"RECONNECT CAMERAS"', control)
+        self.assertIn("enabled: bridge.canRecoverCameras", control)
+        self.assertIn("bridge.recoverCameras()", control)
 
     def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
