@@ -47,7 +47,7 @@ Item {
         Column {
             anchors.fill: parent
             anchors.margins: 14
-            spacing: 14
+            spacing: 10
             Text {
                 width: parent.width
                 text: "REMOVABLE USB"
@@ -61,11 +61,94 @@ Item {
             }
             Text {
                 width: parent.width
-                text: "Published capture sets on the selected removable USB drive. Delete removes the originals and GIF together."
+                text: "Published capture sets on the selected removable USB drive."
                 color: "#aab2ba"
                 font.pixelSize: 14
                 lineHeight: 1.2
                 wrapMode: Text.WordWrap
+            }
+
+            Rectangle {
+                objectName: "storageUsageMetric"
+                width: parent.width
+                height: 116
+                radius: 8
+                color: "#111820"
+                border.color: "#38414a"
+
+                Text {
+                    x: 10
+                    y: 9
+                    text: "USB STORAGE"
+                    color: "#7f8891"
+                    font.pixelSize: 10
+                    font.bold: true
+                    font.letterSpacing: 1
+                }
+
+                Row {
+                    x: 10
+                    y: 31
+                    width: parent.width - 20
+                    height: 48
+
+                    Column {
+                        width: parent.width / 2
+                        spacing: 2
+                        Text {
+                            text: "USED"
+                            color: "#7f8891"
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                        Text {
+                            width: 65
+                            text: bridge.storageUsedText
+                            color: "white"
+                            font.pixelSize: 15
+                            minimumPixelSize: 10
+                            fontSizeMode: Text.Fit
+                            font.bold: true
+                        }
+                    }
+
+                    Column {
+                        width: parent.width / 2
+                        spacing: 2
+                        Text {
+                            text: "AVAILABLE"
+                            color: "#7f8891"
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                        Text {
+                            width: 65
+                            text: bridge.storageAvailableText
+                            color: bridge.storageAvailableText === "UNAVAILABLE"
+                                ? "#ff6168" : "#63adf2"
+                            font.pixelSize: 15
+                            minimumPixelSize: 8
+                            fontSizeMode: Text.Fit
+                            font.bold: true
+                        }
+                    }
+                }
+
+                Rectangle {
+                    x: 10
+                    y: 90
+                    width: parent.width - 20
+                    height: 8
+                    radius: 4
+                    color: "#303842"
+
+                    Rectangle {
+                        width: parent.width * bridge.storageUsedFraction
+                        height: parent.height
+                        radius: parent.radius
+                        color: bridge.storageUsedFraction >= 0.9 ? "#ff6168" : "#63adf2"
+                    }
+                }
             }
         }
     }

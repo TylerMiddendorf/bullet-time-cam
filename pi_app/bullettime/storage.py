@@ -30,8 +30,35 @@ class UsbMount:
     major_minor: str
 
 
+@dataclass(frozen=True)
+class StorageUsage:
+    """Capacity figures for the active removable volume."""
+
+    available: bool
+    total_bytes: int = 0
+    used_bytes: int = 0
+    free_bytes: int = 0
+
+
 _MOUNT_ESCAPE = re.compile(r"\\([0-7]{3})")
 _CAPTURE_STAGING = re.compile(r"^\.\d{8}T\d{6}Z_[0-9a-f]{8}\.part$")
+
+
+def read_storage_usage(root: Path | None) -> StorageUsage:
+    """Read capacity from the active USB root without falling back elsewhere."""
+
+    if root is None:
+        return StorageUsage(available=False)
+    try:
+        usage = shutil.disk_usage(root)
+    except OSError:
+        return StorageUsage(available=False)
+    return StorageUsage(
+        available=True,
+        total_bytes=usage.total,
+        used_bytes=usage.used,
+        free_bytes=usage.free,
+    )
 
 
 def _unescape_mount_field(value: str) -> str:

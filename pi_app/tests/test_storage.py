@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import shutil
 import tempfile
 import time
 import unittest
@@ -11,12 +12,14 @@ from PIL import Image
 
 from pi_app.bullettime.storage import (
     StorageUnavailable,
+    StorageUsage,
     UsbMount,
     UsbStorageResolver,
     atomic_json,
     cleanup_stale_staging,
     commit_capture,
     discover_usb_mounts,
+    read_storage_usage,
 )
 
 
@@ -129,6 +132,24 @@ class UsbStorageResolverTests(unittest.TestCase):
             self.assertTrue(matching_file.exists())
             with self.assertRaises(ValueError):
                 cleanup_stale_staging(root, -1)
+
+    def test_storage_usage_reads_only_the_supplied_active_root(self):
+        root = Path("/active-usb/BulletTime")
+        with patch(
+            "pi_app.bullettime.storage.shutil.disk_usage",
+            return_value=shutil._ntuple_diskusage(250_000, 75_000, 175_000),
+        ) as disk_usage:
+            usage = read_storage_usage(root)
+
+        disk_usage.assert_called_once_with(root)
+        self.assertEqual(usage, StorageUsage(True, 250_000, 75_000, 175_000))
+
+    def test_storage_usage_is_unavailable_without_an_active_usb_root(self):
+        with patch("pi_app.bullettime.storage.shutil.disk_usage") as disk_usage:
+            usage = read_storage_usage(None)
+
+        disk_usage.assert_not_called()
+        self.assertEqual(usage, StorageUsage(available=False))
 
 
 class AtomicPersistenceTests(unittest.TestCase):

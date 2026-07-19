@@ -21,7 +21,13 @@ from .media_catalog import (
     load_catalog_animation,
     scan_capture_catalog,
 )
-from .storage import UsbStorageResolver, atomic_json
+from .storage import (
+    StorageUnavailable,
+    StorageUsage,
+    UsbStorageResolver,
+    atomic_json,
+    read_storage_usage,
+)
 from .ui_model import PresentationState, UiSnapshot
 
 LOGGER = logging.getLogger(__name__)
@@ -30,6 +36,14 @@ DEMO_ROUTES = frozenset({"preview", "control", "library", "viewer"})
 ALL_ROUTES = RUNTIME_ROUTES | DEMO_ROUTES
 CAPTURE_ROUTES = frozenset({"ready", "review", "preview", "control"})
 CAPTURE_STATES = frozenset({"READY", "REVIEW", "REVIEW_WITH_ERROR", "ERROR"})
+
+
+def _format_storage_bytes(value: int) -> str:
+    if value >= 1_000_000_000:
+        return f"{value / 1_000_000_000:.1f} GB"
+    if value >= 1_000_000:
+        return f"{value / 1_000_000:.1f} MB"
+    return f"{value / 1_000:.1f} KB"
 
 
 def _frame_data_url(frame: Image.Image) -> str:
@@ -60,6 +74,7 @@ class QtUiController:
         self.selected_library_index = -1
         self.catalog_status = "idle"
         self.catalog_message = ""
+        self.storage_usage = StorageUsage(available=False)
         self.delete_confirmation_visible = False
         self.pending_delete_entry: CatalogEntry | None = None
         self.last_manifest: dict | None = None
@@ -108,6 +123,24 @@ class QtUiController:
     @property
     def pending_delete_title(self) -> str:
         return self.pending_delete_entry.capture_id if self.pending_delete_entry else ""
+
+    @property
+    def storage_used_text(self) -> str:
+        if not self.storage_usage.available:
+            return "--"
+        return _format_storage_bytes(self.storage_usage.used_bytes)
+
+    @property
+    def storage_available_text(self) -> str:
+        if not self.storage_usage.available:
+            return "UNAVAILABLE"
+        return _format_storage_bytes(self.storage_usage.free_bytes)
+
+    @property
+    def storage_used_fraction(self) -> float:
+        if not self.storage_usage.available or self.storage_usage.total_bytes <= 0:
+            return 0.0
+        return min(1.0, self.storage_usage.used_bytes / self.storage_usage.total_bytes)
 
     def set_changed_callback(self, callback: Callable[[], None]) -> None:
         self._on_changed = callback
@@ -191,7 +224,11 @@ class QtUiController:
         self._on_changed()
         return True
 
-    def apply_catalog(self, catalog: CatalogSnapshot) -> None:
+    def apply_catalog(
+        self,
+        catalog: CatalogSnapshot,
+        storage_usage: StorageUsage | None = None,
+    ) -> None:
         selected_id = (
             self.library_items[self.selected_library_index].capture_id
             if 0 <= self.selected_library_index < len(self.library_items)
@@ -200,6 +237,8 @@ class QtUiController:
         self.library_items = list(catalog.entries)
         self.catalog_status = catalog.status
         self.catalog_message = catalog.message
+        if storage_usage is not None:
+            self.storage_usage = storage_usage
         self.selected_library_index = next(
             (
                 index
@@ -236,10 +275,13 @@ class QtUiController:
         entry: CatalogEntry,
         catalog: CatalogSnapshot | None,
         error: Exception | None,
+        storage_usage: StorageUsage | None = None,
     ) -> None:
         self.delete_confirmation_visible = False
         self.pending_delete_entry = None
         self.route = "library"
+        if storage_usage is not None:
+            self.storage_usage = storage_usage
         if error is not None or catalog is None:
             self.catalog_status = "removed" if isinstance(error, OSError) else "error"
             self.catalog_message = f"Could not delete {entry.capture_id}: {error}"
@@ -433,6 +475,18 @@ def run_qt_ui(
         def catalogMessage(self) -> str:  # noqa: N802
             return controller.catalog_message
 
+        @Property(str, notify=changed)
+        def storageUsedText(self) -> str:  # noqa: N802
+            return controller.storage_used_text
+
+        @Property(str, notify=changed)
+        def storageAvailableText(self) -> str:  # noqa: N802
+            return controller.storage_available_text
+
+        @Property(float, notify=changed)
+        def storageUsedFraction(self) -> float:  # noqa: N802
+            return controller.storage_used_fraction
+
         @Property(bool, notify=changed)
         def deleteConfirmationVisible(self) -> bool:  # noqa: N802
             return controller.delete_confirmation_visible
@@ -520,11 +574,14 @@ def run_qt_ui(
         if catalog_scan_running.is_set():
             return
         catalog_scan_running.set()
-        root = storage.active_root
 
         def scan() -> None:
             try:
-                catalog_results.put(scan_capture_catalog(root))
+                try:
+                    root = storage.resolve()
+                except StorageUnavailable:
+                    root = None
+                catalog_results.put((scan_capture_catalog(root), read_storage_usage(root)))
             finally:
                 catalog_scan_running.clear()
 
@@ -555,9 +612,16 @@ def run_qt_ui(
         def remove() -> None:
             try:
                 delete_catalog_entry(root, entry)
-                catalog_delete_results.put((entry, scan_capture_catalog(root), None))
+                catalog_delete_results.put(
+                    (
+                        entry,
+                        scan_capture_catalog(root),
+                        None,
+                        read_storage_usage(root),
+                    )
+                )
             except Exception as exc:
-                catalog_delete_results.put((entry, None, exc))
+                catalog_delete_results.put((entry, None, exc, read_storage_usage(root)))
             finally:
                 catalog_delete_running.clear()
 

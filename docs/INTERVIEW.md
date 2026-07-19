@@ -322,3 +322,12 @@ Implementation status:
   animation GIF, and manifest are removed together from removable USB storage.
 - Require explicit confirmation and clearly state that deletion cannot be
   undone. Keep rename, editing, sharing, and boot-card browsing unsupported.
+
+### 2026-07-19 - Removable-media capacity metric
+
+- Show storage usage and availability on the Raspberry Pi media-library screen.
+- Derive both figures from the currently selected removable USB filesystem.
+- If removable USB capacity cannot be read, show it as unavailable rather than
+  reporting capacity from the protected Raspberry Pi boot card.
+- Commit and push the change, fast-forward pull it on the Pi, and verify the
+  behavior on the physical Pi before treating it as complete.

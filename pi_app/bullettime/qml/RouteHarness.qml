@@ -45,6 +45,9 @@ Window {
         property int selectedLibraryIndex: 0
         property string catalogStatus: "ready"
         property string catalogMessage: "Fixture catalog"
+        property string storageUsedText: "18.6 GB"
+        property string storageAvailableText: "231.4 GB"
+        property real storageUsedFraction: 0.0744
         property bool deleteConfirmationVisible: fixtureMedia === "confirm-delete"
         property string pendingDeleteTitle: "codex_delete_test_95961ff"
         property bool fullscreen: false

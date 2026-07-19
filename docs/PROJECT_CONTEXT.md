@@ -188,7 +188,9 @@ delete action is available from the library and viewer; it revalidates the
 selected set and removes that set's originals, GIF, and manifest together from
 removable USB storage. The library retains touch flicking and provides right-side page-up and
 page-down controls with a current/total page indicator for discoverable
-navigation through large catalogs. The application contains no battery state, battery display, or
+navigation through large catalogs. Its sidebar reports used and available
+capacity from the selected removable USB filesystem; it does not substitute
+boot-card capacity when USB media is unavailable. The application contains no battery state, battery display, or
 reserved battery region, and it makes no hotspot or network-connectivity claim.
 
 The installed display is an 800x480 HDMI touchscreen. A July 17 query of the running Pi reports HDMI-A-2 at 65.681 Hz with a 150x100 mm physical area and generic EDID identity `Addi-Data GmbH`, model `0x0004`, serial `0x00000001`. Touch is provided by USB controller `8888:6666` over the display's micro-USB connection. That interface advertises USB 5 V / 100 mA maximum (0.5 W); this is descriptor data, not a measurement of the entire panel and backlight. Outer bezel/depth and actual load require physical measurement if needed for enclosure or battery sizing.

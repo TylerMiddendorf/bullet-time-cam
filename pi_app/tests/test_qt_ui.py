@@ -8,6 +8,7 @@ from PIL import Image
 
 from pi_app.bullettime.media_catalog import load_catalog_animation, scan_capture_catalog
 from pi_app.bullettime.qt_ui import ALL_ROUTES, QtUiController
+from pi_app.bullettime.storage import StorageUsage
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 QML_ROOT = REPO_ROOT / "pi_app" / "bullettime" / "qml"
@@ -161,6 +162,26 @@ class QtUiControllerTests(unittest.TestCase):
             self.assertEqual(controller.library_items, [entry])
             self.assertIn("drive removed", controller.catalog_message)
 
+    def test_library_exposes_used_and_available_usb_capacity(self):
+        controller = QtUiController(queue.Queue())
+        usage = StorageUsage(
+            available=True,
+            total_bytes=250_000_000_000,
+            used_bytes=18_600_000_000,
+            free_bytes=231_400_000_000,
+        )
+
+        controller.apply_catalog(scan_capture_catalog(None), usage)
+
+        self.assertEqual(controller.storage_used_text, "18.6 GB")
+        self.assertEqual(controller.storage_available_text, "231.4 GB")
+        self.assertAlmostEqual(controller.storage_used_fraction, 0.0744)
+
+        controller.apply_catalog(scan_capture_catalog(None), StorageUsage(available=False))
+        self.assertEqual(controller.storage_used_text, "--")
+        self.assertEqual(controller.storage_available_text, "UNAVAILABLE")
+        self.assertEqual(controller.storage_used_fraction, 0.0)
+
 
 class QmlContractTests(unittest.TestCase):
     def test_all_seven_design_routes_are_native_qml_components(self):
@@ -228,6 +249,12 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn("width: parent.width - 24", touch_button)
         self.assertIn('objectName: "deleteSelectedButton"', library)
         self.assertIn("bridge.promptDeleteSelected()", library)
+        self.assertIn('objectName: "storageUsageMetric"', library)
+        self.assertIn('text: "USED"', library)
+        self.assertIn('text: "AVAILABLE"', library)
+        self.assertIn("bridge.storageUsedText", library)
+        self.assertIn("bridge.storageAvailableText", library)
+        self.assertIn("bridge.storageUsedFraction", library)
 
         viewer = (QML_ROOT / "pages" / "ViewerPage.qml").read_text(encoding="utf-8")
         confirmation = (QML_ROOT / "components" / "DeleteConfirmation.qml").read_text(
