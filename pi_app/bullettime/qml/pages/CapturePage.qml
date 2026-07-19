@@ -32,6 +32,8 @@ Item {
             text: "STATIC PLACEHOLDER\nCAMERA VIEW NOT CONNECTED"
             color: "#aeb7c0"
             font.pixelSize: 12
+            fontSizeMode: Text.Fit
+            minimumPixelSize: 9
             font.bold: true
             font.letterSpacing: 1.2
         }

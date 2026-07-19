@@ -51,20 +51,28 @@ Item {
             anchors.centerIn: parent
             spacing: 1
             Text {
+                width: parent.width - 16
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "STATIC PLACEHOLDER"
                 color: "white"
                 font.pixelSize: 16
+                fontSizeMode: Text.Fit
+                minimumPixelSize: 11
                 font.bold: true
                 font.letterSpacing: 1.6
+                horizontalAlignment: Text.AlignHCenter
             }
             Text {
+                width: parent.width - 16
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "CAMERA VIEW NOT CONNECTED"
                 color: "#63adf2"
                 font.pixelSize: 13
+                fontSizeMode: Text.Fit
+                minimumPixelSize: 9
                 font.bold: true
                 font.letterSpacing: 2
+                horizontalAlignment: Text.AlignHCenter
             }
         }
     }
