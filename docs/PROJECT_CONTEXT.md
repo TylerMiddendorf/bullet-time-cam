@@ -171,22 +171,37 @@ The Raspberry Pi also initiates the same simultaneous hardware capture through B
 
 ### Display and controls
 
-Version 1 needs a minimal on-device interface that communicates system/capture status and automatically shows the post-capture animation. It does not need to stream a live preview, expose camera settings, or manage older captures.
+The deployed touchscreen application uses Qt Quick/QML with a PySide6 bridge on
+the Raspberry Pi. Its seven native 800x480 routes cover ready, capture progress,
+camera-specific partial review, a static preview placeholder, a four-camera
+control-center concept, a read-only removable-media library, and a detached GIF
+viewer. Runtime QML implements the layouts directly; it does not display the
+mockup screenshots.
+
+The preview route is deliberately a logo-derived static placeholder marked
+`DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`. There is no live camera
+transport, Qt Multimedia dependency, or `LIVE` claim. Camera settings are
+visible only as disabled future controls and emit no node commands. The
+historical library validates published schema-2 capture sets without modifying
+them, and it decodes selected GIFs away from removable media before viewer
+display. The application contains no battery state, battery display, or
+reserved battery region, and it makes no hotspot or network-connectivity claim.
 
 The installed display is an 800x480 HDMI touchscreen. A July 17 query of the running Pi reports HDMI-A-2 at 65.681 Hz with a 150x100 mm physical area and generic EDID identity `Addi-Data GmbH`, model `0x0004`, serial `0x00000001`. Touch is provided by USB controller `8888:6666` over the display's micro-USB connection. That interface advertises USB 5 V / 100 mA maximum (0.5 W); this is descriptor data, not a measurement of the entire panel and backlight. Outer bezel/depth and actual load require physical measurement if needed for enclosure or battery sizing.
 
-Planned sequence:
+Planned capability sequence:
 
-1. Version 1: capture/loading state, persistent latest-result review, and essential status only
+1. Version 1: capture/loading state, persistent latest-result review, essential
+   status, read-only removable-media browsing, and the static preview placeholder
 2. Fast follow: live preview
 3. Version 2: user-adjustable camera settings
 4. Much later: network-based media access, remote control, and other Wi-Fi features after the onboard experience is polished
 
 Provisional visual explorations for these phases are indexed under
-[`../designs/ux-mockups/`](../designs/ux-mockups/README.md). They are design
-references, not validated UI behavior or product decisions; in particular, the
-live-preview, settings, library, and viewer concepts do not expand version 1
-scope.
+[`../designs/ux-mockups/`](../designs/ux-mockups/README.md). Seven selected
+compositions have now been translated into and rendered as native QML on the
+physical Pi display. The mockups remain design references rather than runtime
+assets; live-preview transport and operative settings remain later work.
 
 ### Power - selected version 1 arrangement
 
@@ -295,10 +310,21 @@ As of July 18, 2026:
 - Later on July 18, the complete removable-media hardware matrix passed fail-closed, atomic-publication, no-boot-card-fallback, recovery, and deterministic two-drive selection checks. Missing, full, read-only, corrupt/unmountable, and deterministic mid-write USB-storage removal were exercised on the Pi; every restored state completed a byte-valid four-camera capture, and the environment-gated four-node E2E test passed with its ledger. Qualification also exposed a Tk poll-callback crash when reviewed media disappears, clipped storage-error text, a dirty product FAT, and one pre-existing stale staging directory. See `docs/evidence/milestone-2/removable-media-qualification-2026-07-18.md`.
 - The focused July 18 follow-up resolved those findings. App 0.2.1 survived the live removed-review exception without restarting, bounded storage and camera-disconnect text at 800x480, and removed the expired staging directory through guarded cleanup. A complete 1,224-file/947,483,006-byte product-media backup matched every source SHA-256 before `fsck.vfat` repaired the dirty FAT and reconciled the boot-sector difference. The offline check passed both immediately and after final actual-UI four-camera capture `20260718T175104Z_04b69c0b`; that set passed byte and GIF-order validation. See `docs/evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`.
 - The first Milestone 3 inventory found no Pi `power_supply` entries, no `hwmon` voltage/current/power inputs, and no USB device identifiable as an electrical power meter. `get_throttled=0x0` is a health flag rather than an aggregate measurement. The product owner subsequently retired that measurement work and accepted the external two-output battery pack as the V1 power solution; see `docs/MILESTONE_3_PLAN.md`.
+- On July 18, the native Qt Quick/PySide6 touchscreen track was deployed and
+  validated on the physical Raspberry Pi through the required commit, push,
+  fast-forward pull workflow. Commit `fb1d1e7` runs natively on Wayland without
+  Xwayland, the deterministic Pi suite passed 112 tests with one expected live
+  evidence skip, and all seven routes rendered at 800x480 with zero QML
+  warnings. One bounded real-UI capture produced complete set
+  `20260719T021211Z_4be2d832`; the service returned active with GPIO17 LOW. The
+  real 214-entry product-media catalog validates every entry while eagerly
+  decoding only the first six thumbnails, reducing initial load from 21.101
+  seconds to 0.527 seconds. See
+  `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
 - The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. Enclosure work remains.
+The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and native Qt touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track is complete, while live preview and operative camera settings remain deferred. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. Enclosure work remains.
 
 The active work is the compact V1 enclosure in Milestone 4. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
@@ -322,7 +348,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - During capture, version 1 displays a loading/capture screen.
 - After capture, the latest result remains displayed until the next capture.
 - During boot, the display shows only `assets/Logo_800x480.png` and transitions directly to the full-screen camera application; Raspberry Pi firmware artwork, desktop UI, boot logs, cursors, and startup diagnostics are not user-visible.
-- Version 1 does not provide an on-device gallery or deletion controls.
+- Version 1 provides read-only browsing of published capture sets and a detached
+  GIF viewer; it does not provide deletion or media-editing controls.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.
 - The four cameras are mounted side by side in a horizontal line.

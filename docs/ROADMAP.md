@@ -139,6 +139,32 @@ This supersedes the earlier internal-battery direction for V1. The original
 measurement and safe-power checkpoints remain in `MILESTONE_3_PLAN.md` as
 historical planning context.
 
+## Completed UI Platform Track - Qt Touchscreen
+
+Status: complete July 18, 2026
+
+- Replace the Tk runtime with native Qt Quick/QML and a PySide6 bridge while
+  preserving the receiver, GPIO17 trigger, atomic media pipeline, and headless
+  operation.
+- Implement seven native 800x480 routes derived from the approved UX
+  explorations: ready, progress, partial review, static preview placeholder,
+  four-camera controls, read-only removable-media library, and detached viewer.
+- Keep the preview demonstrably static and logo-based. Do not add live camera
+  transport, Qt Multimedia, battery UI/state, network claims, media mutation,
+  or operative camera-setting commands.
+- Deploy through commit, push, and fast-forward Pi pull; validate native
+  Wayland boot, route rendering, capture, removable-media browsing, GPIO17 idle
+  safety, camera identity, and service recovery.
+
+Physical-Pi validation passed at `fb1d1e7`: 112 deterministic tests passed with
+one expected live-evidence skip, all seven routes rendered at 800x480 without
+QML warnings, a complete four-camera UI capture was published, and the
+214-entry product library loaded in 0.527 seconds after bounded eager thumbnail
+decoding. A human-operated touch-feel observation remains useful enclosure UX
+feedback, but is not represented as SSH evidence. Details and route artifacts
+are in
+[`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026

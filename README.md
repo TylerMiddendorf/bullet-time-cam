@@ -59,7 +59,18 @@ after final byte-valid four-camera capture `20260718T175104Z_04b69c0b`.
 The product owner accepted an external battery pack with separate rated
 5 V / 2 A feeds for the Raspberry Pi and powered USB hub plus its own percentage
 display. Aggregate measurement and internal battery/safe-power integration are
-retired as V1 gates; compact enclosure work is next.
+retired as V1 gates.
+
+The physical Pi now runs the native Qt Quick/PySide6 touchscreen at 800x480 on
+Wayland. Seven mockup-derived routes cover ready, progress, partial review, a
+logo-based static preview placeholder, four-camera controls, a read-only USB
+library, and a detached GIF viewer. The application includes no live-preview
+backend and no battery UI. Physical-Pi validation at `fb1d1e7` rendered every
+route without QML warnings, completed capture
+`20260719T021211Z_4be2d832`, and loaded the real 214-entry library in 0.527
+seconds. See the
+[`Qt deployment evidence`](docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+Compact enclosure work remains the active milestone.
 
 ## Camera Firmware
 

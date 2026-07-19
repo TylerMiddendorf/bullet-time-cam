@@ -26,9 +26,10 @@ status narratives between files.
 ## Evidence and History
 
 The independent [`Qt touchscreen validation track`](qt-touchscreen/README.md)
-defines a non-shipped seven-route Qt Quick contract, deterministic headless
-strategy, evidence templates, and Pi deployment/rollback checklist. It does not
-change milestone status or product scope.
+defines the shipped seven-route Qt Quick contract, deterministic headless
+strategy, evidence templates, and Pi deployment/rollback checklist. Deployment
+results and native 800x480 route captures are under
+[`evidence/qt-touchscreen/`](evidence/qt-touchscreen/).
 
 - [`evidence/README.md`](evidence/README.md) — milestone/checkpoint evidence index
 - [`history/`](history/) — completed implementation-session logs retained for context

@@ -1,0 +1,60 @@
+{
+  "captured_on": "2026-07-18",
+  "platform": "Raspberry Pi 4 native Wayland",
+  "runtime_commit": "fb1d1e7",
+  "display": {
+    "width": 800,
+    "height": 480
+  },
+  "capture_invariants": {
+    "frame_swapped": true,
+    "qml_warning_count": 0,
+    "live_preview_connected": false,
+    "battery_ui_present": false
+  },
+  "media_fixture": "/media/username/USB DISK/BulletTime/20260718T222606Z_30cf8e02/bullet_time.gif",
+  "routes": [
+    {
+      "route": "ready",
+      "file": "01-ready-800x480.png",
+      "render_commit": "d502fff",
+      "sha256": "47725a420ad512700d81eca3c3c1cf209cd2f517531d7f8f4a030f825b634dde"
+    },
+    {
+      "route": "progress",
+      "file": "02-progress-800x480.png",
+      "render_commit": "d502fff",
+      "sha256": "21a904b69423df38c7e28e5727e70bb2b52bc0a651d8376e22ff01b2d7d7da6c"
+    },
+    {
+      "route": "partial-review",
+      "file": "03-partial-review-800x480.png",
+      "render_commit": "d502fff",
+      "sha256": "6413432cc4bcb978a73d7bf11cc965708728d3adc10b16f86d498dfcd0ea6ab9"
+    },
+    {
+      "route": "static-preview-placeholder",
+      "file": "04-static-preview-placeholder-800x480.png",
+      "render_commit": "828831b",
+      "sha256": "8536de5e175b752039444ee7e4cf67f1815a6f9f49005e50cf30f3e556288e77"
+    },
+    {
+      "route": "four-camera-control-center",
+      "file": "05-four-camera-control-center-800x480.png",
+      "render_commit": "d502fff",
+      "sha256": "0d5d6d6dd6274df975686b5fd414be80a4f0a0cb3e3765f3f26f72471e5aa528"
+    },
+    {
+      "route": "removable-media-library",
+      "file": "06-removable-media-library-800x480.png",
+      "render_commit": "828831b",
+      "sha256": "b994a0c55e6c1fd40dbeb2a336fc375171588ac3b93dff979444ef3100f719ba"
+    },
+    {
+      "route": "gif-viewer",
+      "file": "07-gif-viewer-800x480.png",
+      "render_commit": "828831b",
+      "sha256": "58bbd8e5fd213ef09e2d1a99b34e57d1e7c4d62644ad9412062a128e6751d64a"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 # Qt Touchscreen Migration Validation Track
 
-Status: independent implementation/validation track started from rollback
-baseline `1ef1ba6` and contract commit `1f6ff70`; not a canonical milestone or
-product-decision document.
+Status: completed implementation/validation track, deployed on the physical Pi;
+not a canonical milestone or product-decision document. Canonical status lives
+in `docs/PROJECT_CONTEXT.md` and `docs/ROADMAP.md`.
 
 This directory defines a testable V1 UX contract and a repeatable validation
 path for migrating the Raspberry Pi touchscreen from Tkinter to Qt Quick with
-PySide6. It does not claim that the Qt implementation has shipped or passed on
-the physical rig.
+PySide6. The implementation shipped and passed the bounded physical-rig checks
+recorded in `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
 
 ## Scope
 
@@ -77,9 +77,9 @@ for this track. Whenever it is visible, the UI must overlay the exact text
   screenshot/evidence skeleton
 
 The machine-readable companion contract lives at
-`pi_app/qt_validation/ux_contract.json`. It is intentionally separate from the
-current production UI so this track can be reviewed and tested without changing
-the known-good Tkinter path.
+`pi_app/qt_validation/ux_contract.json`. It remains separate from the production
+QML so scope and interaction constraints can be validated without starting the
+display runtime.
 
 Validate that companion contract without Qt or third-party Python packages:
 

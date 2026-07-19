@@ -15,6 +15,8 @@ Status reviewed: July 18, 2026
 - Scope guard: implement the supplied UX mockups with a generated temporary
   preview image, but do not implement a live camera stream and do not display
   battery level or battery status.
+- The completed Qt deployment is now at runtime commit `fb1d1e7`; rollback to
+  `63420c1` remains available through normal Git history.
 
 ## Verified State
 
@@ -32,6 +34,11 @@ Status reviewed: July 18, 2026
   coordinated shutdown evidence is claimed.
 - The complete removable-media follow-up is in
   [`evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`](evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md).
+- Native Qt Quick/PySide6 now runs on the Pi's 800x480 Wayland session. Seven
+  routes, a bounded real four-camera capture, and the 214-entry read-only USB
+  library passed SSH-accessible validation. Preview remains a labeled static
+  logo fixture and the UI contains no battery state. Evidence is in
+  [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
 
 ## Immediate Work
 

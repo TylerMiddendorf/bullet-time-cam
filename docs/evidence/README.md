@@ -27,6 +27,15 @@ reviewed without searching one large flat directory.
 - [`milestone-2/`](milestone-2/) — USB-media discovery, mount bring-up, and
   qualifying fault/recovery evidence
 
+## Qt Touchscreen Platform Track
+
+- [`qt-ui-deployment-2026-07-18.md`](qt-touchscreen/qt-ui-deployment-2026-07-18.md)
+  - tracked deployment chain, power-cycle recovery, native-Wayland validation,
+  bounded real capture, product-media library performance, and final hardware
+  state
+- [`2026-07-18-pi-routes/`](qt-touchscreen/2026-07-18-pi-routes/) - seven final
+  800x480 Pi route screenshots and their SHA-256 evidence manifest
+
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,
 and retain concrete artifacts where practical.

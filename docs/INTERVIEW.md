@@ -282,3 +282,24 @@ Implementation status:
   shutdown measurement is claimed. Milestone 3 is closed by changed
   product-owner acceptance rather than by electrical test evidence, and
   enclosure work proceeds next.
+
+### 2026-07-18 - Qt touchscreen UX scope and constraints
+
+- Replace the on-device Tk interface with native Qt Quick/QML and PySide6 for
+  fast, direct-feeling 800x480 touchscreen interaction.
+- Implement the seven mockup-derived compositions for ready, progress, partial
+  review, preview, four-camera controls, removable-media library, and viewer.
+- Do not connect live preview yet. Use a temporary static image derived from the
+  product logo and label it clearly as a disconnected demonstration
+  placeholder.
+- Do not include battery level, battery state, or reserved battery UI space.
+  The separate display on the selected external battery pack remains the V1
+  charge indication.
+- Include read-only browsing of historical capture sets on the product USB
+  drive and a viewer that detaches selected media before presentation. Do not
+  add delete or edit controls.
+- Camera settings may be represented as disabled future controls, but must not
+  emit node commands. The current device remains a four-camera system and the
+  UI must not claim hotspot or network availability.
+- Track Pi validation through Git: commit and push changes, then fast-forward
+  pull the same commits on the Pi before testing over SSH.
