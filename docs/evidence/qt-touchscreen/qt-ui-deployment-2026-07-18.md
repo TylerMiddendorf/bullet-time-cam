@@ -152,3 +152,33 @@ remained active at PID 2116 with zero restarts. All four serial identities were
 present, GPIO17 was output LOW, product media remained writable with 230 GiB
 free, temperature was 38.4 C, `get_throttled=0x0`, and no Xwayland or current
 service warning was present.
+
+## Follow-up fit and library-navigation verification
+
+Three user-reported touchscreen defects were corrected independently on July
+18. Each code change passed its local checks, was committed and pushed, was
+fast-forward pulled by the Pi, and was verified at the exact pulled commit
+before the next change began:
+
+- `844e72155f4e198e79abb4fd7d068a68dc7dd0c5` bounds all touch-button labels.
+  The Pi passed the 10 focused Qt tests and produced a warning-free native
+  800x480 ready render in which the complete capture prompt remains inside its
+  button. Screenshot SHA-256:
+  `55777d1646854e7a9dc487c6b04dc549e1d86ec6b70d198d47eec11d9f880af1`.
+- `3e8015d8b63814225082ce771ae7f1f8ed82a23a` constrains the removable-USB
+  heading to its sidebar. The same Pi checks passed, and its warning-free native
+  library render contains the complete heading. Screenshot SHA-256:
+  `9735414e14e91763945564c115fcaa4fba014a4020806419253f1ecd8fc55ba2`.
+- `ce5871f2ec3b4f4c515a3aec21bc77b8383496f4` retains flick scrolling and adds
+  right-side page controls, a six-item page size, boundary disabling, and a
+  current/total page indicator. The Pi passed the focused Qt tests and the
+  seven-route contract, restarted the product service active, and produced a
+  warning-free native 800x480 library render showing page 1 of 2 with Up
+  disabled and Down enabled. Screenshot SHA-256:
+  `f394fd94d02d6d6dce280703a77d795e3177e5185c93a5e5f6ecb4b0013f1aa2`.
+  A separate on-Pi PySide6 interaction smoke emitted the Down control and
+  verified the transition to page 2, including Up becoming enabled and Down
+  becoming disabled on the final page.
+
+These are SSH-driven software/render checks. They do not claim a human tactile
+assessment of the installed touchscreen.

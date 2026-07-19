@@ -184,7 +184,9 @@ transport, Qt Multimedia dependency, or `LIVE` claim. Camera settings are
 visible only as disabled future controls and emit no node commands. The
 historical library validates published schema-2 capture sets without modifying
 them, and it decodes selected GIFs away from removable media before viewer
-display. The application contains no battery state, battery display, or
+display. The library retains touch flicking and provides right-side page-up and
+page-down controls with a current/total page indicator for discoverable
+navigation through large catalogs. The application contains no battery state, battery display, or
 reserved battery region, and it makes no hotspot or network-connectivity claim.
 
 The installed display is an 800x480 HDMI touchscreen. A July 17 query of the running Pi reports HDMI-A-2 at 65.681 Hz with a 150x100 mm physical area and generic EDID identity `Addi-Data GmbH`, model `0x0004`, serial `0x00000001`. Touch is provided by USB controller `8888:6666` over the display's micro-USB connection. That interface advertises USB 5 V / 100 mA maximum (0.5 W); this is descriptor data, not a measurement of the entire panel and backlight. Outer bezel/depth and actual load require physical measurement if needed for enclosure or battery sizing.
@@ -323,6 +325,12 @@ As of July 18, 2026:
   decoding only the first six thumbnails, reducing initial load from 21.101
   seconds to 0.527 seconds. See
   `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
+- Three July 18 touchscreen follow-ups were each committed, pushed,
+  fast-forward pulled, and natively rendered on the Pi. They bound the ready
+  capture prompt, bound the removable-USB heading, and added working right-side
+  six-item pagination controls. UI code commit `ce5871f` passed the Qt tests,
+  seven-route contract, native 800x480 Wayland render, and an on-Pi page-change
+  interaction smoke with correct first/last-page button states.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,

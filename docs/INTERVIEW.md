@@ -303,3 +303,12 @@ Implementation status:
   UI must not claim hotspot or network availability.
 - Track Pi validation through Git: commit and push changes, then fast-forward
   pull the same commits on the Pi before testing over SSH.
+
+### 2026-07-18 - Touchscreen overflow and library navigation follow-up
+
+- Keep the complete ready-screen capture prompt inside its button.
+- Keep the removable-USB library heading inside its sidebar box.
+- Make large media libraries discoverably navigable with right-side Up and Down
+  controls; retain touch scrolling and include pagination status.
+- Apply, commit, push, deploy, and verify these fixes one at a time on the
+  Raspberry Pi.
