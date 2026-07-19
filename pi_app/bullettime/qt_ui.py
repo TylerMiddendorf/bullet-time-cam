@@ -104,6 +104,7 @@ class QtUiController:
         self.camera_recovery_message = ""
         self._on_changed = on_changed or (lambda: None)
         self._refresh_catalog: Callable[[], None] = lambda: None
+        self._refresh_storage: Callable[[], None] = lambda: None
         self._open_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
         self._delete_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
         self._recover_cameras: Callable[[], None] = lambda: None
@@ -175,6 +176,10 @@ class QtUiController:
             return 0.0
         return min(1.0, self.storage_usage.used_bytes / self.storage_usage.total_bytes)
 
+    @property
+    def storage_connected(self) -> bool:
+        return self.storage_usage.available
+
     def set_changed_callback(self, callback: Callable[[], None]) -> None:
         self._on_changed = callback
 
@@ -189,6 +194,9 @@ class QtUiController:
         if delete_entry is not None:
             self._delete_catalog_entry = delete_entry
 
+    def set_storage_refresh_callback(self, refresh: Callable[[], None]) -> None:
+        self._refresh_storage = refresh
+
     def set_camera_recovery_callback(self, recover: Callable[[], None]) -> None:
         self._recover_cameras = recover
 
@@ -200,8 +208,14 @@ class QtUiController:
             self.catalog_status = "loading"
             self.catalog_message = "Refreshing removable USB media"
             self._refresh_catalog()
+        elif route == "ready":
+            self._refresh_storage()
         self._on_changed()
         return True
+
+    def apply_storage_usage(self, storage_usage: StorageUsage) -> None:
+        self.storage_usage = storage_usage
+        self._on_changed()
 
     def request_capture(self) -> bool:
         if not self.can_capture:
@@ -541,6 +555,10 @@ def run_qt_ui(
             return controller.storage_used_fraction
 
         @Property(bool, notify=changed)
+        def storageConnected(self) -> bool:  # noqa: N802
+            return controller.storage_connected
+
+        @Property(bool, notify=changed)
         def deleteConfirmationVisible(self) -> bool:  # noqa: N802
             return controller.delete_confirmation_visible
 
@@ -633,10 +651,12 @@ def run_qt_ui(
 
     receiver = Receiver(config, events, commands, stop, trigger, storage)
     catalog_results = _AsyncResultQueue()
+    storage_results = _AsyncResultQueue()
     catalog_open_results = _AsyncResultQueue()
     catalog_delete_results = _AsyncResultQueue()
     camera_recovery_results = _AsyncResultQueue()
     catalog_scan_running = threading.Event()
+    storage_scan_running = threading.Event()
     catalog_open_running = threading.Event()
     catalog_delete_running = threading.Event()
     camera_recovery_running = threading.Event()
@@ -657,6 +677,23 @@ def run_qt_ui(
                 catalog_scan_running.clear()
 
         threading.Thread(target=scan, name="usb-media-catalog", daemon=True).start()
+
+    def refresh_storage_usage() -> None:
+        if storage_scan_running.is_set():
+            return
+        storage_scan_running.set()
+
+        def scan() -> None:
+            try:
+                try:
+                    root = storage.resolve()
+                except StorageUnavailable:
+                    root = None
+                storage_results.put(read_storage_usage(root))
+            finally:
+                storage_scan_running.clear()
+
+        threading.Thread(target=scan, name="usb-storage-usage", daemon=True).start()
 
     def open_catalog_entry(entry: CatalogEntry) -> None:
         if catalog_open_running.is_set():
@@ -697,6 +734,7 @@ def run_qt_ui(
         threading.Thread(target=remove, name="usb-media-delete", daemon=True).start()
 
     controller.set_catalog_callbacks(refresh_catalog, open_catalog_entry, remove_catalog_entry)
+    controller.set_storage_refresh_callback(refresh_storage_usage)
 
     def recover_cameras() -> None:
         if camera_recovery_running.is_set():
@@ -747,6 +785,7 @@ def run_qt_ui(
                 break
             controller.handle_event(event)
         catalog_results.drain(controller.apply_catalog)
+        storage_results.drain(controller.apply_storage_usage)
         if (
             int(config.get("trigger_count", 0)) > 0
             and receiver.automatic_run_completed.is_set()
@@ -780,6 +819,7 @@ def run_qt_ui(
     def start_runtime() -> None:
         receiver.start()
         poll_timer.start()
+        refresh_storage_usage()
 
     first_frame["callback"] = start_runtime
 

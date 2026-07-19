@@ -245,6 +245,30 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertEqual(controller.storage_available_text, "250.0 GB")
         self.assertEqual(results.drain(controller.apply_catalog), 0)
 
+    def test_ready_refreshes_usb_capacity_without_scanning_the_catalog(self):
+        controller = QtUiController(queue.Queue())
+        refreshes = []
+        controller.set_storage_refresh_callback(lambda: refreshes.append("storage"))
+        controller.set_catalog_callbacks(lambda: refreshes.append("catalog"), lambda _entry: None)
+
+        self.assertTrue(controller.navigate("ready"))
+        self.assertEqual(refreshes, ["storage"])
+
+        usage = StorageUsage(
+            available=True,
+            total_bytes=250_000_000_000,
+            used_bytes=25_000_000_000,
+            free_bytes=225_000_000_000,
+        )
+        controller.apply_storage_usage(usage)
+        self.assertTrue(controller.storage_connected)
+        self.assertEqual(controller.storage_used_text, "25.0 GB")
+        self.assertAlmostEqual(controller.storage_used_fraction, 0.1)
+
+        controller.apply_storage_usage(StorageUsage(available=False))
+        self.assertFalse(controller.storage_connected)
+        self.assertEqual(controller.storage_available_text, "UNAVAILABLE")
+
 
 class QmlContractTests(unittest.TestCase):
     def test_all_seven_design_routes_are_native_qml_components(self):
