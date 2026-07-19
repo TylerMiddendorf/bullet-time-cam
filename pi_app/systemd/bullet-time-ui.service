@@ -6,7 +6,6 @@ PartOf=graphical-session.target
 [Service]
 Type=simple
 WorkingDirectory=%h/bullet-time-cam
-Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=%t
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=QT_QPA_PLATFORM=wayland

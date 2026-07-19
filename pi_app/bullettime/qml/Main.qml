@@ -34,6 +34,7 @@ Window {
         visible: bridge.state === "STARTING"
         color: "black"
         Image {
+            objectName: "startupLogo"
             anchors.fill: parent
             source: bridge.startupLogo
             fillMode: Image.PreserveAspectFit

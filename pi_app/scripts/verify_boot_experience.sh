@@ -63,6 +63,10 @@ check "invisible cursor theme is installed" test -s /usr/share/icons/BulletTimeI
 check "camera app is active" systemctl --user is-active --quiet bullet-time-ui.service
 check "camera app forces native Wayland" grep -Eq '^Environment=QT_QPA_PLATFORM=wayland$' \
   "${HOME}/.config/systemd/user/bullet-time-ui.service"
+check "camera app exposes no X11 display fallback" bash -c \
+  "! grep -Eq '^Environment=DISPLAY=' '${HOME}/.config/systemd/user/bullet-time-ui.service'"
+check "Xwayland is not running after the Qt switch" bash -c \
+  "! ps -eo comm= | grep -Eq '^Xwayland$'"
 check "legacy checkpoint service is absent" test ! -e "${HOME}/.config/systemd/user/checkpoint4-ui.service"
 
 if [ "${failures}" -ne 0 ]; then
