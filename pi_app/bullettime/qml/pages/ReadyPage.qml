@@ -22,7 +22,11 @@ Item {
             model: 4
             CameraBadge {
                 cameraId: index + 1
-                cameraState: bridge.cameraStates[index]
+                // Ready reports current connectivity. Per-capture states belong
+                // on Progress and Review and may intentionally outlive a shot.
+                cameraState: bridge.connectedCameraIds.indexOf(index + 1) >= 0
+                    ? "ready"
+                    : "disconnected"
                 compact: true
             }
         }

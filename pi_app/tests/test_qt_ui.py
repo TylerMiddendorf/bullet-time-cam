@@ -328,6 +328,8 @@ class QmlContractTests(unittest.TestCase):
 
     def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
+        self.assertIn("bridge.connectedCameraIds.indexOf(index + 1) >= 0", ready)
+        self.assertNotIn("cameraState: bridge.cameraStates[index]", ready)
         self.assertIn('objectName: "settingsButton"', ready)
         self.assertIn('label: "\\u2699"', ready)
         self.assertIn("iconOnly: true", ready)
