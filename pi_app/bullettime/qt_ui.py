@@ -397,8 +397,9 @@ def run_qt_ui(
                 return
             controller.record_display_timing()
 
-    bridge = Bridge()
     engine = QQmlApplicationEngine()
+    bridge = Bridge()
+    bridge.setParent(engine)
     engine.rootContext().setContextProperty("bridge", bridge)
     qml_path = Path(__file__).with_name("qml") / "Main.qml"
     engine.addImportPath(str(qml_path.parent))

@@ -47,6 +47,7 @@ class QtDeploymentContractTests(unittest.TestCase):
         self.assertIn("onFrameSwapped: bridge.framePresented()", qml)
         self.assertIn('objectName: "startupLogo"', qml)
         self.assertIn('first_frame["callback"] = start_runtime', runtime)
+        self.assertIn("bridge.setParent(engine)", runtime)
         self.assertNotIn("QtMultimedia", qml + runtime)
 
 
