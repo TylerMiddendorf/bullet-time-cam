@@ -61,19 +61,26 @@ printf '%s' "${BULLET_TIME_XHCI}" >"${DRIVER_ROOT}/bind"
 udevadm settle --timeout=15
 
 camera_count=0
+usable_serial_count=0
 for _attempt in $(seq 1 20); do
-  camera_count="$(lsusb -d 303a:1001 2>/dev/null | wc -l)"
-  if [ "${camera_count}" -eq 4 ]; then
+  camera_count="$(lsusb -d 303a:1001 2>/dev/null | wc -l || true)"
+  usable_serial_count=0
+  for port in /dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_*-if00; do
+    if [ -e "${port}" ] && runuser -u "${BULLET_TIME_USER}" -- test -r "${port}" -a -w "${port}"; then
+      usable_serial_count=$((usable_serial_count + 1))
+    fi
+  done
+  if [ "${camera_count}" -eq 4 ] && [ "${usable_serial_count}" -eq 4 ]; then
     break
   fi
   sleep 1
 done
 
-if [ "${camera_count}" -ne 4 ]; then
-  echo "USB reset completed, but only ${camera_count}/4 ESP32 camera nodes enumerated." >&2
+if [ "${camera_count}" -ne 4 ] || [ "${usable_serial_count}" -ne 4 ]; then
+  echo "USB reset completed, but only ${camera_count}/4 ESP32 nodes enumerated and ${usable_serial_count}/4 serial ports became usable." >&2
   exit 1
 fi
 
 restart_ui
 trap - EXIT
-echo "Camera USB recovery completed with 4/4 ESP32 nodes enumerated."
+echo "Camera USB recovery completed with 4/4 ESP32 nodes and serial ports ready."

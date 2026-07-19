@@ -54,6 +54,9 @@ class QtDeploymentContractTests(unittest.TestCase):
         self.assertIn('>"${DRIVER_ROOT}/bind"', helper)
         self.assertIn("trap restart_ui EXIT", helper)
         self.assertIn("camera_count", helper)
+        self.assertIn("usable_serial_count", helper)
+        self.assertIn('test -r "${port}" -a -w "${port}"', helper)
+        self.assertIn("wc -l || true", helper)
         self.assertIn("ExecStart=/usr/local/libexec/bullet-time-recover-usb", service)
 
     def test_verifier_loads_qt_qml_and_checks_wayland(self):
