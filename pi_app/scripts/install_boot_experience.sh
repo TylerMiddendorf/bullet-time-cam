@@ -132,9 +132,10 @@ fi
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEMP_DIR}"' EXIT
 
-# Install a fully transparent cursor theme before labwc starts. Tk also hides
-# its own pointer, but the compositor exists first and otherwise exposes its
-# default cursor over the logo background.
+# Install a fully transparent cursor theme before labwc starts. Qt also forces
+# a blank application cursor, while the compositor exists first and otherwise
+# exposes its default cursor over the logo background. Tk/X11 remain installed
+# only as a rollback path for the accepted pre-Qt presentation.
 install -d -m 0755 "${CURSOR_THEME_DIR}/cursors"
 printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNgYGBgAAAABQABeqhXUAAAAABJRU5ErkJggg==' \
   | base64 -d >"${TEMP_DIR}/transparent-cursor.png"

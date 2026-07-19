@@ -1,1 +1,6 @@
 python3-lgpio=0.2.2-1~rpt1+trixie
+python3-pyside6.qtquick
+qml6-module-qtquick-controls
+qml6-module-qtquick-layouts
+qml6-module-qtqml-workerscript
+qt6-wayland

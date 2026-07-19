@@ -459,8 +459,6 @@ def run_qt_ui(
             except queue.Empty:
                 break
             controller.handle_event(event)
-            if event.get("manifest") is not None:
-                QTimer.singleShot(0, controller.record_display_timing)
         try:
             while True:
                 controller.apply_catalog(catalog_results.get_nowait())

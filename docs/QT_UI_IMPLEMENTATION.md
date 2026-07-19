@@ -1,61 +1,76 @@
 # Qt Quick Touchscreen UI Implementation
 
-Status: implementation in progress from baseline `1ef1ba6`
+Status: local implementation complete; Raspberry Pi deployment validation pending
 
-This document is the dedicated engineering record for replacing the Raspberry
-Pi application's Tk presentation layer with Qt Quick/QML and PySide6. It records
-the implementation boundary and local verification without changing Milestone
-4 enclosure scope or claiming Raspberry Pi deployment evidence.
+This record covers the Tk-to-Qt Quick/PySide6 touchscreen migration. It does
+not change Milestone 4 enclosure scope or claim Raspberry Pi deployment.
 
-## Scope
+## Implemented Boundary
 
-- Preserve the existing receiver, capture coordinator, GPIO17 trigger, media
-  pipeline, and removable-USB fail-closed behavior.
-- Replace the Tk touchscreen loop with a PySide6 bridge and an 800x480 Qt Quick
-  interface based on the supplied UX mockups.
-- Treat the tracked 1619x971 PNG mockups as composition references only. Build
-  every runtime screen natively at 800x480; do not scale or display the mockup
-  rasters in the application.
-- Implement ready, capture-progress, review/error, camera, control-center,
-  media-library, and viewer compositions with touchscreen navigation.
-- Use `assets/ui/preview-placeholder.png` on preview surfaces and label it
-  `DEMO · PLACEHOLDER`. Never label the placeholder `LIVE`; no live camera
-  stream is opened or requested by this UI.
-- Do not display battery level, charge, or battery status. The selected external
-  pack remains the independent V1 charge indication. No layout space is
-  reserved for a battery control or indicator.
-- Keep headless receiver operation independent of PySide6 and a display server.
-- Do not deploy to the Raspberry Pi during this implementation task.
+- Existing receiver, coordinator, GPIO17 trigger, media pipeline, removable-USB
+  fail-closed behavior, and headless operation remain intact.
+- Seven tracked compositions are native 800x480 QML pages: ready, capture
+  progress, review/error, preview placeholder, control center, removable-media
+  library, and viewer. Runtime QML never displays the mockup PNGs.
+- Preview surfaces use the finalized `assets/ui/preview-placeholder.png` and
+  visibly say `PREVIEW PLACEHOLDER` and `DEMO`; there is no preview transport,
+  Qt Multimedia import, or `LIVE` claim.
+- The UI contains no battery presentation, hotspot/network status, or layout
+  space for either. Future camera settings are visibly disabled and have no
+  bridge command.
+- Navigation/catalog state is separate from the immutable capture-workflow
+  snapshot. The only product command emitted by the UI is the existing
+  `CAPTURE` command, from allowed capture routes and states.
 
-## Compatibility Contract
+## Media Safety and Library
 
-Receiver events remain queue-based. The UI reducer accepts the established
-`READY`, `LOADING`, `REVIEW`, `REVIEW_WITH_ERROR`, and `ERROR` states and now
-also consumes optional structured fields for connected cameras, per-camera
-progress, capture phase, completed cameras, and failed cameras. Existing event
-consumers can ignore those additive fields.
+Current review GIFs are decoded and converted to in-memory PNG data URLs before
+QML sees them. QML never binds to the removable USB path, so removal after
+review does not invalidate displayed frames or stop polling.
 
-Review media must be detached from removable storage before presentation so an
-idle USB removal does not terminate event polling. Touch capture remains
-restricted to ready, review, partial-review, and error states, and the receiver
-still resolves writable USB storage before pulsing GPIO17.
+The library is read-only. Worker threads catalog actual schema-2 published
+capture directories under the selected removable USB `BulletTime/` root and
+decode a selected animation before switching to Viewer. Staging, corrupt,
+incomplete, and unreadable entries are skipped. Empty and removed-media states
+are nonfatal. The library never deletes or rewrites media, and selection/back
+state survives refreshes where the selected capture still exists.
 
-## Progress
+## Lifecycle and Debian Runtime
 
-### State-model foundation
+- Debian requirements include `python3-pyside6.qtquick`,
+  `qml6-module-qtquick-controls`, `qml6-module-qtquick-layouts`,
+  `qml6-module-qtqml-workerscript`, and `qt6-wayland`. Effects is not installed
+  because no QML file imports it.
+- The service forces `QT_QPA_PLATFORM=wayland`. PySide6 imports remain lazy so
+  headless receiver operation does not need Qt or a display server.
+- QML load failure raises and exits nonzero. The receiver starts only after the
+  first logo `frameSwapped`; review timing is recorded from a subsequent
+  `frameSwapped`; shutdown stops and joins a started receiver.
+- Tk/X11 packages remain installed only for rollback. This task does not deploy
+  to or restart the Raspberry Pi.
 
-- Added a platform-neutral immutable UI snapshot and reducer in
-  `pi_app/bullettime/ui_model.py`.
-- Preserved the legacy `PresentationState` import surface while moving its logic
-  out of the presentation toolkit module.
-- Added structured receiver progress fields without changing capture,
-  persistence, or trigger coordination.
-- Added deterministic reducer coverage for four-camera readiness, transfer
-  progress, partial-view counts, failed-camera indicators, storage faults, and
-  removed review media.
+## Local Verification
 
-## Verification Record
+Implementation commit `d413604` contains the native runtime, state fixes,
+read-only catalog, seven QML routes, and deterministic tests.
 
-Hardware and Raspberry Pi deployment are intentionally not part of this record.
-Commands and results will be appended as coherent implementation increments are
-completed.
+- `python -m unittest discover -s pi_app/tests -v`: 97 discovered, 96 passed,
+  one expected live-hardware skip.
+- Repository Ruff check and format hooks: passed.
+- Local Qt 5.15 `qmllint` compatibility parse of every runtime QML file:
+  passed. This is syntax evidence, not Raspberry Pi Qt 6 rendering evidence.
+
+## Deployment Gate
+
+| Gate | Status |
+| --- | --- |
+| Coherent local implementation commit | Complete at `d413604` |
+| Branch pushed to the remote | Not performed in this task |
+| Exact pushed commit pulled by the Pi | Not performed |
+| Installer/verifier run on the Pi | Not performed |
+| Cold-boot visual, touch, catalog, and capture validation | Not performed |
+
+Hardware validation must occur in order: commit, push the branch, pull that
+exact hash on the Pi, run the installer, reboot, run the verifier, then record
+visual/touch/catalog/capture evidence. A copied file or local checkout is not
+deployment evidence.

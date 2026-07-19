@@ -27,6 +27,12 @@ check "required tty1 console is retained" grep -Eq '(^| )console=tty1( |$)' "${C
 check "repository uses the stable service path" test "$(pwd -P)" = "${EXPECTED_REPO_ROOT}"
 check "camera runtime is installed" test -x "${APP_PYTHON}"
 check "camera runtime imports succeed" "${APP_PYTHON}" -c 'import PIL, psutil, serial, tkinter'
+check "PySide6 Qt Quick imports succeed" "${APP_PYTHON}" -c \
+  'from PySide6 import QtCore, QtGui, QtQml, QtQuick'
+check "Wayland Qt platform plugin is installed" bash -c \
+  "dpkg-query -W -f='\${Status}' qt6-wayland 2>/dev/null | grep -q 'install ok installed'"
+check "Qt Quick route tree loads" env QT_QPA_PLATFORM=wayland WAYLAND_DISPLAY=wayland-0 \
+  "${APP_PYTHON}" -c 'from pi_app.bullettime.qt_ui import verify_qml; verify_qml()'
 check "USB storage mount helper is installed" test -x /usr/bin/udisksctl
 check "pinned lgpio package is installed" test "$(dpkg-query -W -f='${Version}' python3-lgpio 2>/dev/null || true)" = "0.2.2-1~rpt1+trixie"
 check "camera runtime can import lgpio" "${APP_PYTHON}" -c 'import lgpio'
@@ -55,6 +61,8 @@ check "labwc starts the logo background" grep -q "${EXPECTED_LOGO}" "${LABWC_AUT
 check "labwc selects the invisible cursor theme" grep -Eq '^XCURSOR_THEME=BulletTimeInvisible$' "${LABWC_ENVIRONMENT}"
 check "invisible cursor theme is installed" test -s /usr/share/icons/BulletTimeInvisible/cursors/left_ptr
 check "camera app is active" systemctl --user is-active --quiet bullet-time-ui.service
+check "camera app forces native Wayland" grep -Eq '^Environment=QT_QPA_PLATFORM=wayland$' \
+  "${HOME}/.config/systemd/user/bullet-time-ui.service"
 check "legacy checkpoint service is absent" test ! -e "${HOME}/.config/systemd/user/checkpoint4-ui.service"
 
 if [ "${failures}" -ne 0 ]; then

@@ -2,7 +2,13 @@
 
 This application receives framed JPEG streams over USB CDC, validates and atomically preserves originals on removable USB storage, records timing/resource evidence, and displays results on the Raspberry Pi touchscreen. The product coordinator groups all four registered nodes into one atomic capture set and ordered GIF while preserving usable partial sets with camera-specific errors. Normal touchscreen capture pulses Raspberry Pi BCM GPIO17 high for 100 ms; the approved 2N3904 stage converts that into an active-low pulse on the shared camera trigger bus.
 
-Runtime responsibilities are split across focused modules under `pi_app/bullettime/`: `main.py` owns CLI/configuration, `receiver.py` owns serial transactions, `ui.py` owns headless/touchscreen presentation, `discovery.py` owns port discovery, and `metrics.py` owns resource observations. Protocol, GPIO, capture control, and storage remain separate modules. Persisted E2E evidence validation lives under `pi_app/evidence/`, outside the device runtime.
+Runtime responsibilities are split across focused modules under
+`pi_app/bullettime/`: `main.py` owns CLI/configuration, `receiver.py` owns serial
+transactions, `ui.py` owns the headless entry point and Qt migration shim,
+`qt_ui.py` bridges queue events into Qt Quick, `ui_model.py` reduces workflow
+state, and `media_catalog.py` reads published USB capture sets without changing
+them. Protocol, GPIO, capture control, storage, discovery, and metrics remain
+separate modules.
 
 Run tests from the repository root:
 
@@ -10,7 +16,11 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently discovers 68 tests: 67 pass and one environment-gated physical-rig test is skipped until a live ledger is supplied. Coverage includes grouping windows, partial failures, trigger lockout, atomic persistence failures, receiver ACK/NACK boundaries, ordered GIF bytes, animated UI state, protocol limits, firmware ACK identity matching, and configuration/discovery/metrics behavior. The E2E evidence validator checks at least 25 normal four-camera sets, one disconnect per camera, typed corrupt and truncated transfers plus recovery captures, stable identity across a node reboot, JPEG/GIF integrity and real frame order, leftover partial files, and cross-capture transaction isolation. Follow [`docs/FOUR_NODE_E2E_TEST_PLAN.md`](../docs/FOUR_NODE_E2E_TEST_PLAN.md) to collect the live ledger and enable the hardware test.
+The normal local run currently discovers 97 tests: 96 pass and one
+environment-gated physical-rig test is skipped until a live ledger is supplied.
+Coverage includes Qt state/routes, detached playback, read-only historical USB
+catalog browsing, corrupt and removed catalog entries, grouping, persistence,
+protocol, GPIO, and evidence validation.
 
 Run the application:
 
@@ -56,7 +66,11 @@ The live fault suite also provides inert-by-default test scaffolding. `--corrupt
 
 ## Product Boot Experience
 
-The camera boot path suppresses Raspberry Pi firmware artwork, Plymouth, cursors, systemd/udev status, and the completed Raspberry Pi Imager cloud-init stages. Hardware trials showed that this exact Raspberry Pi OS Trixie/kernel build does not reach userspace when every virtual-terminal console is removed, so one `tty1` console is retained but silenced with kernel/udev log level 0, `quiet`, hidden status, a hidden cursor, and a masked getty. A dedicated LightDM/labwc camera session does not merge Raspberry Pi's system desktop autostart, so the panel and file-manager desktop never launch. It loads a transparent compositor cursor theme before showing `assets/Logo_800x480.png` as the background, then launches the camera service as soon as the graphical session exists; the application renders the same logo as its first full-screen frame and independently hides its Tk cursor. Both custom Plymouth and Raspberry Pi's initramfs early-fullscreen-logo path prevented normal startup during hardware trials, and a later clean initramfs regeneration also prevented userspace startup. The installer therefore removes the early-logo integration and sets `auto_initramfs=0` so this product image boots the kernel directly.
+The camera boot path suppresses Raspberry Pi firmware artwork, Plymouth,
+cursors, systemd/udev status, and completed cloud-init stages. The dedicated
+labwc session shows `assets/Logo_800x480.png`, then starts Qt with
+`QT_QPA_PLATFORM=wayland`. The receiver starts only after Qt swaps its first
+matching logo frame. Tk/X11 remain installed solely as a rollback path.
 
 Install from the Git checkout on the Raspberry Pi:
 

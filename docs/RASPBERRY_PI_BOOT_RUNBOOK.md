@@ -106,7 +106,7 @@ cd "${HOME}/bullet-time-cam"
 ./pi_app/scripts/verify_boot_experience.sh
 ```
 
-All 33 checks must report `PASS`. Also perform one physical cold-boot
+All checks must report `PASS`. Also perform one physical cold-boot
 observation. The automated checks prove configuration and process state; only a
 person or recorded video proves that no transient frame was visible.
 
@@ -115,9 +115,12 @@ Expected live processes are:
 - `labwc --config-dir ~/.config/bullet-time-labwc`
 - `swaybg` displaying `assets/Logo_800x480.png`
 - the Python camera application
-- Xwayland for the Tk application
+- the Qt Quick application using the native Wayland platform plugin
 
-`wf-panel-pi`, `pcmanfm`, and other Raspberry Pi desktop components must not be running. `bullet-time-ui.service` is expected to be active but disabled: the dedicated labwc autostart starts it only after the graphical socket exists. The installer removes the retired `checkpoint4-ui.service` during migration.
+`wf-panel-pi`, `pcmanfm`, and other Raspberry Pi desktop components must not be
+running. Xwayland and Tk remain installed as rollback dependencies but are not
+required by the Qt runtime. `bullet-time-ui.service` is expected to be active
+but disabled.
 
 ## What the Installer Owns
 
@@ -125,7 +128,9 @@ Expected live processes are:
 
 - Verifies that it is running on a Raspberry Pi from `${HOME}/bullet-time-cam` via `sudo` from the intended user.
 - Backs up boot, LightDM, labwc, and user-service files under `/var/lib/bullet-time-boot-backups/<UTC timestamp>/`.
-- Installs the Raspberry Pi desktop/session prerequisites, Python virtual environment, and pinned application packages.
+- Installs the session prerequisites, Debian PySide6/Qt Quick and Qt Wayland
+  packages, the Python virtual environment, and pinned application packages;
+  Tk/X11 remain available for rollback.
 - Adds the application user to `dialout`, `input`, `render`, and `video` where those groups exist.
 - Retires Raspberry Pi Imager's completed NoCloud/cloud-init datasource and creates `/etc/cloud/cloud-init.disabled`.
 - Removes `rpi-splash-screen-support`, its initramfs hook, and its TGA payload if present.
@@ -139,7 +144,9 @@ Expected live processes are:
 - Starts the logo background first, then the camera user service.
 - Masks the HDMI `tty1` getty and automatic virtual-terminal login prompt while preserving serial-console and SSH recovery.
 
-The application separately sets Tk's cursor to `none` and renders the same logo as its first frame. The compositor theme is still required because labwc and the logo background exist before Tkinter.
+The application separately forces a blank Qt cursor and renders the same logo
+as its first native Wayland frame before starting the receiver. The compositor
+theme is still required because labwc and the logo background exist before Qt.
 
 ## Final Boot Decisions
 
