@@ -191,7 +191,9 @@ published schema-2 capture sets and decodes
 selected GIFs away from removable media before viewer display. A confirmed
 delete action is available from the library and viewer; it revalidates the
 selected set and removes that set's originals, GIF, and manifest together from
-removable USB storage. The library retains touch flicking and provides right-side page-up and
+removable USB storage. Its route back to Ready uses a large home icon rather
+than a text label, matching the large gear icon used for Settings on Ready. The
+library retains touch flicking and provides right-side page-up and
 page-down controls with a current/total page indicator for discoverable
 navigation through large catalogs. Its sidebar reports used and available
 capacity from the selected removable USB filesystem; it does not substitute
@@ -402,6 +404,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
   and confirmed deletion of a complete selected set. Deletion removes the set's
   original JPEGs, animation GIF, and manifest together from removable USB media;
   rename, editing, sharing, and boot-card browsing remain unsupported.
+- Ready's Settings action and Library's Ready/Home action use large icon-only
+  controls whose glyphs occupy most of their touch targets.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.
 - The four cameras are mounted side by side in a horizontal line.

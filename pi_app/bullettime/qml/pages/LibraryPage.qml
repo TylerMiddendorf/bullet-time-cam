@@ -372,11 +372,13 @@ Item {
     }
 
     TouchButton {
+        objectName: "homeButton"
         x: 547
         y: 406
         width: 235
         height: 58
-        label: "BACK TO CAMERA"
+        label: "\u2302"
+        iconOnly: true
         onTapped: bridge.navigate("ready")
     }
 

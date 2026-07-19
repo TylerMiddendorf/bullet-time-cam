@@ -347,3 +347,10 @@ Implementation status:
   review, camera-status, and USB-status behavior.
 - Commit changes incrementally, push them, fast-forward pull the same commits
   on the Raspberry Pi, and test the reorganized UI there.
+
+### 2026-07-19 - Ready and Library navigation icon sizing
+
+- Replace the Library screen's `BACK TO CAMERA` label with a home icon that
+  returns directly to Ready.
+- Make the Ready screen's Settings gear and the Library screen's home icon
+  occupy most of their respective touch buttons.

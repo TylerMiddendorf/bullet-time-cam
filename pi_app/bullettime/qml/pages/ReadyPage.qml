@@ -59,6 +59,7 @@ Item {
         width: 82
         height: 82
         label: "\u2699"
+        iconOnly: true
         accent: "#8f98a1"
         onTapped: bridge.navigate("control")
     }

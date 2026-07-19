@@ -5,6 +5,7 @@ Rectangle {
     property string label: "BUTTON"
     property string accent: "#63adf2"
     property bool enabled: true
+    property bool iconOnly: false
     signal tapped
 
     radius: 12
@@ -15,14 +16,16 @@ Rectangle {
 
     Text {
         anchors.centerIn: parent
-        width: parent.width - 24
+        width: parent.width - (control.iconOnly ? 8 : 24)
         text: control.label
         color: control.enabled ? "white" : "#89919a"
-        font.pixelSize: 20
+        font.pixelSize: control.iconOnly
+            ? Math.floor(Math.min(control.width, control.height) * 0.72)
+            : 20
         fontSizeMode: Text.Fit
-        minimumPixelSize: 12
+        minimumPixelSize: control.iconOnly ? 1 : 12
         font.bold: true
-        font.letterSpacing: 2
+        font.letterSpacing: control.iconOnly ? 0 : 2
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
     }

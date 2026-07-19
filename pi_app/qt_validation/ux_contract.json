@@ -243,7 +243,7 @@
         "REMOVABLE USB",
         "OPEN SELECTED",
         "DELETE SELECTED",
-        "BACK TO CAMERA"
+        "\u2302"
       ],
       "required_objects": [
         "rootSurface",
@@ -252,7 +252,7 @@
         "storageBadge",
         "mediaGrid",
         "openButton",
-        "backToCameraButton"
+        "homeButton"
       ],
       "forbidden_objects": ["renameButton", "shareButton"],
       "allowed_commands": [
@@ -260,14 +260,14 @@
         "OPEN_VIEWER",
         "PROMPT_DELETE_CAPTURE_SET",
         "CONFIRM_DELETE_CAPTURE_SET",
-        "NAVIGATE_CAMERA",
+        "NAVIGATE_READY",
         "NAVIGATE_CONTROL"
       ],
       "interactive_objects": [
         "mediaGrid",
         "openButton",
         "deleteButton",
-        "backToCameraButton"
+        "homeButton"
       ],
       "storage_scope": "removable-usb-only",
       "mutating_operations": ["DELETE_CAPTURE_SET"]
@@ -330,7 +330,7 @@
     "captureButton": [270, 378, 260, 66],
     "mediaButton": [414, 405, 376, 60],
     "openButton": [20, 405, 376, 60],
-    "backToCameraButton": [414, 405, 376, 60],
+    "homeButton": [547, 406, 235, 58],
     "backToLibraryButton": [680, 382, 110, 52]
   },
   "allowed_camera_progress": [
