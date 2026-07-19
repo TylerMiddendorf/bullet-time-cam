@@ -180,6 +180,14 @@ and a disposable real-product-USB deletion check that retained all 222
 pre-existing capture directories. See
 [`library-deletion-2026-07-19.md`](evidence/qt-touchscreen/library-deletion-2026-07-19.md).
 
+App 0.2.3 adds used and available capacity from the selected removable USB
+filesystem to the media-library sidebar. Feature commit `81a2a49` and visual
+correction `6398f3a` were each pushed and fast-forward pulled on the Pi. The
+121-test Pi suite passed with only the expected live-evidence skip; the backend
+matched `/dev/sdb1` byte-for-byte with `df`, and the corrected native 800x480
+Wayland render passed without QML errors. See
+[`storage-capacity-2026-07-19.md`](evidence/qt-touchscreen/storage-capacity-2026-07-19.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026

@@ -35,6 +35,12 @@ reviewed without searching one large flat directory.
   state
 - [`2026-07-18-pi-routes/`](qt-touchscreen/2026-07-18-pi-routes/) - seven final
   800x480 Pi route screenshots and their SHA-256 evidence manifest
+- [`library-deletion-2026-07-19.md`](qt-touchscreen/library-deletion-2026-07-19.md)
+  - confirmed whole-set deletion, native renders, and a disposable real-USB
+  operation that preserved every pre-existing capture directory
+- [`storage-capacity-2026-07-19.md`](qt-touchscreen/storage-capacity-2026-07-19.md)
+  - app 0.2.3 used/available USB capacity metric, exact filesystem comparison,
+  corrected native 800x480 render, and final Pi runtime state
 
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,

@@ -342,6 +342,13 @@ As of July 18, 2026:
   one GIF, and one manifest was deleted, the valid catalog returned from 220 to
   219 entries, and all 222 pre-existing capture directories remained unchanged.
   See `docs/evidence/qt-touchscreen/library-deletion-2026-07-19.md`.
+- Later on July 19, app 0.2.3 added used and available capacity from the active
+  removable USB filesystem to the library sidebar. Code commits `81a2a49` and
+  `6398f3a` were pushed and fast-forward pulled on the Pi. The Pi suite passed
+  120/121 tests with only the expected live-evidence skip; backend figures
+  matched `/dev/sdb1` byte-for-byte with `df`, and the corrected native 800x480
+  Wayland render passed without QML errors. See
+  `docs/evidence/qt-touchscreen/storage-capacity-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,
