@@ -175,6 +175,12 @@ class HeadlessQtUtilityTests(unittest.TestCase):
         self.assertIn("from PySide6.QtQuick import QQuickWindow", smoke_source)
         self.assertEqual(arguments.required_object, "startupLogo")
 
+        parser = build_qml_smoke_parser()
+        capture = parser.parse_args(["--qml", "RouteHarness.qml", "--route", "capture"])
+        self.assertEqual(capture.route, "capture")
+        route_action = next(action for action in parser._actions if action.dest == "route")
+        self.assertNotIn("preview", route_action.choices)
+
 
 if __name__ == "__main__":
     unittest.main()

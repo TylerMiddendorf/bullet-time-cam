@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--screenshot", type=Path)
     parser.add_argument(
         "--route",
-        choices=("ready", "progress", "review", "preview", "control", "library", "viewer"),
+        choices=("ready", "progress", "review", "capture", "control", "library", "viewer"),
     )
     parser.add_argument("--media", help="optional file URL for review/viewer route fixtures")
     return parser
