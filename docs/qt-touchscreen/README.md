@@ -57,8 +57,8 @@ routes:
   only as disabled/unavailable controls and have no node-command binding.
 - Design 6 reads only committed captures on removable USB media. It cannot
   delete, rename, share, or fall back to the boot card.
-- Design 7 opens a real GIF with Qt Quick `AnimatedImage`; it does not import
-  Qt Multimedia.
+- Design 7 decodes a selected real GIF into detached PNG data-URL frames and
+  presents them with Qt Quick `Image`; it does not import Qt Multimedia.
 
 `assets/ui/preview-placeholder.png` is the only approved preview-like fixture
 for this track. Whenever it is visible, the UI must overlay the exact text

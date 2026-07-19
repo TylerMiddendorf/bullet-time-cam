@@ -159,13 +159,33 @@ theme is still required because labwc and the logo background exist before Qt.
 | Boot without initramfs | Regenerating an already-clean initramfs again prevented userspace startup. `auto_initramfs=0` restored reliable direct-kernel boot and reduced kernel startup time. |
 | Disable cloud-init after provisioning | Raspberry Pi Imager's NoCloud service printed `Completed socket interaction for boot stage local/network` directly to `/dev/console` on every boot. Provisioning was already complete. |
 | Use a dedicated labwc session | The normal Raspberry Pi desktop session starts panel and file-manager desktop components and can expose OS chrome during handoff. |
-| Use logo in compositor and application | Matching images prevent a desktop-colored or blank frame between graphical-session startup and Tk mapping. |
-| Use a transparent compositor cursor theme | Tk's `cursor=none` begins too late to hide labwc's pointer over the background logo. |
+| Use logo in compositor and application | Matching images prevent a desktop-colored or blank frame between graphical-session startup and Qt mapping. |
+| Use a transparent compositor cursor theme | Application cursor hiding begins too late to hide labwc's pointer over the background logo. |
 | Keep SSH and serial recovery | Display silence must not remove non-display diagnostic paths. |
 
 ## Recovery and Rollback
 
 ### Restore the most recent installer backup
+
+Restoring boot/session files alone does not restore Tk because current `main`
+launches Qt. A complete application rollback also requires the clean Pi checkout
+to move non-destructively to the recorded pre-UI source commit. The known
+pre-UI baseline is `63420c1`; this rollback path is documented but has not been
+drilled end to end. Stop the active receiver before changing its source:
+
+```bash
+systemctl --user stop bullet-time-ui.service
+systemctl --user is-active bullet-time-ui.service
+pinctrl get 17
+cd "${HOME}/bullet-time-cam"
+git status --short
+git switch --detach 63420c1
+```
+
+The expected stopped state is `inactive` and GPIO17 must remain output LOW.
+Stop if the checkout is dirty or the receiver still owns serial ports. Do not
+use `git reset --hard`. To return to the deployed line later, use
+`git switch main` and `git pull --ff-only origin main`.
 
 List backups:
 
@@ -181,6 +201,28 @@ sudo install -m 0644 "${BACKUP}/cmdline.txt" /boot/firmware/cmdline.txt
 sudo install -m 0644 "${BACKUP}/config.txt" /boot/firmware/config.txt
 sudo install -m 0644 "${BACKUP}/lightdm.conf" /etc/lightdm/lightdm.conf
 ```
+
+Restore the backed-up user service and labwc files when present, preserving the
+camera user's ownership:
+
+```bash
+install -m 0644 "${BACKUP}/bullet-time-ui.service" \
+  "${HOME}/.config/systemd/user/bullet-time-ui.service"
+install -m 0644 "${BACKUP}/labwc-autostart" \
+  "${HOME}/.config/bullet-time-labwc/autostart"
+install -m 0644 "${BACKUP}/labwc-environment" \
+  "${HOME}/.config/bullet-time-labwc/environment"
+systemctl --user daemon-reload
+systemctl --user start bullet-time-ui.service
+systemctl --user is-active bullet-time-ui.service
+```
+
+If any named backup file is absent, stop and inspect the backup inventory rather
+than creating a guessed replacement. Before reboot, confirm the Tk process is
+the only serial owner, all four stable UIDs are present, product USB is writable,
+and GPIO17 is output LOW. Then reboot and repeat the service, serial, storage,
+GPIO, and one real four-camera capture checks. This ordered procedure remains
+unverified until such a drill is recorded.
 
 Restore optional user files only when they exist in that backup. If they do not exist, they were newly created by the installer and can be removed when a complete rollback is desired:
 
@@ -205,6 +247,12 @@ Do not restore or remove cloud-init casually after the device has been provision
 7. Safely eject the card, reinstall it, and boot.
 
 Never replace the whole command line with an example from another card: the `root=PARTUUID=...`, Wi-Fi country, and serial-console values are installation-specific.
+
+The first Qt migration `sudo reboot` did not return to the LAN and required a
+physical power cycle. Persistent journal data was unavailable, so the cause is
+unknown. Until a later observed soft reboot passes, keep physical power-cycle,
+SSH, and boot-card recovery access available and do not represent the soft
+reboot lifecycle as validated.
 
 ## Upgrade Discipline
 

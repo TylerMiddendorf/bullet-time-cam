@@ -156,13 +156,17 @@ Status: complete July 18, 2026
   Wayland boot, route rendering, capture, removable-media browsing, GPIO17 idle
   safety, camera identity, and service recovery.
 
-Physical-Pi validation passed at `fb1d1e7`: 112 deterministic tests passed with
-one expected live-evidence skip, all seven routes rendered at 800x480 without
-QML warnings, a complete four-camera UI capture was published, and the
-214-entry product library loaded in 0.527 seconds after bounded eager thumbnail
-decoding. A human-operated touch-feel observation remains useful enclosure UX
-feedback, but is not represented as SSH evidence. Details and route artifacts
-are in
+Physical-Pi runtime validation passed at `fb1d1e7`: 112 deterministic tests
+passed with one expected live-evidence skip, a complete four-camera UI capture
+was published, and the 214-entry product library loaded in 0.527 seconds after
+bounded eager thumbnail decoding. The seven 800x480 route artifacts were
+rendered without QML warnings across their recorded `d502fff` and `828831b`
+commits; the final library optimization was validated separately rather than
+misattributed to those renders. A human-operated touch-feel observation remains
+useful enclosure UX feedback, but is not represented as SSH evidence. The first
+Qt soft reboot also failed to return and required a physical power cycle; with
+no persistent journal, its cause and clean soft-reboot lifecycle remain open.
+Details and route artifacts are in
 [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
 
 ## Milestone 4 - Compact Version 1 Enclosure

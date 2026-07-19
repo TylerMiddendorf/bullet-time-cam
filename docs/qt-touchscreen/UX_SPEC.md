@@ -92,8 +92,10 @@ CAPTURE_PROGRESS uses the full canvas and MAY omit this header.
   mockup battery icon's divider or empty slot.
 - A one-pixel divider at `y=78` separates the header from body content.
 
-All object names in backticks are stable Qt test identifiers and MUST be exposed
-as QML `objectName` values.
+Names in backticks are stable semantic identifiers used by the contract and
+test descriptions. Runtime QML MAY expose matching `objectName` values when a
+test needs direct lookup; a name in this document alone is not proof that such
+a lookup hook exists.
 
 ## 4. States and Screens
 
@@ -242,15 +244,16 @@ Route: `/preview-placeholder`; visual source:
 Route: `/control-center`; visual source:
 `designs/ux-mockups/05-ideal-future-control-center.png`.
 
-- The header MUST read `4 CAMERAS READY` and render exactly Cameras 1-4. It MUST
-  NOT retain the source concept's 12-camera, battery, or hotspot regions.
+- The header MUST report the connected count out of four and render exactly
+  Cameras 1-4. It MUST NOT retain the source concept's 12-camera, battery, or
+  hotspot regions.
 - Exposure, white balance, smooth motion, and interpolation rows MUST be
-  visibly disabled. The route MUST show `SETTINGS UNAVAILABLE`; smooth motion
-  and interpolation MUST each say `UNAVAILABLE`.
+  visibly marked `V2 · DISABLED` beneath a `SETTINGS` heading.
 - Disabled setting objects MUST have no signal binding capable of sending a
   node command. The route's `node_commands` contract remains an empty list.
-- The only allowed command is internal navigation to the library test route.
-  This route does not add a production media button or settings feature.
+- Capture may emit the existing product `CAPTURE` command when the receiver is
+  ready. The other active targets are navigation to the ready or library
+  routes; settings remain inert.
 
 ### 4.10 REMOVABLE_MEDIA_LIBRARY test route
 
@@ -260,8 +263,9 @@ Route: `/library`; visual source:
 - Entries MUST come only from committed capture directories on the selected
   removable USB filesystem. The route MUST fail closed when that filesystem is
   unavailable and MUST NOT enumerate or display boot-card media.
-- The library is read-only. It supports filter/select, open viewer, and back to
-  camera. It MUST NOT expose delete, rename, share, repair, or write actions.
+- The library is read-only. It supports scrolling, selection, open viewer, and
+  back to camera/control. It MUST NOT expose delete, rename, share, repair, or
+  write actions.
 - Thumbnails and metadata load asynchronously or from deterministic fixtures;
   enumeration and decode MUST NOT block the GUI thread for 33 ms.
 - Removal during enumeration or after thumbnail load MUST produce a bounded USB
@@ -273,12 +277,13 @@ Route: `/library`; visual source:
 Route: `/viewer`; visual source:
 `designs/ux-mockups/07-gif-viewer.png`.
 
-- `gifPlayer` MUST load a real `image/gif` file using Qt Quick
-  `AnimatedImage`. The route MUST NOT import or depend on Qt Multimedia.
-- Play/pause, seek, 0.5x/1x/2x speed, loop, and back-to-library controls are
-  local viewer operations only. They emit no node or storage mutation command.
-- Decoded animation data MUST detach from removable media. Unplugging the drive
-  after load MUST not stop playback, event polling, or navigation.
+- A worker MUST decode the selected real `image/gif` with Pillow into detached
+  PNG data-URL frames before navigation to the viewer. QML presents those
+  frames with `Image`; it MUST NOT import or depend on Qt Multimedia.
+- Playback automatically loops using the GIF frame durations. The only viewer
+  action is back to the library; it emits no node or storage mutation command.
+- Unplugging the drive after decode MUST not stop playback, event polling, or
+  navigation.
 - Fixture evidence names the exact GIF and its SHA-256. Product evidence names
   the capture ID and committed manifest.
 
@@ -299,7 +304,7 @@ Route: `/viewer`; visual source:
 | test route `/preview-placeholder` | static fixture; no command/backend |
 | test route `/control-center` | four cameras; settings disabled; no node command |
 | test route `/library` | read-only removable-media enumeration |
-| test route `/viewer` | real GIF through `AnimatedImage` |
+| test route `/viewer` | real GIF decoded to detached PNG frames |
 
 Events are processed on the Qt GUI thread through a queued signal or equivalent
 thread-safe boundary. Receiver work, filesystem resolution, image decoding, and
@@ -333,7 +338,7 @@ headless evidence and the Pi-only subset has physical-device evidence.
 | UX-017 | Static preview route | Fixture says `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`; no backend or command |
 | UX-018 | Four-camera control center | Exactly four IDs; no battery/hotspot region; settings disabled; no node commands |
 | UX-019 | Removable-media library | Only committed USB captures; read-only operations; missing/removal fault survives |
-| UX-020 | Real GIF viewer | Real GIF animates through `AnimatedImage`; no Qt Multimedia import |
+| UX-020 | Real GIF viewer | Real GIF decodes to detached looping PNG frames; no Qt Multimedia import |
 | UX-021 | Route screenshot matrix | Seven canonical screenshots are each exactly 800x480 with recorded SHA-256 |
 | UX-022 | Wayland production gate | `QT_QPA_PLATFORM=wayland`; no Xwayland; bounded smoke has no warnings and a root object |
 
@@ -374,5 +379,6 @@ actually imports `QtQuick.Effects`.
 - Shutdown MUST stop the receiver, join its worker within the service timeout,
   close serial ownership, and restore or confirm GPIO17 output LOW before Qt
   exits.
-- The known Tk/X11 packages remain installed until the Wayland Qt route,
-  capture, partial, removal, reboot, and rollback gates all pass.
+- The known Tk/X11 packages remain installed as recovery capability until an
+  explicit rollback drill is performed and accepted. Their presence alone is
+  not rollback evidence.

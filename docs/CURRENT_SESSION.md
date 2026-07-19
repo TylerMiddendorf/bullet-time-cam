@@ -15,8 +15,9 @@ Status reviewed: July 18, 2026
 - Scope guard: implement the supplied UX mockups with a generated temporary
   preview image, but do not implement a live camera stream and do not display
   battery level or battery status.
-- The completed Qt deployment is now at runtime commit `fb1d1e7`; rollback to
-  `63420c1` remains available through normal Git history.
+- The completed Qt runtime is `fb1d1e7`. Pre-UI commit `63420c1`, the installer
+  backup, and retained Tk packages provide a documented non-destructive recovery
+  path, but an end-to-end rollback drill has not been performed.
 
 ## Verified State
 
@@ -39,6 +40,9 @@ Status reviewed: July 18, 2026
   library passed SSH-accessible validation. Preview remains a labeled static
   logo fixture and the UI contains no battery state. Evidence is in
   [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+- The first Qt soft reboot failed to return to the LAN and required a physical
+  power cycle. Recovery checks passed, but no persistent journal was available;
+  the cause and clean Qt soft-reboot lifecycle remain open.
 
 ## Immediate Work
 

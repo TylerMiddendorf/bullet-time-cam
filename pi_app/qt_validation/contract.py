@@ -252,10 +252,10 @@ def _validate_route(
     elif route_id == "gif-viewer":
         if route.get("media_type") != "image/gif":
             errors.append("viewer must consume a real GIF")
-        if route.get("media_source") != "real-gif-file":
-            errors.append("viewer media source must be a real GIF file")
-        if route.get("decoder") != "QtQuick.AnimatedImage":
-            errors.append("viewer must use QtQuick.AnimatedImage")
+        if route.get("media_source") != "detached-png-frame-sequence":
+            errors.append("viewer media source must be detached PNG frames")
+        if route.get("decoder") != "Python.Pillow+QtQuick.Image":
+            errors.append("viewer must use detached Pillow frames with QtQuick.Image")
         modules = route.get("qt_modules", [])
         if "QtMultimedia" in modules:
             errors.append("viewer must not depend on QtMultimedia")

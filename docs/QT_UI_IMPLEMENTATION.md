@@ -61,12 +61,16 @@ The implementation evolved through small tracked commits and was deployed by
 push to `origin/main` followed by fast-forward-only pulls on the Pi. The final
 validated runtime commit is `fb1d1e7`.
 
-- Local and Pi deterministic suite: 112 tests passed, with one expected
-  live-hardware-evidence skip.
+- Runtime validation local and on Pi passed 112 tests with one expected
+  live-hardware-evidence skip. The final contract-alignment audit added one
+  implementation-to-contract test; the resulting local suite passed 113 tests
+  with the same expected skip.
 - UX contract validator: PASS, contract v2, seven routes, zero errors.
 - Production QML tree: loads and tears down without warnings.
-- Native Pi Wayland route harness: seven 800x480 screenshots, each with
-  `frameSwapped` observed and zero QML warnings.
+- Native Pi Wayland route harness: seven 800x480 screenshots rendered across
+  `d502fff` and `828831b`, each with `frameSwapped` observed and zero QML
+  warnings. The later `fb1d1e7` library optimization was real-media tested but
+  not re-attributed to the earlier library screenshot.
 - Boot/session verifier: every check passed; no Xwayland or X11 fallback was
   active.
 - Bounded real-UI capture: complete four-camera set
@@ -83,6 +87,12 @@ review-path limitation also remains documented. Physical human touch feel was
 not observed over SSH. Automated controller interactions and native display
 rendering passed, but a person using the installed panel should still provide
 enclosure-stage touch feedback.
+
+The first Qt soft reboot did not return to the LAN and required a physical
+power cycle. Recovery validation passed, but the cause is unknown because no
+persistent journal was available. The retained Tk packages, installer backup,
+and pre-UI Git baseline form a documented recovery path; a complete rollback
+drill has not been executed or claimed.
 
 Full hardware evidence and route hashes are recorded in
 [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).

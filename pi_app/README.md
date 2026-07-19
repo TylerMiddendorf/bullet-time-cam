@@ -16,7 +16,7 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently discovers 97 tests: 96 pass and one
+The normal local run currently discovers 114 tests: 113 pass and one
 environment-gated physical-rig test is skipped until a live ledger is supplied.
 Coverage includes Qt state/routes, detached playback, read-only historical USB
 catalog browsing, corrupt and removed catalog entries, grouping, persistence,

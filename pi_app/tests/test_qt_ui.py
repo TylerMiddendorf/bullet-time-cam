@@ -164,6 +164,25 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn("boundsBehavior: Flickable.StopAtBounds", library)
         self.assertNotIn("height: 36", ready)
 
+    def test_contract_matches_detached_viewer_and_inert_settings(self):
+        contract = json.loads(
+            (REPO_ROOT / "pi_app" / "qt_validation" / "ux_contract.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        viewer_contract = next(route for route in contract["routes"] if route["id"] == "gif-viewer")
+        viewer = (QML_ROOT / "pages" / "ViewerPage.qml").read_text(encoding="utf-8")
+        control = (QML_ROOT / "pages" / "ControlCenterPage.qml").read_text(encoding="utf-8")
+
+        self.assertEqual(viewer_contract["decoder"], "Python.Pillow+QtQuick.Image")
+        self.assertEqual(viewer_contract["allowed_commands"], ["NAVIGATE_LIBRARY"])
+        self.assertIn("Image {", viewer)
+        self.assertNotIn("AnimatedImage", viewer)
+        self.assertNotIn("QtMultimedia", viewer)
+        self.assertIn('status: "V2 · DISABLED"', control)
+        setting = (QML_ROOT / "components" / "SettingCard.qml").read_text(encoding="utf-8")
+        self.assertNotIn("onTapped", setting)
+
     def test_qt_import_remains_lazy_for_headless_hosts(self):
         # Importing this module succeeds in CI without PySide6 installed.
         import pi_app.bullettime.qt_ui as qt_ui

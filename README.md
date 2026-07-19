@@ -65,11 +65,15 @@ The physical Pi now runs the native Qt Quick/PySide6 touchscreen at 800x480 on
 Wayland. Seven mockup-derived routes cover ready, progress, partial review, a
 logo-based static preview placeholder, four-camera controls, a read-only USB
 library, and a detached GIF viewer. The application includes no live-preview
-backend and no battery UI. Physical-Pi validation at `fb1d1e7` rendered every
-route without QML warnings, completed capture
+backend and no battery UI. The `fb1d1e7` runtime passed native-Wayland,
+capture, and real-library validation; seven route renders produced across
+`d502fff` and `828831b` are preserved with their exact commit attribution and
+zero QML warnings. The final runtime completed capture
 `20260719T021211Z_4be2d832`, and loaded the real 214-entry library in 0.527
 seconds. See the
 [`Qt deployment evidence`](docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+The first Qt soft reboot did not return to the LAN and required a physical
+power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.
 
 ## Camera Firmware

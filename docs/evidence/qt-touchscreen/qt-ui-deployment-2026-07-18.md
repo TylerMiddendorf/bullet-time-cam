@@ -7,8 +7,9 @@ feedback and is not claimed as SSH evidence.
 ## Rollback and Git chain
 
 - Pre-UI rollback baseline: `63420c1` (`Accept external V1 power arrangement`).
-- The baseline and then-current staged work were documented and committed before
-  the migration began.
+- No files were staged when the migration began. The pre-UI baseline was
+  documented before implementation, and the unrelated unstaged Milestone 4 edit
+  was preserved throughout.
 - Initial Pi commit: `1e6a6e70b2e4d2ce934463ad3c038eeddbd01391` on a clean
   `main` checkout.
 - Every Pi update used a pushed `origin/main` commit and
@@ -17,8 +18,9 @@ feedback and is not claimed as SSH evidence.
 - QML bridge lifetime fix: `5d606dd`.
 - Final validated runtime commit: `fb1d1e7`.
 - Installer backup: `/var/lib/bullet-time-boot-backups/20260719T014137Z`.
-- Tk/X11 remains installed as a rollback path; the active service is Qt on
-  native Wayland.
+- Tk/X11, pre-UI commit `63420c1`, and the installer backup remain available as
+  a documented recovery path; an end-to-end rollback drill was not executed.
+  The active service is Qt on native Wayland.
 
 ## Scope implemented
 
@@ -67,18 +69,25 @@ feedback and is not claimed as SSH evidence.
 
 All route captures were rendered by Qt on the Pi's native Wayland display.
 Every PNG is exactly 800x480, observed `frameSwapped`, and emitted zero QML
-warnings. The image files and machine-readable manifest are in
+warnings. They were produced across `d502fff` and `828831b`, as attributed in
+the table and manifest; they are not represented as renders from the later
+`fb1d1e7` library-optimization commit. That final runtime was separately tested
+against the real product library. The image files and machine-readable manifest are in
 [`2026-07-18-pi-routes/`](2026-07-18-pi-routes/).
+The harness's named published GIF was capture
+`20260718T222606Z_30cf8e02`, SHA-256
+`e69ae83481b639c4260b170da9f026a2b672ce14ec1f2771f4e96e4c35b18f9f`;
+the manifest labels which route states use fixture data.
 
-| Route | Artifact | SHA-256 |
-| --- | --- | --- |
-| Ready | `01-ready-800x480.png` | `47725a420ad512700d81eca3c3c1cf209cd2f517531d7f8f4a030f825b634dde` |
-| Progress | `02-progress-800x480.png` | `21a904b69423df38c7e28e5727e70bb2b52bc0a651d8376e22ff01b2d7d7da6c` |
-| Partial review | `03-partial-review-800x480.png` | `6413432cc4bcb978a73d7bf11cc965708728d3adc10b16f86d498dfcd0ea6ab9` |
-| Static placeholder | `04-static-preview-placeholder-800x480.png` | `8536de5e175b752039444ee7e4cf67f1815a6f9f49005e50cf30f3e556288e77` |
-| Control center | `05-four-camera-control-center-800x480.png` | `0d5d6d6dd6274df975686b5fd414be80a4f0a0cb3e3765f3f26f72471e5aa528` |
-| USB library | `06-removable-media-library-800x480.png` | `b994a0c55e6c1fd40dbeb2a336fc375171588ac3b93dff979444ef3100f719ba` |
-| GIF viewer | `07-gif-viewer-800x480.png` | `58bbd8e5fd213ef09e2d1a99b34e57d1e7c4d62644ad9412062a128e6751d64a` |
+| Route | Render commit | Artifact | SHA-256 |
+| --- | --- | --- | --- |
+| Ready | `d502fff` | `01-ready-800x480.png` | `47725a420ad512700d81eca3c3c1cf209cd2f517531d7f8f4a030f825b634dde` |
+| Progress | `d502fff` | `02-progress-800x480.png` | `21a904b69423df38c7e28e5727e70bb2b52bc0a651d8376e22ff01b2d7d7da6c` |
+| Partial review | `d502fff` | `03-partial-review-800x480.png` | `6413432cc4bcb978a73d7bf11cc965708728d3adc10b16f86d498dfcd0ea6ab9` |
+| Static placeholder | `828831b` | `04-static-preview-placeholder-800x480.png` | `8536de5e175b752039444ee7e4cf67f1815a6f9f49005e50cf30f3e556288e77` |
+| Control center | `d502fff` | `05-four-camera-control-center-800x480.png` | `0d5d6d6dd6274df975686b5fd414be80a4f0a0cb3e3765f3f26f72471e5aa528` |
+| USB library | `828831b` | `06-removable-media-library-800x480.png` | `b994a0c55e6c1fd40dbeb2a336fc375171588ac3b93dff979444ef3100f719ba` |
+| GIF viewer | `828831b` | `07-gif-viewer-800x480.png` | `58bbd8e5fd213ef09e2d1a99b34e57d1e7c4d62644ad9412062a128e6751d64a` |
 
 Visual review found and corrected a hidden preview disclaimer, overlapping
 control settings, library identifier overflow, and review/viewer footer
@@ -121,3 +130,15 @@ Automated controller interactions, route transitions, and native rendering
 passed. Because validation was conducted over SSH, this record does not claim a
 person physically tapped every target or judged the installed panel's tactile
 feel; that observation should be collected during enclosure fitting.
+
+## Final tracked closure check
+
+Evidence/documentation commit `5ba709b74390839ad471f7ee605a3358d2c330fe`
+was pushed to `origin/main` and fast-forward pulled by the Pi. At that exact
+checkout, 113 deterministic tests ran: 112 passed and the one environment-gated
+live-evidence test skipped. The contract validator passed seven routes with zero
+errors, every boot-experience verifier check passed, and the service was active
+at PID 2116 with `NRestarts=0`. GPIO17 was output LOW, all four stable serial
+devices were present, product VFAT media was writable with 230 GiB free, no
+Xwayland or current service warning was present, temperature was 38.9 C, and
+`get_throttled=0x0`.

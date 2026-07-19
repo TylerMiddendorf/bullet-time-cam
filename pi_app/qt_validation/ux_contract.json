@@ -191,13 +191,15 @@
       "product_tier": "validation-only",
       "rendered_text": [
         "4 CAMERAS READY",
-        "USB READY",
-        "SETTINGS UNAVAILABLE",
-        "EXPOSURE AUTO",
-        "WHITE BALANCE AUTO",
-        "SMOOTH MOTION UNAVAILABLE",
-        "AI INTERPOLATION UNAVAILABLE",
-        "MEDIA"
+        "CONCEPT DEMO",
+        "SETTINGS",
+        "EXPOSURE",
+        "WHITE BALANCE",
+        "SMOOTH MOTION",
+        "AI INTERPOLATION",
+        "V2 DISABLED",
+        "CAPTURE",
+        "MEDIA DEMO"
       ],
       "required_objects": [
         "rootSurface",
@@ -205,15 +207,15 @@
         "cameraStrip",
         "storageBadge",
         "controlReviewMedia",
-        "settingsUnavailableLabel",
+        "settingsHeading",
         "exposureSetting",
         "whiteBalanceSetting",
         "smoothMotionSetting",
         "interpolationSetting",
         "mediaButton"
       ],
-      "allowed_commands": ["NAVIGATE_LIBRARY"],
-      "interactive_objects": ["mediaButton"],
+      "allowed_commands": ["CAPTURE", "NAVIGATE_LIBRARY", "NAVIGATE_READY"],
+      "interactive_objects": ["captureButton", "mediaButton", "backButton"],
       "camera_count": 4,
       "settings_mode": "disabled",
       "disabled_settings": [
@@ -231,12 +233,10 @@
       "source_design": 6,
       "product_tier": "validation-only",
       "rendered_text": [
-        "MEDIA",
-        "USB MEDIA",
-        "TODAY",
-        "THIS WEEK",
-        "ALL CAPTURES",
-        "OPEN",
+        "REMOVABLE MEDIA",
+        "READ ONLY",
+        "REMOVABLE USB",
+        "OPEN SELECTED",
         "BACK TO CAMERA"
       ],
       "required_objects": [
@@ -244,7 +244,6 @@
         "productMark",
         "libraryHeading",
         "storageBadge",
-        "libraryFilters",
         "mediaGrid",
         "openButton",
         "backToCameraButton"
@@ -253,10 +252,10 @@
       "allowed_commands": [
         "SELECT_CAPTURE",
         "OPEN_VIEWER",
-        "NAVIGATE_CAMERA"
+        "NAVIGATE_CAMERA",
+        "NAVIGATE_CONTROL"
       ],
       "interactive_objects": [
-        "libraryFilters",
         "mediaGrid",
         "openButton",
         "backToCameraButton"
@@ -271,44 +270,26 @@
       "source_design": 7,
       "product_tier": "validation-only",
       "rendered_text": [
-        "BULLET-TIME",
-        "USB SAVED",
-        "0.5x",
-        "1x",
-        "2x",
-        "LOOP",
-        "BACK TO LIBRARY"
+        "BULLET-TIME VIEWER",
+        "DETACHED REVIEW",
+        "ANIMATION PLAYBACK",
+        "CAPTURED VIEWS",
+        "BACK TO MEDIA"
       ],
       "required_objects": [
         "rootSurface",
         "productMark",
         "viewerHeading",
-        "storageBadge",
-        "gifPlayer",
-        "playPauseButton",
-        "frameRail",
-        "speedControl",
-        "loopButton",
+        "detachedReviewFrame",
+        "playbackStatus",
         "backToLibraryButton"
       ],
-      "allowed_commands": [
-        "PLAYER_TOGGLE",
-        "PLAYER_SEEK",
-        "PLAYER_SPEED",
-        "PLAYER_LOOP",
-        "NAVIGATE_LIBRARY"
-      ],
-      "interactive_objects": [
-        "playPauseButton",
-        "frameRail",
-        "speedControl",
-        "loopButton",
-        "backToLibraryButton"
-      ],
+      "allowed_commands": ["NAVIGATE_LIBRARY"],
+      "interactive_objects": ["backToLibraryButton"],
       "media_type": "image/gif",
-      "media_source": "real-gif-file",
-      "decoder": "QtQuick.AnimatedImage",
-      "qt_modules": ["QtQuick", "QtQuick.Controls", "QtQuick.Layouts"]
+      "media_source": "detached-png-frame-sequence",
+      "decoder": "Python.Pillow+QtQuick.Image",
+      "qt_modules": ["QtQuick"]
     }
   ],
   "states": {
@@ -336,7 +317,6 @@
     "mediaButton": [414, 405, 376, 60],
     "openButton": [20, 405, 376, 60],
     "backToCameraButton": [414, 405, 376, 60],
-    "playPauseButton": [24, 374, 64, 64],
     "backToLibraryButton": [680, 382, 110, 52]
   },
   "allowed_camera_progress": [

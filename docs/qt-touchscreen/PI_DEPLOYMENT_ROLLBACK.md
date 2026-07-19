@@ -1,11 +1,14 @@
 # Raspberry Pi Qt Deployment and Rollback Checklist
 
-Status: unexecuted operator checklist. It describes a future commit-push-pull
-deployment; this validation track has not deployed Qt to the Pi.
+Status: deployment portions executed on `main`; rollback drill not executed.
+This file now records the historical switch procedure and the remaining
+unverified rollback procedure. The presence of Tk packages and an installer
+backup is recovery capability, not evidence that rollback succeeds.
 
-The deployment is accepted only if every required value and artifact is copied
-into a dated evidence record. Stop at the first failed gate and leave the
-known-good Tk service recoverable.
+This was the original conservative operator checklist. The dated deployment
+evidence records what actually ran; unchecked items in this file remain
+unproven and must not be inferred as passes. In particular, physical touch feel,
+a clean Qt soft reboot, and rollback are still unverified.
 
 ## Verified starting facts to preserve
 
@@ -32,8 +35,9 @@ recovery. Do not rewrite the transient as a permanently resolved fault.
 
 ## 1. Workstation release gate: commit and push
 
-- [ ] Worktree is on the intended `codex/qt-touchscreen-validation` history.
-- [ ] `docs/MILESTONE_4_PLAN.md` has no diff.
+- [x] Worktree is on the intended `main` history.
+- [x] The product owner's unrelated `docs/MILESTONE_4_PLAN.md` edit was excluded
+      from every migration commit.
 - [ ] Contract validator, focused tests, full deterministic suite, hooks, and
       bounded offscreen QML smoke pass.
 - [ ] Seven screenshots and evidence JSON are complete.
@@ -41,9 +45,9 @@ recovery. Do not rewrite the transient as a permanently resolved fault.
       hotspot, or 12-camera behavior.
 - [ ] Every unsupported setting is disabled and the node-command test sink is
       empty.
-- [ ] Commit the coherent revision and record `git rev-parse HEAD` as
+- [x] Commit the coherent revision and record `git rev-parse HEAD` as
       `EXPECTED_DEPLOY_SHA`.
-- [ ] Push that exact commit. Record remote, branch, push output, and
+- [x] Push that exact commit. Record remote, branch, push output, and
       `git ls-remote <remote> refs/heads/<branch>`; the remote SHA must equal
       `EXPECTED_DEPLOY_SHA`.
 
@@ -116,8 +120,8 @@ sudo apt-get install --no-install-recommends \
       imported; otherwise leave it absent from the explicit set.
 - [ ] Record `dpkg-query` versions and architecture for every explicit package.
       Expected family is Qt 6.8 / PySide6 6.8 on arm64; record actual versions.
-- [ ] Import QtCore/QtGui/QtQml/QtQuick from the same `/usr/bin/python3` the
-      user service will execute.
+- [x] Import QtCore/QtGui/QtQml/QtQuick from the same
+      `${HOME}/esp32cam-tools/bin/python` interpreter the user service executes.
 - [ ] Retain the known Tk/X11 packages, units, and launch path during migration.
       Do not autoremove them until Qt/Wayland plus rollback acceptance is closed.
 
@@ -128,8 +132,8 @@ With the Tk service still selected and the Pi checkout clean:
 ```bash
 cd <pi-repository>
 PRE_PULL_SHA=$(git rev-parse HEAD)
-git fetch origin codex/qt-touchscreen-validation
-git pull --ff-only origin codex/qt-touchscreen-validation
+git fetch origin main
+git pull --ff-only origin main
 POST_PULL_SHA=$(git rev-parse HEAD)
 git status --short
 printf '%s\n' "$PRE_PULL_SHA" "$POST_PULL_SHA"
@@ -148,8 +152,8 @@ Run the bounded smoke in the graphical user/Wayland environment while leaving
 Tk selected for normal boot:
 
 ```bash
-QT_QPA_PLATFORM=wayland python3 -m pi_app.tools.smoke_qt_qml \
-  --qml pi_app/qt_ui/Main.qml \
+QT_QPA_PLATFORM=wayland "${HOME}/esp32cam-tools/bin/python" -m pi_app.tools.smoke_qt_qml \
+  --qml pi_app/bullettime/qml/Main.qml \
   --platform wayland \
   --timeout-ms 5000 \
   --required-object startupLogo \
@@ -168,8 +172,9 @@ QT_QPA_PLATFORM=wayland python3 -m pi_app.tools.smoke_qt_qml \
 
 - [ ] Install a separately named Qt unit or preserve a byte-for-byte restorable
       Tk unit. Never overwrite the only recovery copy.
-- [ ] Qt unit uses the repository checkout at `POST_PULL_SHA`, `/usr/bin/python3`,
-      and explicit `Environment=QT_QPA_PLATFORM=wayland`.
+- [x] Qt unit uses the repository checkout at `POST_PULL_SHA`,
+      `%h/esp32cam-tools/bin/python`, and explicit
+      `Environment=QT_QPA_PLATFORM=wayland`.
 - [ ] Stop Tk cleanly and prove its receiver stopped, worker joined, serial
       handles closed, and GPIO17 returned/remained output LOW.
 - [ ] Start Qt and prove it is the only UI process and only serial owner.
@@ -181,6 +186,12 @@ QT_QPA_PLATFORM=wayland python3 -m pi_app.tools.smoke_qt_qml \
       first-logo-frame observation.
 
 ## 7. Actual touchscreen and hardware acceptance
+
+The SSH-accessible capture, media, rendering, health, and lifecycle checks were
+completed. Physical human touch-feel judgment and a clean soft-reboot lifecycle
+were not completed: the issued soft reboot failed to return, a physical power
+cycle recovered the Pi, and no persistent journal was available to establish a
+cause.
 
 Execute on the physical 800x480 panel and real rig, not through synthetic
 clicks alone:
@@ -206,15 +217,18 @@ clicks alone:
    product USB read-write, GPIO17 LOW, resource/thermal health, and one actual
    post-reboot touch capture.
 
-## 8. Rollback drill
+## 8. Unverified rollback drill
 
-Rollback is required even after successful Qt tests:
+This drill was not executed during the migration and must not be described as a
+passed gate. If rollback is needed, use the following non-destructive sequence:
 
 1. Stop/disable the Qt unit. Confirm receiver join, serial close, and GPIO17 LOW.
 2. Restore the saved Tk unit/config/session files by checksum.
-3. Return the checkout non-destructively to recorded `PRE_PULL_SHA` with a clean
-   `git switch --detach <PRE_PULL_SHA>` (or pull the approved rollback branch
-   fast-forward-only). Do not use `git reset --hard`.
+3. Return the checkout non-destructively to the documented pre-UI baseline with
+   a clean `git switch --detach 63420c1` (or pull an explicitly approved
+   rollback branch fast-forward-only). `PRE_PULL_SHA` is deployment-chain
+   evidence, not the canonical application rollback target. Do not use
+   `git reset --hard`.
 4. Reload user units, enable/start Tk, and prove it is the sole serial owner.
 5. Reboot and observe the accepted logo-to-Tk handoff with no OS content.
 6. Confirm four stable UIDs, GPIO17 output LOW, product USB read-write, and one

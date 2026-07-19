@@ -75,7 +75,7 @@
       "screenshot_sha256": "<sha256>",
       "result": "UNRUN",
       "media_type": "image/gif",
-      "decoder": "QtQuick.AnimatedImage",
+      "decoder": "Python.Pillow+QtQuick.Image",
       "qt_multimedia": false,
       "gif_sha256": "<sha256>"
     }

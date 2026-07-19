@@ -313,14 +313,21 @@ As of July 18, 2026:
 - On July 18, the native Qt Quick/PySide6 touchscreen track was deployed and
   validated on the physical Raspberry Pi through the required commit, push,
   fast-forward pull workflow. Commit `fb1d1e7` runs natively on Wayland without
-  Xwayland, the deterministic Pi suite passed 112 tests with one expected live
-  evidence skip, and all seven routes rendered at 800x480 with zero QML
-  warnings. One bounded real-UI capture produced complete set
+  Xwayland and the deterministic Pi suite passed 112 tests with one expected
+  live evidence skip. Seven route renders produced across `d502fff` and
+  `828831b` are preserved at 800x480 with exact per-route attribution and zero
+  QML warnings; the later `fb1d1e7` library change was validated separately on
+  real media. One bounded real-UI capture produced complete set
   `20260719T021211Z_4be2d832`; the service returned active with GPIO17 LOW. The
   real 214-entry product-media catalog validates every entry while eagerly
   decoding only the first six thumbnails, reducing initial load from 21.101
   seconds to 0.527 seconds. See
   `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
+- The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
+  recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
+  and native Wayland session passed. Persistent journal data was unavailable,
+  so the soft-reboot failure remains unexplained and the Qt soft-reboot
+  lifecycle is not claimed as validated.
 - The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 

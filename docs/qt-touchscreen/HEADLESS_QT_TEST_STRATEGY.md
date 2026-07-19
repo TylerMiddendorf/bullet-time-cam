@@ -31,7 +31,7 @@ python3 -m unittest pi_app.tests.test_qt_ux_contract -v
 It validates the seven route IDs and paths, native viewport, all source PNG IHDR
 dimensions, named bounds, the five-package Trixie minimum, safety flags,
 forbidden rendered terms, disabled control-center settings, empty node command
-surface, read-only removable-media library, real-GIF/`AnimatedImage` viewer,
+surface, read-only removable-media library, detached-frame real-GIF viewer,
 and the ordered UX-001..UX-022 scenario list.
 
 ## Layer 1 - bounded QML load and first frame
@@ -40,7 +40,7 @@ Use the generic smoke utility against the implementation's root QML:
 
 ```bash
 python3 -m pi_app.tools.smoke_qt_qml \
-  --qml pi_app/qt_ui/Main.qml \
+  --qml pi_app/bullettime/qml/Main.qml \
   --platform offscreen \
   --timeout-ms 5000 \
   --required-object startupLogo \
@@ -70,7 +70,9 @@ Assertions cover:
 4. No node command from any disabled control-center setting.
 5. Library enumeration limited to committed removable-USB capture directories,
    with no mutation or boot-card fallback.
-6. Real GIF decode/playback through `AnimatedImage` without Qt Multimedia.
+6. Real GIF decode to detached PNG data-URL frames, frame advancement, and
+   duration preservation without Qt Multimedia. QTimer scheduling itself is a
+   runtime observation, not a deterministic unit-test claim.
 7. Review bytes/frames detached before the source drive is removed.
 8. Receiver stop request, bounded worker join, serial close, and GPIO17 LOW
    cleanup on normal exit and exception exit.
@@ -106,12 +108,11 @@ Use these filenames exactly:
 ```
 
 `collect_screenshot_evidence()` checks presence, native dimensions, and SHA-256.
-Each route test also walks required `objectName` values, checks interactive
-targets against contract bounds, captures visible text, and rejects forbidden
-terms or objects. Pixel comparisons use explicitly reviewed tolerances because
-desktop software rendering and Pi Wayland rendering may differ. Text clipping,
-missing fonts, missing images, and layout overflow are hard failures regardless
-of pixel tolerance.
+The bounded route smoke records root-object presence, `frameSwapped`, geometry,
+and QML warnings. Contract/unit tests separately enforce route and command
+scope. Visual review checks visible text, target sizing, clipping, missing
+assets, and overflow; the current harness does not programmatically walk every
+semantic identifier or compare pixels to the source mockups.
 
 The preview screenshot must show both `DEMO PLACEHOLDER` and
 `PREVIEW NOT CONNECTED`. The viewer screenshot uses a named real GIF fixture,
@@ -137,8 +138,6 @@ not the design raster.
 
 Headless tests cannot prove emitted photons, touch mapping, serial ownership,
 GPIO electrical state, real USB unbind/recovery, compositor handoff, or reboot.
-The Pi checklist therefore requires actual first-logo-frame observation,
-touch/capture, physical capture, partial capture, post-decode media removal,
-Wayland/no-Xwayland inspection, receiver cleanup, reboot, and rollback tests.
-Record them in `evidence/UX_EVIDENCE_TEMPLATE.md`; do not promote fixture or
-desktop results into Pi passes.
+The Pi checklist lists those separate gates. Record which were actually run in
+`evidence/UX_EVIDENCE_TEMPLATE.md`; do not promote fixture/desktop results or
+the existence of a rollback procedure into Pi passes.
