@@ -52,6 +52,9 @@ Window {
         property string pendingDeleteTitle: "codex_delete_test_95961ff"
         property bool fullscreen: false
         property bool canCapture: true
+        property bool canRecoverCameras: !cameraRecoveryPending
+        property bool cameraRecoveryPending: false
+        property string cameraRecoveryMessage: "RESTARTING CAMERA USB"
         property var libraryItems: [
             {"title": "20260718T175104Z_04b69c0b", "viewCount": 4, "partial": false, "thumbnail": fixtureMedia},
             {"title": "20260718T171500Z_a31c4f90", "viewCount": 3, "partial": true, "thumbnail": fixtureMedia},
@@ -63,6 +66,10 @@ Window {
         ]
 
         function capture() { return false }
+        function recoverCameras() {
+            cameraRecoveryPending = true
+            return true
+        }
         function navigate(nextRoute) { route = nextRoute; return true }
         function openLibraryItem(index) { selectedLibraryIndex = index; return true }
         function selectLibraryItem(index) { selectedLibraryIndex = index; return true }
