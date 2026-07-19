@@ -163,6 +163,8 @@ class QmlContractTests(unittest.TestCase):
         touch_button = (QML_ROOT / "components" / "TouchButton.qml").read_text(encoding="utf-8")
         self.assertIn("GridView", library)
         self.assertIn("boundsBehavior: Flickable.StopAtBounds", library)
+        self.assertIn('text: "REMOVABLE USB"', library)
+        self.assertIn("fontSizeMode: Text.Fit", library)
         self.assertNotIn("height: 36", ready)
         self.assertIn("fontSizeMode: Text.Fit", touch_button)
         self.assertIn("width: parent.width - 24", touch_button)

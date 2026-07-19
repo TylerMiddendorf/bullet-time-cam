@@ -28,11 +28,15 @@ Item {
             anchors.margins: 14
             spacing: 14
             Text {
+                width: parent.width
                 text: "REMOVABLE USB"
                 color: "#63adf2"
                 font.pixelSize: 17
+                fontSizeMode: Text.Fit
+                minimumPixelSize: 12
                 font.bold: true
                 font.letterSpacing: 1.5
+                elide: Text.ElideRight
             }
             Text {
                 width: parent.width
