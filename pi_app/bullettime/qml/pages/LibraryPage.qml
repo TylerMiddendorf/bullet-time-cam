@@ -86,43 +86,49 @@ Item {
                     font.letterSpacing: 1
                 }
 
-                Row {
+                Column {
                     x: 10
                     y: 31
                     width: parent.width - 20
-                    height: 48
+                    spacing: 3
 
-                    Column {
-                        width: parent.width / 2
-                        spacing: 2
+                    Row {
+                        width: parent.width
+                        height: 22
                         Text {
+                            width: 58
                             text: "USED"
                             color: "#7f8891"
                             font.pixelSize: 9
                             font.bold: true
+                            verticalAlignment: Text.AlignVCenter
                         }
                         Text {
-                            width: 65
+                            width: parent.width - 58
                             text: bridge.storageUsedText
                             color: "white"
                             font.pixelSize: 15
                             minimumPixelSize: 10
                             fontSizeMode: Text.Fit
                             font.bold: true
+                            horizontalAlignment: Text.AlignRight
+                            verticalAlignment: Text.AlignVCenter
                         }
                     }
 
-                    Column {
-                        width: parent.width / 2
-                        spacing: 2
+                    Row {
+                        width: parent.width
+                        height: 22
                         Text {
+                            width: 58
                             text: "AVAILABLE"
                             color: "#7f8891"
                             font.pixelSize: 9
                             font.bold: true
+                            verticalAlignment: Text.AlignVCenter
                         }
                         Text {
-                            width: 65
+                            width: parent.width - 58
                             text: bridge.storageAvailableText
                             color: bridge.storageAvailableText === "UNAVAILABLE"
                                 ? "#ff6168" : "#63adf2"
@@ -130,6 +136,8 @@ Item {
                             minimumPixelSize: 8
                             fontSizeMode: Text.Fit
                             font.bold: true
+                            horizontalAlignment: Text.AlignRight
+                            verticalAlignment: Text.AlignVCenter
                         }
                     }
                 }
