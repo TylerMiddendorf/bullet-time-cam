@@ -9,6 +9,8 @@ from pathlib import Path
 
 from PIL import Image
 
+EAGER_THUMBNAIL_COUNT = 6
+
 
 @dataclass(frozen=True)
 class CatalogEntry:
@@ -29,7 +31,7 @@ class CatalogSnapshot:
     message: str = ""
 
 
-def _published_entry(directory: Path) -> CatalogEntry | None:
+def _published_entry(directory: Path, *, decode_thumbnail: bool) -> CatalogEntry | None:
     try:
         manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
         if not isinstance(manifest, dict) or int(manifest.get("schema_version", 0)) != 2:
@@ -53,14 +55,21 @@ def _published_entry(directory: Path) -> CatalogEntry | None:
         animation = directory / relative
         if not animation.is_file():
             return None
-        # Decode the first frame in the worker so corrupt catalog entries never
-        # reach QML and never block the GUI thread during validation.
-        with Image.open(animation) as source:
-            source.seek(0)
-            thumbnail = source.convert("RGB")
-            thumbnail.thumbnail((240, 135))
-            thumbnail_output = io.BytesIO()
-            thumbnail.save(thumbnail_output, format="PNG")
+        with animation.open("rb") as stream:
+            signature = stream.read(6)
+        if signature not in {b"GIF87a", b"GIF89a"}:
+            return None
+        thumbnail_png = b""
+        if decode_thumbnail:
+            # Only decode the initially visible row in this worker. Reading all
+            # historical GIFs made a 200-set catalog take tens of seconds.
+            with Image.open(animation) as source:
+                source.seek(0)
+                thumbnail = source.convert("RGB")
+                thumbnail.thumbnail((240, 135))
+                thumbnail_output = io.BytesIO()
+                thumbnail.save(thumbnail_output, format="PNG")
+                thumbnail_png = thumbnail_output.getvalue()
         completed = sorted(
             int(camera["logical_camera_id"])
             for camera in cameras
@@ -87,7 +96,7 @@ def _published_entry(directory: Path) -> CatalogEntry | None:
             status=status,
             view_count=len(completed),
             failed_camera_ids=tuple(failed),
-            thumbnail_png=thumbnail_output.getvalue(),
+            thumbnail_png=thumbnail_png,
         )
     except (KeyError, TypeError, ValueError, json.JSONDecodeError, OSError):
         return None
@@ -107,17 +116,20 @@ def scan_capture_catalog(root: Path | None) -> CatalogSnapshot:
     except OSError:
         return CatalogSnapshot("removed", (), message="USB media was removed or is unreadable")
 
+    directories.sort(key=lambda directory: directory.name, reverse=True)
     entries: list[CatalogEntry] = []
     skipped = 0
     for directory in directories:
-        entry = _published_entry(directory)
+        entry = _published_entry(
+            directory,
+            decode_thumbnail=len(entries) < EAGER_THUMBNAIL_COUNT,
+        )
         if entry is None:
             skipped += 1
         else:
             entries.append(entry)
     if not root.is_dir():
         return CatalogSnapshot("removed", (), message="USB media was removed during refresh")
-    entries.sort(key=lambda entry: entry.capture_id, reverse=True)
     return CatalogSnapshot("ready", tuple(entries), skipped_count=skipped)
 
 

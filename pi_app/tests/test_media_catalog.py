@@ -90,6 +90,18 @@ class MediaCatalogTests(unittest.TestCase):
             catalog = scan_capture_catalog(Path(temp))
             self.assertEqual(catalog.status, "ready")
             self.assertEqual(catalog.entries, ())
+
+    def test_only_initially_visible_entries_decode_eager_thumbnails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for index in range(8):
+                published_capture(root, f"20260718T12{index:02d}00Z_capture{index}")
+
+            catalog = scan_capture_catalog(root)
+
+            self.assertEqual(len(catalog.entries), 8)
+            self.assertTrue(all(entry.thumbnail_png for entry in catalog.entries[:6]))
+            self.assertTrue(all(not entry.thumbnail_png for entry in catalog.entries[6:]))
             self.assertEqual(catalog.skipped_count, 0)
 
     def test_removed_media_is_reported_during_scan_and_open(self):

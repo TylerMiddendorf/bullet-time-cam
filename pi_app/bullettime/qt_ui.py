@@ -84,6 +84,8 @@ class QtUiController:
                 "partial": item.status == "partial",
                 "thumbnail": (
                     "data:image/png;base64," + base64.b64encode(item.thumbnail_png).decode("ascii")
+                    if item.thumbnail_png
+                    else ""
                 ),
             }
             for item in self.library_items
