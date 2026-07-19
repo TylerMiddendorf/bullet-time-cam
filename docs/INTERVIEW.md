@@ -381,3 +381,12 @@ Implementation status:
   returning directly to Ready.
 - Commit and push incrementally, fast-forward pull each checkpoint on the Pi,
   and verify the implementation on the physical Pi.
+
+### 2026-07-19 - Capture-time library previews
+
+- Generate small image previews when captures are taken so large removable-USB
+  libraries do not need to decode animated GIFs during catalog loading.
+- Publish the preview atomically with the capture originals, animation, and
+  manifest; retain compatibility with historical sets that lack a preview.
+- Commit and push the change, fast-forward pull it on the Raspberry Pi, and
+  verify it with a real capture on the physical rig.

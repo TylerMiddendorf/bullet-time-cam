@@ -73,6 +73,12 @@ Status reviewed: July 18, 2026
   one expected skip, native renders, real product-volume read, interaction
   smoke, all 39 boot checks, and restarted live service passed. Evidence is in
   [`evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md`](evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
+- App 0.2.9 is deployed at `ea9e4c5`. New usable captures atomically include a
+  compact manifest-recorded JPEG library preview; catalog refresh reads it
+  without opening the animation. Real four-camera capture
+  `20260719T224502Z_b091c2b9` validated the preview and the live service was
+  restored with all 39 boot/session checks passing. Evidence is in
+  [`evidence/qt-touchscreen/library-capture-previews-2026-07-19.md`](evidence/qt-touchscreen/library-capture-previews-2026-07-19.md).
 
 ## Immediate Work
 

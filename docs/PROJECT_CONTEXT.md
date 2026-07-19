@@ -193,9 +193,11 @@ as disabled future controls and emit no node commands. Settings also provides
 an idle-only `RECONNECT CAMERAS` system-recovery action. Its narrowly privileged
 root helper cleanly unmounts USB filesystems, resets the validated Pi xHCI
 controller, waits for four usable ESP32 serial ports, and restarts the UI; it
-does not alter node configuration. The Library validates
-published schema-2 capture sets and decodes
-selected GIFs away from removable media before viewer display. A confirmed
+does not alter node configuration. The Library validates published schema-2
+capture sets and reads compact JPEG previews generated atomically when each new
+capture is published. Historical sets without previews retain a bounded
+first-frame GIF fallback. Selected GIFs are still decoded away from removable
+media before viewer display. A confirmed
 delete action is available from the library and viewer; it revalidates the
 selected set and removes that set's originals, GIF, and manifest together from
 removable USB storage. Its route back to Ready uses a large home icon rather
@@ -397,6 +399,14 @@ As of July 18, 2026:
   Settings renders, a Settings-to-Ready interaction smoke, real product-volume
   capacity resolution, all 39 boot checks, and live-service inspection. See
   `docs/evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md`.
+- App 0.2.9 generates a compact `library_preview.jpg` inside every newly
+  published usable capture set and records its size, checksum, and dimensions
+  in the manifest. The library reads these previews directly instead of
+  decoding GIFs during catalog refresh; legacy sets retain the six-visible-item
+  GIF fallback. Real four-camera capture `20260719T224502Z_b091c2b9` published
+  and validated a 1,602-byte 180x135 preview, and its four-entry product catalog
+  scanned in 0.081 seconds. See
+  `docs/evidence/qt-touchscreen/library-capture-previews-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,

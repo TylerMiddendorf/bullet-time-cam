@@ -230,6 +230,16 @@ a Settings-to-Ready interaction smoke, all 39 boot checks, and restarted live-
 service inspection. See
 [`ready-usb-storage-and-settings-home-2026-07-19.md`](evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
 
+App 0.2.9 moves library-preview work into the atomic capture publication path.
+Each new usable set contains a manifest-recorded compact JPEG preview, so
+catalog refresh reads small still files rather than opening animated GIFs.
+Legacy capture sets remain compatible through the bounded six-item GIF
+fallback. Commit `ea9e4c5` passed 128 deterministic tests on Windows and the Pi
+with one expected live-ledger skip. Real four-camera capture
+`20260719T224502Z_b091c2b9` produced a validated 1,602-byte 180x135 preview; the
+four-entry product catalog scan completed in 0.081 seconds. See
+[`library-capture-previews-2026-07-19.md`](evidence/qt-touchscreen/library-capture-previews-2026-07-19.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026

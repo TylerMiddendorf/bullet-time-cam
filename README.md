@@ -112,6 +112,12 @@ to Ready, plus a large Settings home icon matching Library. Commit `2153c7a`
 passed the Pi suite, native 800x480 renders, real USB-capacity resolution,
 Settings-to-Ready interaction, boot verification, and live-service checks. See
 the [`Ready USB/storage evidence`](docs/evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
+App 0.2.9 generates a compact JPEG library preview atomically with every new
+usable capture set. Catalog refresh reads those small stills directly and uses
+the existing bounded GIF fallback only for historical sets. Commit `ea9e4c5`
+passed both full deterministic suites and a real four-camera capture on the Pi;
+see the
+[`capture-preview evidence`](docs/evidence/qt-touchscreen/library-capture-previews-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.
