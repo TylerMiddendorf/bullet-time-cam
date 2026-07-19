@@ -13,7 +13,7 @@ recorded in `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
 
 - 800x480 full-screen touchscreen presentation
 - Seven deterministic test routes covering ready, progress, partial review,
-  static preview placeholder, current four-camera control center, read-only
+  static preview placeholder, current four-camera control center,
   removable-media library, and real-GIF viewer compositions
 - Product-logo handoff, complete review, actionable error states, and safe
   receiver/shutdown behavior
@@ -26,7 +26,7 @@ Explicitly excluded:
 - Live camera streaming or a live-preview pipeline
 - Battery level, charge, power-source, or battery-status UI
 - Live setting changes or any setting command sent to a camera node
-- Media deletion, renaming, sharing, or boot-card browsing
+- Media renaming, sharing, editing, or boot-card browsing
 - Network controls, hotspot claims, and 12-camera behavior
 - Changes to `docs/MILESTONE_4_PLAN.md`
 
@@ -46,7 +46,7 @@ All seven PNGs are 1619x971 reference renders, not pixel-perfect raster
 backgrounds. Every route lays out native 800x480 Qt objects. The source images
 do not authorize battery UI or reserved battery space, a live preview backend,
 hotspot claims, 12-camera behavior, multimedia dependencies, mutable media
-operations, or node setting commands.
+operations other than confirmed whole-capture-set deletion, or node setting commands.
 
 The later compositions are deliberately adapted into bounded validation
 routes:
@@ -55,8 +55,9 @@ routes:
   `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`.
 - Design 5 reports the current four cameras. Unsupported settings are visible
   only as disabled/unavailable controls and have no node-command binding.
-- Design 6 reads only committed captures on removable USB media. It cannot
-  delete, rename, share, or fall back to the boot card.
+- Design 6 reads only committed captures on removable USB media. It can delete
+  one confirmed, revalidated capture set; it cannot rename, share, edit, or fall
+  back to the boot card.
 - Design 7 decodes a selected real GIF into detached PNG data-URL frames and
   presents them with Qt Quick `Image`; it does not import Qt Multimedia.
 

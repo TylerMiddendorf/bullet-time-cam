@@ -1,5 +1,5 @@
 {
-  "contract_version": 2,
+  "contract_version": 3,
   "baseline_commit": "1ef1ba6",
   "contract_commit": "1f6ff70",
   "viewport": {
@@ -55,7 +55,7 @@
     "battery_reserved_space": false,
     "hotspot_claims": false,
     "node_setting_commands": false,
-    "library_is_read_only": true,
+    "library_is_read_only": false,
     "library_storage": "removable-usb-only"
   },
   "forbidden_rendered_terms": [
@@ -234,9 +234,10 @@
       "product_tier": "validation-only",
       "rendered_text": [
         "REMOVABLE MEDIA",
-        "READ ONLY",
+        "CAPTURE SETS",
         "REMOVABLE USB",
         "OPEN SELECTED",
+        "DELETE SELECTED",
         "BACK TO CAMERA"
       ],
       "required_objects": [
@@ -248,20 +249,23 @@
         "openButton",
         "backToCameraButton"
       ],
-      "forbidden_objects": ["deleteButton", "renameButton", "shareButton"],
+      "forbidden_objects": ["renameButton", "shareButton"],
       "allowed_commands": [
         "SELECT_CAPTURE",
         "OPEN_VIEWER",
+        "PROMPT_DELETE_CAPTURE_SET",
+        "CONFIRM_DELETE_CAPTURE_SET",
         "NAVIGATE_CAMERA",
         "NAVIGATE_CONTROL"
       ],
       "interactive_objects": [
         "mediaGrid",
         "openButton",
+        "deleteButton",
         "backToCameraButton"
       ],
       "storage_scope": "removable-usb-only",
-      "mutating_operations": []
+      "mutating_operations": ["DELETE_CAPTURE_SET"]
     },
     {
       "id": "gif-viewer",
@@ -274,6 +278,7 @@
         "DETACHED REVIEW",
         "ANIMATION PLAYBACK",
         "CAPTURED VIEWS",
+        "DELETE",
         "BACK TO MEDIA"
       ],
       "required_objects": [
@@ -282,10 +287,11 @@
         "viewerHeading",
         "detachedReviewFrame",
         "playbackStatus",
+        "deleteButton",
         "backToLibraryButton"
       ],
-      "allowed_commands": ["NAVIGATE_LIBRARY"],
-      "interactive_objects": ["backToLibraryButton"],
+      "allowed_commands": ["PROMPT_DELETE_CAPTURE_SET", "CONFIRM_DELETE_CAPTURE_SET", "NAVIGATE_LIBRARY"],
+      "interactive_objects": ["deleteButton", "backToLibraryButton"],
       "media_type": "image/gif",
       "media_source": "detached-png-frame-sequence",
       "decoder": "Python.Pillow+QtQuick.Image",

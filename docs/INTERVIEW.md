@@ -312,3 +312,13 @@ Implementation status:
   controls; retain touch scrolling and include pagination status.
 - Apply, commit, push, deploy, and verify these fixes one at a time on the
   Raspberry Pi.
+
+### 2026-07-19 - Library and viewer deletion
+
+- Add the ability to delete images/GIFs from the on-device library viewer and
+  verify the behavior on the Raspberry Pi.
+- This supersedes the July 18 read-only-library and no-delete constraint.
+- Deletion applies to one complete published capture set: its original JPEGs,
+  animation GIF, and manifest are removed together from removable USB storage.
+- Require explicit confirmation and clearly state that deletion cannot be
+  undone. Keep rename, editing, sharing, and boot-card browsing unsupported.

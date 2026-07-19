@@ -1,9 +1,10 @@
-"""Read-only catalog of published capture sets on removable USB media."""
+"""Catalog and guarded deletion of published capture sets on removable USB media."""
 
 from __future__ import annotations
 
 import io
 import json
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -141,3 +142,31 @@ def load_catalog_animation(
     from .ui import _load_review_frames
 
     return _load_review_frames(entry.animation, display_size)
+
+
+def delete_catalog_entry(root: Path | None, entry: CatalogEntry) -> None:
+    """Delete one still-valid published capture set below the active USB root.
+
+    The catalog entry is revalidated immediately before removal. This prevents
+    callers from using this operation as a general recursive-delete primitive
+    or deleting a path that has since been replaced with a symlink.
+    """
+
+    if root is None:
+        raise OSError("USB media is not available")
+    try:
+        resolved_root = root.resolve(strict=True)
+        if entry.directory.is_symlink() or not entry.directory.is_dir():
+            raise ValueError("selected capture set is no longer a regular directory")
+        if entry.directory.parent.resolve(strict=True) != resolved_root:
+            raise ValueError("selected capture set is outside the active USB library")
+    except OSError as exc:
+        raise OSError("USB media was removed or is unreadable") from exc
+
+    verified = _published_entry(entry.directory, decode_thumbnail=False)
+    if verified is None or verified.capture_id != entry.capture_id:
+        raise ValueError("selected capture set is no longer a valid published capture")
+    if verified.animation.resolve(strict=True) != entry.animation.resolve(strict=True):
+        raise ValueError("selected capture animation changed after catalog refresh")
+
+    shutil.rmtree(entry.directory)

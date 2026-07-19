@@ -30,7 +30,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         title: "REMOVABLE MEDIA"
-        subtitle: "READ ONLY · " + bridge.libraryItems.length + " ITEMS"
+        subtitle: bridge.libraryItems.length + " CAPTURE SETS"
         showBack: true
         onBack: bridge.navigate("control")
     }
@@ -61,7 +61,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: "Published capture sets on the selected removable USB drive. Media is never changed or deleted."
+                text: "Published capture sets on the selected removable USB drive. Delete removes the originals and GIF together."
                 color: "#aab2ba"
                 font.pixelSize: 14
                 lineHeight: 1.2
@@ -224,28 +224,70 @@ Item {
         text: bridge.catalogStatus === "loading"
             ? "REFRESHING REMOVABLE USB MEDIA"
             : (bridge.catalogMessage === "" ? "NO PUBLISHED CAPTURES" : bridge.catalogMessage)
-        color: bridge.catalogStatus === "removed" ? "#ff6168" : "#7f8891"
+        color: bridge.catalogStatus === "removed" || bridge.catalogStatus === "error"
+            ? "#ff6168" : "#7f8891"
         font.pixelSize: 18
         font.bold: true
         font.letterSpacing: 1.5
     }
 
+    Rectangle {
+        visible: bridge.libraryItems.length > 0
+            && bridge.catalogMessage !== ""
+            && bridge.catalogStatus !== "loading"
+        x: 212
+        y: 342
+        width: 500
+        height: 48
+        radius: 8
+        color: bridge.catalogStatus === "ready" ? "#e0143320" : "#e03b1015"
+        border.color: bridge.catalogStatus === "ready" ? "#58c98d" : "#ff6168"
+
+        Text {
+            anchors.fill: parent
+            anchors.margins: 10
+            text: bridge.catalogMessage
+            color: "white"
+            font.pixelSize: 14
+            font.bold: true
+            fontSizeMode: Text.Fit
+            minimumPixelSize: 10
+            elide: Text.ElideMiddle
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+        }
+    }
+
     TouchButton {
         x: 18
         y: 406
-        width: 370
+        width: 235
         height: 58
         label: "OPEN SELECTED"
-        enabled: bridge.selectedLibraryIndex >= 0 && bridge.catalogStatus !== "loading"
+        enabled: bridge.selectedLibraryIndex >= 0 && bridge.catalogStatus === "ready"
         onTapped: bridge.openLibraryItem(bridge.selectedLibraryIndex)
     }
 
     TouchButton {
-        x: 412
+        objectName: "deleteSelectedButton"
+        x: 282
         y: 406
-        width: 370
+        width: 235
+        height: 58
+        label: bridge.catalogStatus === "deleting" ? "DELETING..." : "DELETE SELECTED"
+        accent: "#ff6168"
+        enabled: bridge.selectedLibraryIndex >= 0 && bridge.catalogStatus === "ready"
+        onTapped: bridge.promptDeleteSelected()
+    }
+
+    TouchButton {
+        x: 547
+        y: 406
+        width: 235
         height: 58
         label: "BACK TO CAMERA"
         onTapped: bridge.navigate("ready")
     }
+
+    DeleteConfirmation { anchors.fill: parent }
 }

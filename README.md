@@ -63,8 +63,10 @@ retired as V1 gates.
 
 The physical Pi now runs the native Qt Quick/PySide6 touchscreen at 800x480 on
 Wayland. Seven mockup-derived routes cover ready, progress, partial review, a
-logo-based static preview placeholder, four-camera controls, a read-only USB
-library, and a detached GIF viewer. The application includes no live-preview
+logo-based static preview placeholder, four-camera controls, a removable-USB
+library, and a detached GIF viewer. The library and viewer can permanently
+delete a confirmed capture set, including its JPEG originals, GIF, and manifest.
+The application includes no live-preview
 backend and no battery UI. The library supports touch flicking plus visible
 right-side page navigation with a current/total page indicator. The `fb1d1e7` runtime passed native-Wayland,
 capture, and real-library validation; seven route renders produced across

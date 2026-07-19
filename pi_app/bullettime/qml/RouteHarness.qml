@@ -45,6 +45,8 @@ Window {
         property int selectedLibraryIndex: 0
         property string catalogStatus: "ready"
         property string catalogMessage: "Fixture catalog"
+        property bool deleteConfirmationVisible: false
+        property string pendingDeleteTitle: ""
         property bool fullscreen: false
         property bool canCapture: true
         property var libraryItems: [
@@ -61,6 +63,13 @@ Window {
         function navigate(nextRoute) { route = nextRoute; return true }
         function openLibraryItem(index) { selectedLibraryIndex = index; return true }
         function selectLibraryItem(index) { selectedLibraryIndex = index; return true }
+        function promptDeleteSelected() {
+            pendingDeleteTitle = libraryItems[selectedLibraryIndex].title
+            deleteConfirmationVisible = true
+            return true
+        }
+        function cancelDelete() { deleteConfirmationVisible = false }
+        function confirmDelete() { deleteConfirmationVisible = false; return true }
         function framePresented() {}
     }
 

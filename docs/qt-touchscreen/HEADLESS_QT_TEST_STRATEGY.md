@@ -31,7 +31,7 @@ python3 -m unittest pi_app.tests.test_qt_ux_contract -v
 It validates the seven route IDs and paths, native viewport, all source PNG IHDR
 dimensions, named bounds, the five-package Trixie minimum, safety flags,
 forbidden rendered terms, disabled control-center settings, empty node command
-surface, read-only removable-media library, detached-frame real-GIF viewer,
+surface, removable-media library with confirmed whole-set deletion, detached-frame real-GIF viewer,
 and the ordered UX-001..UX-022 scenario list.
 
 ## Layer 1 - bounded QML load and first frame

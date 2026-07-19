@@ -65,7 +65,7 @@
       "screenshot_sha256": "<sha256>",
       "result": "UNRUN",
       "storage": "removable-usb-only",
-      "mutating_operations": []
+      "mutating_operations": ["DELETE_CAPTURE_SET"]
     },
     {
       "id": "gif-viewer",

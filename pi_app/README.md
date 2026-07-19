@@ -6,8 +6,9 @@ Runtime responsibilities are split across focused modules under
 `pi_app/bullettime/`: `main.py` owns CLI/configuration, `receiver.py` owns serial
 transactions, `ui.py` owns the headless entry point and Qt migration shim,
 `qt_ui.py` bridges queue events into Qt Quick, `ui_model.py` reduces workflow
-state, and `media_catalog.py` reads published USB capture sets without changing
-them. Protocol, GPIO, capture control, storage, discovery, and metrics remain
+state, and `media_catalog.py` reads published USB capture sets and performs
+guarded, confirmed whole-set deletion. Protocol, GPIO, capture control, storage,
+discovery, and metrics remain
 separate modules.
 
 Run tests from the repository root:
@@ -16,10 +17,10 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently discovers 114 tests: 113 pass and one
+The normal local run currently discovers 118 tests: 117 pass and one
 environment-gated physical-rig test is skipped until a live ledger is supplied.
-Coverage includes Qt state/routes, detached playback, read-only historical USB
-catalog browsing, corrupt and removed catalog entries, grouping, persistence,
+Coverage includes Qt state/routes, detached playback, historical USB catalog
+browsing and deletion, corrupt and removed catalog entries, grouping, persistence,
 protocol, GPIO, and evidence validation.
 
 Run the application:
@@ -50,6 +51,10 @@ Storage behavior is configured in `pi_app/config.json`:
 The repository configuration prefers the added drive's `USB DISK` mount-directory name (normally derived from its label below `/media/<user>/`). This is a preference rather than a hard requirement, so another writable USB drive can still be selected if that drive is absent. With no preference, the application selects deterministically by mount path. Each capture manifest records the selected device, filesystem, mountpoint, and capture root.
 
 Do not remove the drive while the loading screen is active during normal use.
+Deleting a library item requires confirmation and permanently removes that
+capture set's original JPEGs, animation GIF, and manifest together. The delete
+path revalidates that the set is published directly below the active removable
+USB capture root; it cannot target the Pi boot card or arbitrary paths.
 The real-drive qualification covers missing, full, read-only,
 corrupt/unmountable, and removal-during-write behavior. Storage failures use
 bounded actionable touchscreen messages while full details remain in the

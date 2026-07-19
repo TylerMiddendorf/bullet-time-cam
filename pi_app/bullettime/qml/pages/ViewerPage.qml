@@ -54,7 +54,7 @@ Item {
 
         Text {
             x: 24
-            width: 220
+            width: 190
             anchors.verticalCenter: parent.verticalCenter
             text: "ANIMATION PLAYBACK"
             color: "white"
@@ -64,8 +64,8 @@ Item {
         }
 
         Text {
-            x: 250
-            width: 280
+            x: 210
+            width: 205
             anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             text: bridge.imageSource === "" ? "NO MEDIA" : bridge.viewerViewCount + " CAPTURED VIEWS"
@@ -75,13 +75,26 @@ Item {
         }
 
         TouchButton {
-            anchors.right: parent.right
-            anchors.rightMargin: 10
+            objectName: "viewerDeleteButton"
+            x: 425
             anchors.verticalCenter: parent.verticalCenter
-            width: 210
+            width: 145
+            height: 48
+            label: "DELETE"
+            accent: "#ff6168"
+            enabled: bridge.selectedLibraryIndex >= 0 && bridge.catalogStatus === "ready"
+            onTapped: bridge.promptDeleteSelected()
+        }
+
+        TouchButton {
+            x: 580
+            anchors.verticalCenter: parent.verticalCenter
+            width: 162
             height: 48
             label: "BACK TO MEDIA"
             onTapped: bridge.navigate("library")
         }
     }
+
+    DeleteConfirmation { anchors.fill: parent }
 }

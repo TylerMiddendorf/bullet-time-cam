@@ -111,6 +111,56 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertFalse(controller.request_capture())
         self.assertTrue(commands.empty())
 
+    def test_delete_requires_confirmation_and_returns_to_refreshed_library(self):
+        controller = QtUiController(queue.Queue())
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            published_capture(root, "capture-delete")
+            published_capture(root, "capture-retain")
+            controller.apply_catalog(scan_capture_catalog(root))
+            selected = controller.library_items[controller.selected_library_index]
+            delete_requests = []
+            controller.set_catalog_callbacks(
+                lambda: None, lambda _entry: None, delete_requests.append
+            )
+
+            self.assertTrue(controller.prompt_delete_selected())
+            self.assertTrue(controller.delete_confirmation_visible)
+            self.assertEqual(controller.pending_delete_title, selected.capture_id)
+            controller.cancel_delete()
+            self.assertFalse(controller.delete_confirmation_visible)
+            self.assertEqual(delete_requests, [])
+
+            self.assertTrue(controller.prompt_delete_selected())
+            self.assertTrue(controller.confirm_delete())
+            self.assertEqual(delete_requests, [selected])
+            self.assertEqual(controller.catalog_status, "deleting")
+
+            selected.directory.rename(root / "deleted-off-thread")
+            refreshed = scan_capture_catalog(root)
+            controller.apply_deleted_catalog(selected, refreshed, None)
+            self.assertEqual(controller.route, "library")
+            self.assertFalse(controller.delete_confirmation_visible)
+            self.assertNotIn(
+                selected.capture_id, [item.capture_id for item in controller.library_items]
+            )
+            self.assertIn("Deleted", controller.catalog_message)
+
+    def test_delete_failure_is_visible_and_does_not_drop_catalog_entry(self):
+        controller = QtUiController(queue.Queue())
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            published_capture(root, "capture-keep")
+            controller.apply_catalog(scan_capture_catalog(root))
+            entry = controller.library_items[0]
+
+            controller.apply_deleted_catalog(entry, None, OSError("drive removed"))
+
+            self.assertEqual(controller.route, "library")
+            self.assertEqual(controller.catalog_status, "removed")
+            self.assertEqual(controller.library_items, [entry])
+            self.assertIn("drive removed", controller.catalog_message)
+
 
 class QmlContractTests(unittest.TestCase):
     def test_all_seven_design_routes_are_native_qml_components(self):
@@ -176,6 +226,16 @@ class QmlContractTests(unittest.TestCase):
         self.assertNotIn("height: 36", ready)
         self.assertIn("fontSizeMode: Text.Fit", touch_button)
         self.assertIn("width: parent.width - 24", touch_button)
+        self.assertIn('objectName: "deleteSelectedButton"', library)
+        self.assertIn("bridge.promptDeleteSelected()", library)
+
+        viewer = (QML_ROOT / "pages" / "ViewerPage.qml").read_text(encoding="utf-8")
+        confirmation = (QML_ROOT / "components" / "DeleteConfirmation.qml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('objectName: "viewerDeleteButton"', viewer)
+        self.assertIn('objectName: "confirmDeleteButton"', confirmation)
+        self.assertIn("This cannot be undone", confirmation)
 
     def test_contract_matches_detached_viewer_and_inert_settings(self):
         contract = json.loads(
@@ -188,7 +248,14 @@ class QmlContractTests(unittest.TestCase):
         control = (QML_ROOT / "pages" / "ControlCenterPage.qml").read_text(encoding="utf-8")
 
         self.assertEqual(viewer_contract["decoder"], "Python.Pillow+QtQuick.Image")
-        self.assertEqual(viewer_contract["allowed_commands"], ["NAVIGATE_LIBRARY"])
+        self.assertEqual(
+            viewer_contract["allowed_commands"],
+            [
+                "PROMPT_DELETE_CAPTURE_SET",
+                "CONFIRM_DELETE_CAPTURE_SET",
+                "NAVIGATE_LIBRARY",
+            ],
+        )
         self.assertIn("Image {", viewer)
         self.assertNotIn("AnimatedImage", viewer)
         self.assertNotIn("QtMultimedia", viewer)

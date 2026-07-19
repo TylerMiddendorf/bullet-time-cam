@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 from pi_app.bullettime.media_catalog import (
+    delete_catalog_entry,
     load_catalog_animation,
     scan_capture_catalog,
 )
@@ -117,6 +118,47 @@ class MediaCatalogTests(unittest.TestCase):
             self.assertEqual(removed.status, "removed")
             with self.assertRaises(OSError):
                 load_catalog_animation(entry, (800, 480))
+
+    def test_delete_removes_exact_validated_capture_set_and_refresh_excludes_it(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            deleted = published_capture(root, "capture-delete")
+            retained = published_capture(root, "capture-retain")
+            entry = next(
+                item
+                for item in scan_capture_catalog(root).entries
+                if item.capture_id == "capture-delete"
+            )
+
+            delete_catalog_entry(root, entry)
+
+            self.assertFalse(deleted.exists())
+            self.assertTrue(retained.is_dir())
+            self.assertEqual(
+                [item.capture_id for item in scan_capture_catalog(root).entries],
+                ["capture-retain"],
+            )
+
+    def test_delete_rejects_entry_outside_active_root_or_changed_since_scan(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            active_root = base / "active"
+            other_root = base / "other"
+            active_root.mkdir()
+            other_root.mkdir()
+            outside = published_capture(other_root, "outside")
+            outside_entry = scan_capture_catalog(other_root).entries[0]
+
+            with self.assertRaisesRegex(ValueError, "outside the active USB library"):
+                delete_catalog_entry(active_root, outside_entry)
+            self.assertTrue(outside.is_dir())
+
+            changed = published_capture(active_root, "changed")
+            changed_entry = scan_capture_catalog(active_root).entries[0]
+            (changed / "manifest.json").write_text("{}", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "no longer a valid published capture"):
+                delete_catalog_entry(active_root, changed_entry)
+            self.assertTrue(changed.is_dir())
 
 
 if __name__ == "__main__":

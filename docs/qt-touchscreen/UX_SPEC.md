@@ -263,9 +263,12 @@ Route: `/library`; visual source:
 - Entries MUST come only from committed capture directories on the selected
   removable USB filesystem. The route MUST fail closed when that filesystem is
   unavailable and MUST NOT enumerate or display boot-card media.
-- The library is read-only. It supports scrolling, selection, open viewer, and
-  back to camera/control. It MUST NOT expose delete, rename, share, repair, or
-  write actions.
+- The library supports scrolling, selection, open viewer, confirmed deletion,
+  and back to camera/control. Delete MUST target only a revalidated published
+  capture-set directory directly below the active removable-USB root and MUST
+  remove its JPEG originals, GIF, and manifest together. It MUST require an
+  explicit irreversible-action confirmation. Rename, share, repair, and other
+  write actions remain prohibited.
 - Thumbnails and metadata load asynchronously or from deterministic fixtures;
   enumeration and decode MUST NOT block the GUI thread for 33 ms.
 - Removal during enumeration or after thumbnail load MUST produce a bounded USB
@@ -280,8 +283,9 @@ Route: `/viewer`; visual source:
 - A worker MUST decode the selected real `image/gif` with Pillow into detached
   PNG data-URL frames before navigation to the viewer. QML presents those
   frames with `Image`; it MUST NOT import or depend on Qt Multimedia.
-- Playback automatically loops using the GIF frame durations. The only viewer
-  action is back to the library; it emits no node or storage mutation command.
+- Playback automatically loops using the GIF frame durations. The viewer
+  supports back to the library and the same confirmed whole-set delete action;
+  it emits no node command and no other storage mutation command.
 - Unplugging the drive after decode MUST not stop playback, event polling, or
   navigation.
 - Fixture evidence names the exact GIF and its SHA-256. Product evidence names
@@ -303,7 +307,7 @@ Route: `/viewer`; visual source:
 | invalid/removed review image | ERROR_BLOCKING; continue polling |
 | test route `/preview-placeholder` | static fixture; no command/backend |
 | test route `/control-center` | four cameras; settings disabled; no node command |
-| test route `/library` | read-only removable-media enumeration |
+| test route `/library` | removable-media enumeration and confirmed whole-set deletion |
 | test route `/viewer` | real GIF decoded to detached PNG frames |
 
 Events are processed on the Qt GUI thread through a queued signal or equivalent
@@ -337,7 +341,7 @@ headless evidence and the Pi-only subset has physical-device evidence.
 | UX-016 | Shutdown | Receiver stop and Qt exit complete within service timeout |
 | UX-017 | Static preview route | Fixture says `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`; no backend or command |
 | UX-018 | Four-camera control center | Exactly four IDs; no battery/hotspot region; settings disabled; no node commands |
-| UX-019 | Removable-media library | Only committed USB captures; read-only operations; missing/removal fault survives |
+| UX-019 | Removable-media library | Only committed USB captures; confirmed whole-set deletion; missing/removal fault survives |
 | UX-020 | Real GIF viewer | Real GIF decodes to detached looping PNG frames; no Qt Multimedia import |
 | UX-021 | Route screenshot matrix | Seven canonical screenshots are each exactly 800x480 with recorded SHA-256 |
 | UX-022 | Wayland production gate | `QT_QPA_PLATFORM=wayland`; no Xwayland; bounded smoke has no warnings and a root object |

@@ -99,14 +99,14 @@ class QtUxContractTests(unittest.TestCase):
         self.assertIn("control center settings must be disabled", report.errors)
         self.assertIn("control center must not expose node commands", report.errors)
 
-    def test_validator_rejects_library_mutation_and_multimedia(self):
+    def test_validator_rejects_unsupported_library_mutation_and_multimedia(self):
         unsafe = copy.deepcopy(self.contract)
         library = next(item for item in unsafe["routes"] if item["id"] == "removable-media-library")
-        library["mutating_operations"].append("DELETE")
+        library["mutating_operations"].append("RENAME")
         viewer = next(item for item in unsafe["routes"] if item["id"] == "gif-viewer")
         viewer["qt_modules"].append("QtMultimedia")
         report = validate_contract(unsafe)
-        self.assertIn("library must not expose mutating operations", report.errors)
+        self.assertIn("library may only delete complete selected capture sets", report.errors)
         self.assertIn("viewer must not depend on QtMultimedia", report.errors)
 
     def test_cli_emits_stable_json_report(self):

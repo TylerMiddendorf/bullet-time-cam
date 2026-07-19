@@ -36,7 +36,7 @@ Status reviewed: July 18, 2026
 - The complete removable-media follow-up is in
   [`evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md`](evidence/milestone-2/focused-retest-and-fat-repair-2026-07-18.md).
 - Native Qt Quick/PySide6 now runs on the Pi's 800x480 Wayland session. Seven
-  routes, a bounded real four-camera capture, and the 214-entry read-only USB
+  routes, a bounded real four-camera capture, and the 214-entry USB
   library passed SSH-accessible validation. Preview remains a labeled static
   logo fixture and the UI contains no battery state. Evidence is in
   [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).

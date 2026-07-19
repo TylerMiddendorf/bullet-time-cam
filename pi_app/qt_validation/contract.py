@@ -159,7 +159,7 @@ def _validate_scope(contract: dict[str, Any], errors: list[str]) -> None:
         "battery_reserved_space": False,
         "hotspot_claims": False,
         "node_setting_commands": False,
-        "library_is_read_only": True,
+        "library_is_read_only": False,
         "library_storage": "removable-usb-only",
     }
     scope = contract.get("scope", {})
@@ -246,9 +246,9 @@ def _validate_route(
             errors.append("control center must not expose node commands")
     elif route_id == "removable-media-library":
         if route.get("storage_scope") != "removable-usb-only":
-            errors.append("library must read only removable USB media")
-        if route.get("mutating_operations") != []:
-            errors.append("library must not expose mutating operations")
+            errors.append("library must use removable USB media only")
+        if route.get("mutating_operations") != ["DELETE_CAPTURE_SET"]:
+            errors.append("library may only delete complete selected capture sets")
     elif route_id == "gif-viewer":
         if route.get("media_type") != "image/gif":
             errors.append("viewer must consume a real GIF")
@@ -277,8 +277,8 @@ def validate_contract(
             return ContractReport(0, 0, (f"contract cannot be loaded: {exc}",))
 
     version = contract.get("contract_version", 0)
-    if version != 2:
-        errors.append("contract_version must be 2")
+    if version != 3:
+        errors.append("contract_version must be 3")
     if contract.get("source_raster") != {
         "width": 1619,
         "height": 971,

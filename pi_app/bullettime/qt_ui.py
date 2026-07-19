@@ -17,6 +17,7 @@ from .gpio_trigger import HardwareTrigger
 from .media_catalog import (
     CatalogEntry,
     CatalogSnapshot,
+    delete_catalog_entry,
     load_catalog_animation,
     scan_capture_catalog,
 )
@@ -59,11 +60,14 @@ class QtUiController:
         self.selected_library_index = -1
         self.catalog_status = "idle"
         self.catalog_message = ""
+        self.delete_confirmation_visible = False
+        self.pending_delete_entry: CatalogEntry | None = None
         self.last_manifest: dict | None = None
         self.display_timing_recorded = False
         self._on_changed = on_changed or (lambda: None)
         self._refresh_catalog: Callable[[], None] = lambda: None
         self._open_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
+        self._delete_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
 
     @property
     def snapshot(self) -> UiSnapshot:
@@ -101,6 +105,10 @@ class QtUiController:
             return self.library_items[self.selected_library_index].view_count
         return self.snapshot.view_count
 
+    @property
+    def pending_delete_title(self) -> str:
+        return self.pending_delete_entry.capture_id if self.pending_delete_entry else ""
+
     def set_changed_callback(self, callback: Callable[[], None]) -> None:
         self._on_changed = callback
 
@@ -108,9 +116,12 @@ class QtUiController:
         self,
         refresh: Callable[[], None],
         open_entry: Callable[[CatalogEntry], None],
+        delete_entry: Callable[[CatalogEntry], None] | None = None,
     ) -> None:
         self._refresh_catalog = refresh
         self._open_catalog_entry = open_entry
+        if delete_entry is not None:
+            self._delete_catalog_entry = delete_entry
 
     def navigate(self, route: str) -> bool:
         if route not in ALL_ROUTES or self.snapshot.capture_in_progress:
@@ -148,6 +159,35 @@ class QtUiController:
         if not 0 <= index < len(self.library_items):
             return False
         self.selected_library_index = index
+        self._on_changed()
+        return True
+
+    def prompt_delete_selected(self) -> bool:
+        if (
+            not 0 <= self.selected_library_index < len(self.library_items)
+            or self.snapshot.capture_in_progress
+            or self.catalog_status in {"loading", "deleting"}
+        ):
+            return False
+        self.pending_delete_entry = self.library_items[self.selected_library_index]
+        self.delete_confirmation_visible = True
+        self._on_changed()
+        return True
+
+    def cancel_delete(self) -> None:
+        self.delete_confirmation_visible = False
+        self.pending_delete_entry = None
+        self._on_changed()
+
+    def confirm_delete(self) -> bool:
+        entry = self.pending_delete_entry
+        if entry is None or not self.delete_confirmation_visible:
+            return False
+        self.delete_confirmation_visible = False
+        self.pending_delete_entry = None
+        self.catalog_status = "deleting"
+        self.catalog_message = f"Deleting {entry.capture_id}"
+        self._delete_catalog_entry(entry)
         self._on_changed()
         return True
 
@@ -189,6 +229,40 @@ class QtUiController:
         self.catalog_status = "ready"
         self.catalog_message = entry.capture_id
         self.route = "viewer"
+        self._on_changed()
+
+    def apply_deleted_catalog(
+        self,
+        entry: CatalogEntry,
+        catalog: CatalogSnapshot | None,
+        error: Exception | None,
+    ) -> None:
+        self.delete_confirmation_visible = False
+        self.pending_delete_entry = None
+        self.route = "library"
+        if error is not None or catalog is None:
+            self.catalog_status = "removed" if isinstance(error, OSError) else "error"
+            self.catalog_message = f"Could not delete {entry.capture_id}: {error}"
+            self._on_changed()
+            return
+
+        deleted_index = next(
+            (
+                index
+                for index, item in enumerate(self.library_items)
+                if item.capture_id == entry.capture_id
+            ),
+            0,
+        )
+        self.library_items = list(catalog.entries)
+        self.selected_library_index = (
+            min(deleted_index, len(self.library_items) - 1) if self.library_items else -1
+        )
+        self.review_frames = []
+        self.review_durations = []
+        self.review_index = 0
+        self.catalog_status = catalog.status
+        self.catalog_message = f"Deleted {entry.capture_id}"
         self._on_changed()
 
     def advance_review_frame(self) -> int:
@@ -359,6 +433,14 @@ def run_qt_ui(
         def catalogMessage(self) -> str:  # noqa: N802
             return controller.catalog_message
 
+        @Property(bool, notify=changed)
+        def deleteConfirmationVisible(self) -> bool:  # noqa: N802
+            return controller.delete_confirmation_visible
+
+        @Property(str, notify=changed)
+        def pendingDeleteTitle(self) -> str:  # noqa: N802
+            return controller.pending_delete_title
+
         @Property(str, constant=True)
         def previewPlaceholder(self) -> str:  # noqa: N802
             return QUrl.fromLocalFile(str(placeholder)).toString()
@@ -391,6 +473,18 @@ def run_qt_ui(
         def selectLibraryItem(self, index: int) -> bool:  # noqa: N802
             return controller.select_library_item(index)
 
+        @Slot(result=bool)
+        def promptDeleteSelected(self) -> bool:  # noqa: N802
+            return controller.prompt_delete_selected()
+
+        @Slot()
+        def cancelDelete(self) -> None:  # noqa: N802
+            controller.cancel_delete()
+
+        @Slot(result=bool)
+        def confirmDelete(self) -> bool:  # noqa: N802
+            return controller.confirm_delete()
+
         @Slot()
         def framePresented(self) -> None:  # noqa: N802
             if not first_frame["seen"]:
@@ -417,8 +511,10 @@ def run_qt_ui(
     receiver = Receiver(config, events, commands, stop, trigger, storage)
     catalog_results: queue.Queue = queue.Queue()
     catalog_open_results: queue.Queue = queue.Queue()
+    catalog_delete_results: queue.Queue = queue.Queue()
     catalog_scan_running = threading.Event()
     catalog_open_running = threading.Event()
+    catalog_delete_running = threading.Event()
 
     def refresh_catalog() -> None:
         if catalog_scan_running.is_set():
@@ -450,7 +546,24 @@ def run_qt_ui(
 
         threading.Thread(target=decode, name="usb-media-open", daemon=True).start()
 
-    controller.set_catalog_callbacks(refresh_catalog, open_catalog_entry)
+    def remove_catalog_entry(entry: CatalogEntry) -> None:
+        if catalog_delete_running.is_set():
+            return
+        catalog_delete_running.set()
+        root = storage.active_root
+
+        def remove() -> None:
+            try:
+                delete_catalog_entry(root, entry)
+                catalog_delete_results.put((entry, scan_capture_catalog(root), None))
+            except Exception as exc:
+                catalog_delete_results.put((entry, None, exc))
+            finally:
+                catalog_delete_running.clear()
+
+        threading.Thread(target=remove, name="usb-media-delete", daemon=True).start()
+
+    controller.set_catalog_callbacks(refresh_catalog, open_catalog_entry, remove_catalog_entry)
 
     poll_timer = QTimer()
     poll_timer.setInterval(50)
@@ -479,6 +592,11 @@ def run_qt_ui(
         try:
             while True:
                 controller.apply_opened_catalog(*catalog_open_results.get_nowait())
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                controller.apply_deleted_catalog(*catalog_delete_results.get_nowait())
         except queue.Empty:
             pass
 

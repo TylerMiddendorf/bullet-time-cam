@@ -43,7 +43,7 @@ For version 1, the screen is deliberately simpler than the eventual product conc
 
 - No live preview before capture
 - No user-adjustable camera settings
-- No gallery, browsing, or deletion interface
+- A removable-USB library for browsing, viewing, and deleting complete capture sets
 - A capture/loading screen while a shot is being acquired and assembled
 - Post-capture review of the generated animation
 - The most recent animation remains displayed until the next capture begins
@@ -174,7 +174,7 @@ The Raspberry Pi also initiates the same simultaneous hardware capture through B
 The deployed touchscreen application uses Qt Quick/QML with a PySide6 bridge on
 the Raspberry Pi. Its seven native 800x480 routes cover ready, capture progress,
 camera-specific partial review, a static preview placeholder, a four-camera
-control-center concept, a read-only removable-media library, and a detached GIF
+control-center concept, a removable-media library, and a detached GIF
 viewer. Runtime QML implements the layouts directly; it does not display the
 mockup screenshots.
 
@@ -182,9 +182,11 @@ The preview route is deliberately a logo-derived static placeholder marked
 `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`. There is no live camera
 transport, Qt Multimedia dependency, or `LIVE` claim. Camera settings are
 visible only as disabled future controls and emit no node commands. The
-historical library validates published schema-2 capture sets without modifying
-them, and it decodes selected GIFs away from removable media before viewer
-display. The library retains touch flicking and provides right-side page-up and
+historical library validates published schema-2 capture sets and decodes
+selected GIFs away from removable media before viewer display. A confirmed
+delete action is available from the library and viewer; it revalidates the
+selected set and removes that set's originals, GIF, and manifest together from
+removable USB storage. The library retains touch flicking and provides right-side page-up and
 page-down controls with a current/total page indicator for discoverable
 navigation through large catalogs. The application contains no battery state, battery display, or
 reserved battery region, and it makes no hotspot or network-connectivity claim.
@@ -194,7 +196,7 @@ The installed display is an 800x480 HDMI touchscreen. A July 17 query of the run
 Planned capability sequence:
 
 1. Version 1: capture/loading state, persistent latest-result review, essential
-   status, read-only removable-media browsing, and the static preview placeholder
+   status, removable-media browsing/deletion, and the static preview placeholder
 2. Fast follow: live preview
 3. Version 2: user-adjustable camera settings
 4. Much later: network-based media access, remote control, and other Wi-Fi features after the onboard experience is polished
@@ -363,8 +365,10 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - During capture, version 1 displays a loading/capture screen.
 - After capture, the latest result remains displayed until the next capture.
 - During boot, the display shows only `assets/Logo_800x480.png` and transitions directly to the full-screen camera application; Raspberry Pi firmware artwork, desktop UI, boot logs, cursors, and startup diagnostics are not user-visible.
-- Version 1 provides read-only browsing of published capture sets and a detached
-  GIF viewer; it does not provide deletion or media-editing controls.
+- Version 1 provides browsing of published capture sets, a detached GIF viewer,
+  and confirmed deletion of a complete selected set. Deletion removes the set's
+  original JPEGs, animation GIF, and manifest together from removable USB media;
+  rename, editing, sharing, and boot-card browsing remain unsupported.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.
 - The four cameras are mounted side by side in a horizontal line.

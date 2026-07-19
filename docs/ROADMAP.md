@@ -148,10 +148,10 @@ Status: complete July 18, 2026
   operation.
 - Implement seven native 800x480 routes derived from the approved UX
   explorations: ready, progress, partial review, static preview placeholder,
-  four-camera controls, read-only removable-media library, and detached viewer.
+  four-camera controls, removable-media library, and detached viewer.
 - Keep the preview demonstrably static and logo-based. Do not add live camera
-  transport, Qt Multimedia, battery UI/state, network claims, media mutation,
-  or operative camera-setting commands.
+  transport, Qt Multimedia, battery UI/state, network claims, rename/edit/share
+  operations, or operative camera-setting commands.
 - Deploy through commit, push, and fast-forward Pi pull; validate native
   Wayland boot, route rendering, capture, removable-media browsing, GPIO17 idle
   safety, camera identity, and service recovery.
@@ -168,6 +168,13 @@ Qt soft reboot also failed to return and required a physical power cycle; with
 no persistent journal, its cause and clean soft-reboot lifecycle remain open.
 Details and route artifacts are in
 [`evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`](evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md).
+
+On July 19, the product owner superseded the original read-only-library
+boundary. App 0.2.2 adds confirmed deletion from both the library and detached
+viewer. The operation is limited to a revalidated published capture-set
+directory on the active removable USB root and removes its JPEG originals, GIF,
+and manifest together. Rename, edit, share, and boot-card operations remain out
+of scope.
 
 ## Milestone 4 - Compact Version 1 Enclosure
 
