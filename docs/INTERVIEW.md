@@ -371,3 +371,13 @@ Implementation status:
 - Track implementation and Pi validation through commit, push, fast-forward
   pull, native Settings rendering, a real controller recovery, and a valid
   four-camera capture afterward.
+
+### 2026-07-19 - Ready USB storage and Settings home navigation
+
+- Show whether the removable USB drive is connected on the Ready/home screen.
+- Add a circular storage-usage indicator to Ready using capacity from the
+  selected removable USB filesystem, without boot-card fallback.
+- Add a large home-icon button to Settings matching the Library home action and
+  returning directly to Ready.
+- Commit and push incrementally, fast-forward pull each checkpoint on the Pi,
+  and verify the implementation on the physical Pi.

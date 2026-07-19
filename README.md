@@ -107,6 +107,11 @@ controller recovery, native Settings render, byte-valid post-recovery capture,
 the final Pi suite and boot verifier, and offline product-FAT repair/validation
 with a retained full backup. See the
 [`camera USB recovery evidence`](docs/evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
+App 0.2.8 adds removable-USB connected state and a circular storage-use gauge
+to Ready, plus a large Settings home icon matching Library. Commit `2153c7a`
+passed the Pi suite, native 800x480 renders, real USB-capacity resolution,
+Settings-to-Ready interaction, boot verification, and live-service checks. See
+the [`Ready USB/storage evidence`](docs/evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.

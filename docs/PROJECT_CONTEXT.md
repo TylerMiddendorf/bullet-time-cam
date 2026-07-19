@@ -180,6 +180,9 @@ mockup screenshots.
 Ready is a status-and-navigation screen. It retains USB state, all four camera
 statuses, and the READY/ATTENTION detail while offering a gear icon for
 Settings, Library, and Capture. It cannot enqueue a touchscreen capture.
+Ready also reports whether removable USB storage is connected and shows a
+circular used-capacity gauge plus available space from that selected USB
+filesystem. It never substitutes boot-card capacity.
 Capture is the only touchscreen route that can take a photo; Review and
 Settings link to it instead of emitting capture commands. The Capture route
 currently uses a logo-derived static placeholder marked `STATIC PLACEHOLDER`
@@ -196,8 +199,9 @@ selected GIFs away from removable media before viewer display. A confirmed
 delete action is available from the library and viewer; it revalidates the
 selected set and removes that set's originals, GIF, and manifest together from
 removable USB storage. Its route back to Ready uses a large home icon rather
-than a text label, matching the large gear icon used for Settings on Ready. The
-library retains touch flicking and provides right-side page-up and
+than a text label, matching the large gear icon used for Settings on Ready.
+The Settings route also has the same large home icon for a direct return to
+Ready. The library retains touch flicking and provides right-side page-up and
 page-down controls with a current/total page indicator for discoverable
 navigation through large catalogs. Its sidebar reports used and available
 capacity from the selected removable USB filesystem; it does not substitute
@@ -387,6 +391,12 @@ As of July 18, 2026:
   clearing a discovered FAT dirty bit; the separate offline no-write check and
   post-remount byte comparison passed. See
   `docs/evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md`.
+- App 0.2.8 adds a USB-connected state and circular removable-storage usage
+  gauge to Ready, plus a large Settings-to-Ready home button. Final code commit
+  `2153c7a` passed 127 Pi tests with one expected skip, native 800x480 Ready and
+  Settings renders, a Settings-to-Ready interaction smoke, real product-volume
+  capacity resolution, all 39 boot checks, and live-service inspection. See
+  `docs/evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,
@@ -427,6 +437,9 @@ The project is milestone-driven and has no fixed completion date. Work advances 
   rename, editing, sharing, and boot-card browsing remain unsupported.
 - Ready's Settings action and Library's Ready/Home action use large icon-only
   controls whose glyphs occupy most of their touch targets.
+- Ready reports removable-USB connection and circular used capacity from the
+  selected USB filesystem; Settings also provides a large direct-to-Ready home
+  icon matching Library.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.
 - The four cameras are mounted side by side in a horizontal line.

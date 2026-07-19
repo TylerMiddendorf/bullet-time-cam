@@ -67,6 +67,12 @@ Status reviewed: July 18, 2026
   is `/home/username/usb-recovery-backups/20260719T1605-camera-recovery`.
   Evidence is in
   [`evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md`](evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
+- App 0.2.8 is deployed at `2153c7a`. Ready shows real removable-USB connected
+  state, a circular used-capacity gauge, and available capacity; Settings has a
+  large direct-to-Ready home icon matching Library. The 127-test Pi run with
+  one expected skip, native renders, real product-volume read, interaction
+  smoke, all 39 boot checks, and restarted live service passed. Evidence is in
+  [`evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md`](evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
 
 ## Immediate Work
 

@@ -222,6 +222,14 @@ all 39 boot checks, and a clean repaired product FAT with a retained verified
 backup. See
 [`camera-usb-recovery-2026-07-19.md`](evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
 
+App 0.2.8 adds removable-USB connected state and a circular used-capacity gauge
+to Ready, plus a large direct-to-Ready home icon in Settings matching Library.
+Final code commit `2153c7a` passed 127 Pi tests with one expected skip, native
+800x480 Ready and Settings renders, real removable-volume capacity resolution,
+a Settings-to-Ready interaction smoke, all 39 boot checks, and restarted live-
+service inspection. See
+[`ready-usb-storage-and-settings-home-2026-07-19.md`](evidence/qt-touchscreen/ready-usb-storage-and-settings-home-2026-07-19.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026
