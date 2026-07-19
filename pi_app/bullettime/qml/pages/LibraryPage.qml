@@ -28,7 +28,7 @@ Item {
             anchors.margins: 14
             spacing: 14
             Text {
-                text: "THIS SESSION"
+                text: "REMOVABLE USB"
                 color: "#63adf2"
                 font.pixelSize: 17
                 font.bold: true
@@ -45,16 +45,27 @@ Item {
         }
     }
 
-    Grid {
+    GridView {
+        id: captureGrid
         x: 212
         y: 80
-        columns: 3
-        spacing: 12
-        Repeater {
-            model: bridge.libraryItems
+        width: 570
+        height: 310
+        clip: true
+        cellWidth: 190
+        cellHeight: 154
+        model: bridge.libraryItems
+        boundsBehavior: Flickable.StopAtBounds
+        highlightMoveDuration: 120
+        currentIndex: bridge.selectedLibraryIndex
+        delegate: Item {
+            required property int index
+            required property var modelData
+            width: 182
+            height: 144
+
             Rectangle {
-                width: 182
-                height: 144
+                anchors.fill: parent
                 radius: 8
                 color: "#0b0f13"
                 border.width: bridge.selectedLibraryIndex === index ? 3 : 1
@@ -66,7 +77,6 @@ Item {
                     anchors.bottomMargin: 30
                     source: modelData.thumbnail
                     fillMode: Image.PreserveAspectCrop
-                    opacity: 1.0
                 }
                 Rectangle {
                     anchors.left: parent.left

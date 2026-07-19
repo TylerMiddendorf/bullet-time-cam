@@ -64,18 +64,18 @@ Item {
 
     TouchButton {
         x: 540
-        y: 355
+        y: 350
         width: 212
-        height: 36
+        height: 44
         label: "PREVIEW DEMO"
         onTapped: bridge.navigate("preview")
     }
 
     TouchButton {
         x: 540
-        y: 401
+        y: 404
         width: 212
-        height: 36
+        height: 44
         label: "UI CONCEPTS"
         accent: "#8f98a1"
         onTapped: bridge.navigate("control")

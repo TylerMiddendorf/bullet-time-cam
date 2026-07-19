@@ -8,7 +8,7 @@ Item {
         id: header
         anchors.left: parent.left
         anchors.right: parent.right
-        title: "4 CAMERAS READY"
+        title: bridge.connectedCameraIds.length + "/4 CAMERAS READY"
         subtitle: "CONCEPT DEMO"
         showBack: true
         onBack: bridge.navigate("ready")

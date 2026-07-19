@@ -1,16 +1,46 @@
+import json
 import queue
 import tempfile
 import unittest
 from pathlib import Path
 
 from PIL import Image
-from test_media_catalog import published_capture
 
 from pi_app.bullettime.media_catalog import load_catalog_animation, scan_capture_catalog
 from pi_app.bullettime.qt_ui import ALL_ROUTES, QtUiController
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 QML_ROOT = REPO_ROOT / "pi_app" / "bullettime" / "qml"
+
+
+def published_capture(root: Path, capture_id: str, *, partial: bool = False) -> Path:
+    """Create a published capture fixture without importing another test module."""
+    directory = root / capture_id
+    directory.mkdir()
+    animation = directory / "bullet_time.gif"
+    frames = [Image.new("RGB", (24, 16), color) for color in ("red", "green")]
+    frames[0].save(
+        animation,
+        save_all=True,
+        append_images=frames[1:],
+        duration=[80, 120],
+        loop=0,
+    )
+    cameras = [
+        {"logical_camera_id": camera_id, "status": "complete"}
+        for camera_id in range(1, 4 if partial else 5)
+    ]
+    if partial:
+        cameras.append({"logical_camera_id": 4, "status": "error"})
+    manifest = {
+        "schema_version": 2,
+        "capture_id": capture_id,
+        "status": "partial" if partial else "complete",
+        "cameras": cameras,
+        "files": [{"path": animation.name, "role": "animation"}],
+    }
+    (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    return directory
 
 
 class QtUiControllerTests(unittest.TestCase):
@@ -119,6 +149,13 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn("bridge.previewPlaceholder", placeholder)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
+
+    def test_library_is_scrollable_and_primary_touch_targets_are_not_tiny(self):
+        library = (QML_ROOT / "pages" / "LibraryPage.qml").read_text(encoding="utf-8")
+        ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
+        self.assertIn("GridView", library)
+        self.assertIn("boundsBehavior: Flickable.StopAtBounds", library)
+        self.assertNotIn("height: 36", ready)
 
     def test_qt_import_remains_lazy_for_headless_hosts(self):
         # Importing this module succeeds in CI without PySide6 installed.
