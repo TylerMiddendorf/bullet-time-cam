@@ -390,3 +390,20 @@ Implementation status:
   manifest; retain compatibility with historical sets that lack a preview.
 - Commit and push the change, fast-forward pull it on the Raspberry Pi, and
   verify it with a real capture on the physical rig.
+
+### 2026-07-19 - Version 2 settings and control planning
+
+- The product owner requested a comprehensive inventory of camera and complete-
+  system settings, a suggested page structure, a durable plan, and placement in
+  the project roadmap.
+- Plan synchronized user-adjustable settings after the fast-follow live-preview
+  milestone. Ordinary photographic settings apply to all four cameras; per-
+  camera adjustments belong in a protected calibration/service workflow.
+- Use Camera, Capture & Animation, Cameras, Storage, Display & Controls, System,
+  and About & Diagnostics as the planned Settings information architecture.
+- Treat the inventory and layout in
+  `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md` as the planning baseline. Exact
+  exposed ranges, defaults, presets, and later features remain provisional
+  until they pass the plan's four-node hardware and image-quality gates.
+- Do not promote unsupported battery, network, audio, display-backlight,
+  software-update, smoothing, or AI controls into claims of current capability.

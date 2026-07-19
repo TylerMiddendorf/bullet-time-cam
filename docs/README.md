@@ -13,6 +13,7 @@ status narratives between files.
 - [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md) — completed removable-media qualification procedures, evidence requirements, and exit result
 - [`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md) — closed/retired aggregate-power and safe battery-integration plan
 - [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md) — active enclosure layout, print, and acceptance gates
+- [`MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md) — planned synchronized camera/settings protocol, user-control inventory, 800x480 information architecture, and physical qualification gates
 - [`CURRENT_SESSION.md`](CURRENT_SESSION.md) — concise handoff for active enclosure work
 - [`INTERVIEW.md`](INTERVIEW.md) — dated product-owner decisions and requirement changes
 

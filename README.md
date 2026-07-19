@@ -16,6 +16,12 @@ Alignment, appearance matching, interpolation, live preview, settings, battery
 integration, and the enclosure advance only through the milestones defined in
 the project roadmap.
 
+The planned Version 2 settings work is specified in
+[`docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md).
+It defines synchronized all-camera controls, a curated user-facing settings
+inventory, protected per-camera calibration, native 800x480 page structure,
+settings persistence/manifest evidence, and four-node qualification gates.
+
 ## Repository Map
 
 | Path | Purpose |
@@ -219,6 +225,7 @@ and evidence locations. The canonical changing project state lives in:
 - [`docs/MILESTONE_2_PLAN.md`](docs/MILESTONE_2_PLAN.md) — completed removable-media fault-qualification procedures and exit evidence
 - [`docs/MILESTONE_3_PLAN.md`](docs/MILESTONE_3_PLAN.md) — closed/retired aggregate-power and safe battery-integration plan
 - [`docs/MILESTONE_4_PLAN.md`](docs/MILESTONE_4_PLAN.md) — active compact-enclosure layout, print, and acceptance plan
+- [`docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md) — planned synchronized camera settings and control-UI milestone
 - [`docs/CURRENT_SESSION.md`](docs/CURRENT_SESSION.md) — concise handoff for the active work
 - [`docs/INTERVIEW.md`](docs/INTERVIEW.md) — product-owner decision history
 

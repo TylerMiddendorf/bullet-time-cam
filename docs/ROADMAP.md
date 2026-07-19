@@ -1,6 +1,6 @@
 # Bullet-Time Camera Rig Roadmap
 
-This roadmap reflects product decisions and capture/trigger/product-boot hardware evidence through July 18, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
+This roadmap reflects product decisions, settings planning, and capture/trigger/product-boot hardware evidence through July 19, 2026. The remaining version 1 budget is approximately $200, so purchases should be tied to a demonstrated milestone and reused in the integrated device whenever practical.
 
 The project has no fixed completion date. Milestones advance when their exit criteria are satisfied.
 
@@ -262,9 +262,34 @@ Ergonomics, weight optimization, integrated lighting, tripod mounting, and weath
 - Improve ordinary user-facing status and recovery behavior.
 - Refine the enclosure and controls based on use.
 
-## Version 2 and Later
+## Milestone 6 - Synchronized Settings and Control UI
 
-- Add synchronized user-adjustable camera settings.
+Status: planned after Milestone 5
+
+The settings inventory, UI information architecture, protocol requirements,
+validation checkpoints, and exit gates are in
+[`MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md).
+
+- Replace the disabled Settings placeholders with Camera, Capture & Animation,
+  Cameras, Storage, Display & Controls, System, and About & Diagnostics pages.
+- Add a bidirectional settings protocol with node capability reporting,
+  broadcast application, per-camera acknowledgement/readback, rollback, and a
+  visible unsynchronized state.
+- Apply ordinary photographic settings to all four cameras together; keep
+  per-camera adjustment in a protected calibration workflow.
+- Start with validated presets, exposure compensation, white balance,
+  brightness/contrast/saturation, resolution/quality, animation
+  speed/direction, and Factory Defaults.
+- Persist profiles atomically on the Pi and record requested plus effective
+  per-camera settings in every new capture manifest.
+- Keep battery, network, audio, backlight, update, AI, and other unsupported
+  controls hidden until their underlying capabilities exist and pass hardware
+  validation.
+- Qualify every exposed control on all four physical OV3660 nodes, including
+  reconnect, restart, cold-boot, partial-application, and reset recovery.
+
+## Version 2 Processing and Later
+
 - Align the viewpoints.
 - Normalize exposure, color, and camera appearance.
 - Add AI frame interpolation.

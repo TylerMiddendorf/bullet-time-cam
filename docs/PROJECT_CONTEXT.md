@@ -417,7 +417,7 @@ As of July 18, 2026:
 
 The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and native Qt touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track is complete, while live preview and operative camera settings remain deferred. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. Enclosure work remains.
 
-The active work is the compact V1 enclosure in Milestone 4. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+The active work is the compact V1 enclosure in Milestone 4. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. A synchronized settings/control milestone is now planned after the fast-follow live-preview work; its inventory, UI structure, protocol boundaries, and qualification gates are in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -452,6 +452,14 @@ The project is milestone-driven and has no fixed completion date. Work advances 
   icon matching Library.
 - Live preview is a fast-follow feature after end-to-end integration.
 - User-adjustable camera settings are deferred to version 2.
+- Version 2 settings are planned as a synchronized four-camera control system,
+  not four unrelated camera panels. Ordinary controls apply to all nodes and
+  require per-node acknowledgement/readback; individual adjustment is reserved
+  for protected calibration and service workflows.
+- The planned Settings hierarchy separates Camera, Capture & Animation,
+  Cameras, Storage, Display & Controls, System, and About & Diagnostics.
+  Unsupported future capabilities remain hidden until implemented and
+  validated.
 - The four cameras are mounted side by side in a horizontal line.
 - The rig is held and aimed like a normal digital camera.
 - Expected subjects include people, places, and objects.
@@ -512,14 +520,17 @@ the retired power-measurement plan, and `MILESTONE_2_PLAN.md` plus
 `MILESTONE_1_PLAN.md` are completed qualification records.
 
 - Choose total enclosure width and define the curve/convergence geometry for a future 12+ camera array.
-- Define GIF frame duration, playback direction, loop behavior, and export settings.
+- Implement the planned GIF frame duration, playback direction, loop behavior,
+  output, and export controls through the Milestone 6 settings plan.
 - Optimize or explicitly accept the measured 3.250-second median four-node review path against the soft two-second target; run a focused Wi-Fi spike only if USB exposes a concrete blocker.
 - Measure the installed display's outer bezel/depth; the Pi-reported 150x100 mm area is not an enclosure dimension.
 - Retain the installed final V1 hub/cabling and include it in enclosure-layout measurements.
 - Design future image alignment, cleanup, and enhancement after the validated raw-image GIF path.
 - Design the fast-follow live-preview architecture.
 - Add live preview after version 1 works end to end.
-- Define version 2 camera settings and how they are synchronized across nodes.
+- Implement and physically qualify the version 2 synchronized settings
+  protocol, persistence, manifest evidence, calibration boundary, and native
+  800x480 UI defined in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`.
 - Design the compact enclosure, camera mounts, controls, ports, and cooling.
 - Lay out the integrated version 1 hardware before fixing enclosure dimensions.
 - Provide strain-relieved routes for the external pack's separate Raspberry Pi
