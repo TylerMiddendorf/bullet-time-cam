@@ -1,9 +1,50 @@
 {
-  "contract_version": 1,
+  "contract_version": 2,
   "baseline_commit": "1ef1ba6",
+  "contract_commit": "1f6ff70",
   "viewport": {
     "width": 800,
-    "height": 480
+    "height": 480,
+    "orientation": "landscape",
+    "layout_mode": "native"
+  },
+  "source_raster": {
+    "width": 1619,
+    "height": 971,
+    "usage": "visual-reference-only"
+  },
+  "runtime": {
+    "os": "Debian GNU/Linux 13 (trixie)",
+    "architecture": "arm64",
+    "qt_series": "6.8",
+    "pyside_series": "6.8",
+    "production_platform": "wayland",
+    "headless_platform": "offscreen",
+    "production_environment": {
+      "QT_QPA_PLATFORM": "wayland"
+    },
+    "headless_environment": {
+      "QT_QPA_PLATFORM": "offscreen",
+      "QSG_RHI_BACKEND": "software",
+      "QSG_RENDER_LOOP": "basic",
+      "QT_QUICK_CONTROLS_STYLE": "Basic"
+    },
+    "apt_packages": [
+      "python3-pyside6.qtcore",
+      "python3-pyside6.qtgui",
+      "python3-pyside6.qtqml",
+      "python3-pyside6.qtquick",
+      "qml6-module-qml",
+      "qml6-module-qtqml",
+      "qml6-module-qtqml-workerscript",
+      "qml6-module-qtquick",
+      "qml6-module-qtquick-controls",
+      "qml6-module-qtquick-layouts",
+      "qml6-module-qtquick-templates",
+      "qml6-module-qtquick-window",
+      "qt6-wayland"
+    ],
+    "forbidden_qt_modules": ["QtMultimedia"]
   },
   "touch": {
     "minimum_target_width": 48,
@@ -11,12 +52,25 @@
     "capture_target_minimum": [680, 72],
     "maximum_capture_commands_per_state_entry": 1
   },
-  "forbidden_ui_terms": [
+  "scope": {
+    "camera_count": 4,
+    "live_preview_backend": false,
+    "multimedia_dependency": false,
+    "battery_ui": false,
+    "battery_reserved_space": false,
+    "hotspot_claims": false,
+    "node_setting_commands": false,
+    "library_is_read_only": true,
+    "library_storage": "removable-usb-only"
+  },
+  "forbidden_rendered_terms": [
     "battery",
     "charging",
     "charge level",
     "power source",
     "low power",
+    "hotspot",
+    "12 cameras",
     "live preview",
     "live camera",
     "video stream",
@@ -25,8 +79,279 @@
   "preview_fixture": {
     "path": "assets/ui/preview-placeholder.png",
     "required_label": "DEMO PLACEHOLDER",
-    "forbidden_label": "LIVE"
+    "forbidden_label": "LIVE",
+    "source": "generated-static-fixture",
+    "camera_transport": false
   },
+  "routes": [
+    {
+      "id": "ready",
+      "path": "/ready",
+      "source_mockup": "designs/ux-mockups/01-v1-ready.png",
+      "source_design": 1,
+      "product_tier": "v1",
+      "rendered_text": [
+        "READY",
+        "4 OF 4 CAMERAS CONNECTED",
+        "USB READY",
+        "PRESS SHUTTER OR TAP TO CAPTURE"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "readyGlyph",
+        "stateHeading",
+        "stateDetail",
+        "captureButton"
+      ],
+      "allowed_commands": ["CAPTURE"],
+      "interactive_objects": ["captureButton"]
+    },
+    {
+      "id": "progress",
+      "path": "/progress",
+      "source_mockup": "designs/ux-mockups/02-v1-capture-progress.png",
+      "source_design": 2,
+      "product_tier": "v1",
+      "rendered_text": [
+        "CREATING BULLET-TIME",
+        "CAPTURING",
+        "TRANSFERRING",
+        "BUILDING ANIMATION",
+        "KEEP CAMERA STEADY"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "progressHeading",
+        "progressHero",
+        "cameraProgress1",
+        "cameraProgress2",
+        "cameraProgress3",
+        "cameraProgress4",
+        "phaseRail",
+        "steadyHint"
+      ],
+      "forbidden_objects": ["captureButton", "reviewMedia"],
+      "allowed_commands": [],
+      "interactive_objects": []
+    },
+    {
+      "id": "partial-review",
+      "path": "/review/partial",
+      "source_mockup": "designs/ux-mockups/03-v1-review-partial.png",
+      "source_design": 3,
+      "product_tier": "v1",
+      "rendered_text": [
+        "USB SAVED",
+        "SAVED WITH 3 VIEWS",
+        "CAMERA 4 DID NOT RESPOND",
+        "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "reviewMedia",
+        "partialHeading",
+        "partialDetail",
+        "captureButton"
+      ],
+      "allowed_commands": ["CAPTURE"],
+      "interactive_objects": ["captureButton"]
+    },
+    {
+      "id": "static-preview-placeholder",
+      "path": "/preview-placeholder",
+      "source_mockup": "designs/ux-mockups/04-fast-follow-live-preview.png",
+      "source_design": 4,
+      "product_tier": "validation-only",
+      "rendered_text": [
+        "DEMO PLACEHOLDER",
+        "4 CAMERAS CONNECTED",
+        "USB READY",
+        "PREVIEW NOT CONNECTED"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "previewPlaceholder",
+        "previewPlaceholderLabel",
+        "previewUnavailableLabel"
+      ],
+      "forbidden_objects": ["previewStream", "videoOutput"],
+      "allowed_commands": [],
+      "interactive_objects": [],
+      "fixture": "assets/ui/preview-placeholder.png"
+    },
+    {
+      "id": "four-camera-control-center",
+      "path": "/control-center",
+      "source_mockup": "designs/ux-mockups/05-ideal-future-control-center.png",
+      "source_design": 5,
+      "product_tier": "validation-only",
+      "rendered_text": [
+        "4 CAMERAS READY",
+        "USB READY",
+        "SETTINGS UNAVAILABLE",
+        "EXPOSURE AUTO",
+        "WHITE BALANCE AUTO",
+        "SMOOTH MOTION UNAVAILABLE",
+        "AI INTERPOLATION UNAVAILABLE",
+        "MEDIA"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "cameraStrip",
+        "storageBadge",
+        "controlReviewMedia",
+        "settingsUnavailableLabel",
+        "exposureSetting",
+        "whiteBalanceSetting",
+        "smoothMotionSetting",
+        "interpolationSetting",
+        "mediaButton"
+      ],
+      "allowed_commands": ["NAVIGATE_LIBRARY"],
+      "interactive_objects": ["mediaButton"],
+      "camera_count": 4,
+      "settings_mode": "disabled",
+      "disabled_settings": [
+        "exposureSetting",
+        "whiteBalanceSetting",
+        "smoothMotionSetting",
+        "interpolationSetting"
+      ],
+      "node_commands": []
+    },
+    {
+      "id": "removable-media-library",
+      "path": "/library",
+      "source_mockup": "designs/ux-mockups/06-library-navigation.png",
+      "source_design": 6,
+      "product_tier": "validation-only",
+      "rendered_text": [
+        "MEDIA",
+        "USB MEDIA",
+        "TODAY",
+        "THIS WEEK",
+        "ALL CAPTURES",
+        "OPEN",
+        "BACK TO CAMERA"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "libraryHeading",
+        "storageBadge",
+        "libraryFilters",
+        "mediaGrid",
+        "openButton",
+        "backToCameraButton"
+      ],
+      "forbidden_objects": ["deleteButton", "renameButton", "shareButton"],
+      "allowed_commands": [
+        "SELECT_CAPTURE",
+        "OPEN_VIEWER",
+        "NAVIGATE_CAMERA"
+      ],
+      "interactive_objects": [
+        "libraryFilters",
+        "mediaGrid",
+        "openButton",
+        "backToCameraButton"
+      ],
+      "storage_scope": "removable-usb-only",
+      "mutating_operations": []
+    },
+    {
+      "id": "gif-viewer",
+      "path": "/viewer",
+      "source_mockup": "designs/ux-mockups/07-gif-viewer.png",
+      "source_design": 7,
+      "product_tier": "validation-only",
+      "rendered_text": [
+        "BULLET-TIME",
+        "USB SAVED",
+        "0.5x",
+        "1x",
+        "2x",
+        "LOOP",
+        "BACK TO LIBRARY"
+      ],
+      "required_objects": [
+        "rootSurface",
+        "productMark",
+        "viewerHeading",
+        "storageBadge",
+        "gifPlayer",
+        "playPauseButton",
+        "frameRail",
+        "speedControl",
+        "loopButton",
+        "backToLibraryButton"
+      ],
+      "allowed_commands": [
+        "PLAYER_TOGGLE",
+        "PLAYER_SEEK",
+        "PLAYER_SPEED",
+        "PLAYER_LOOP",
+        "NAVIGATE_LIBRARY"
+      ],
+      "interactive_objects": [
+        "playPauseButton",
+        "frameRail",
+        "speedControl",
+        "loopButton",
+        "backToLibraryButton"
+      ],
+      "media_type": "image/gif",
+      "media_source": "real-gif-file",
+      "decoder": "QtQuick.AnimatedImage",
+      "qt_modules": ["QtQuick", "QtQuick.Controls", "QtQuick.Layouts"]
+    }
+  ],
+  "states": {
+    "STARTING": {
+      "required_objects": ["rootSurface", "startupLogo"],
+      "forbidden_objects": ["captureButton"],
+      "interactive": false
+    },
+    "READY_EMPTY": {"route": "ready", "interactive": true},
+    "READY_WITH_LATEST": {"route": "ready", "interactive": true},
+    "CAPTURE_PROGRESS": {"route": "progress", "interactive": false},
+    "REVIEW_COMPLETE": {"route": "gif-viewer", "interactive": true},
+    "REVIEW_PARTIAL": {"route": "partial-review", "interactive": true},
+    "ERROR_BLOCKING": {
+      "required_objects": ["rootSurface", "errorHeading", "errorDetail"],
+      "interactive": false
+    }
+  },
+  "named_bounds": {
+    "rootSurface": [0, 0, 800, 480],
+    "productMark": [18, 10, 74, 58],
+    "cameraStrip": [145, 10, 310, 58],
+    "storageBadge": [610, 10, 180, 58],
+    "captureButton": [52, 374, 696, 88],
+    "mediaButton": [414, 405, 376, 60],
+    "openButton": [20, 405, 376, 60],
+    "backToCameraButton": [414, 405, 376, 60],
+    "playPauseButton": [24, 374, 64, 64],
+    "backToLibraryButton": [680, 382, 110, 52]
+  },
+  "allowed_camera_progress": [
+    "WAITING",
+    "CAPTURING",
+    "TRANSFERRING",
+    "COMPLETE",
+    "FAILED"
+  ],
+  "ordered_phases": ["CAPTURING", "TRANSFERRING", "BUILDING ANIMATION"],
   "required_scenarios": [
     "UX-001",
     "UX-002",
@@ -43,110 +368,12 @@
     "UX-013",
     "UX-014",
     "UX-015",
-    "UX-016"
-  ],
-  "states": {
-    "STARTING": {
-      "required_objects": ["rootSurface", "startupLogo"],
-      "forbidden_objects": ["captureButton"],
-      "interactive": false
-    },
-    "READY_EMPTY": {
-      "required_objects": [
-        "rootSurface",
-        "productMark",
-        "cameraStrip",
-        "storageBadge",
-        "readyGlyph",
-        "stateHeading",
-        "stateDetail",
-        "captureButton"
-      ],
-      "required_text": ["READY", "USB READY", "PRESS SHUTTER OR TAP TO CAPTURE"],
-      "interactive": true
-    },
-    "READY_WITH_LATEST": {
-      "required_objects": [
-        "rootSurface",
-        "productMark",
-        "cameraStrip",
-        "storageBadge",
-        "reviewMedia",
-        "captureButton"
-      ],
-      "interactive": true
-    },
-    "CAPTURE_PROGRESS": {
-      "required_objects": [
-        "rootSurface",
-        "progressHeading",
-        "progressHero",
-        "cameraProgress1",
-        "cameraProgress2",
-        "cameraProgress3",
-        "cameraProgress4",
-        "phaseRail",
-        "steadyHint"
-      ],
-      "required_text": [
-        "CREATING BULLET-TIME",
-        "CAPTURING",
-        "TRANSFERRING",
-        "BUILDING ANIMATION",
-        "KEEP CAMERA STEADY"
-      ],
-      "forbidden_objects": ["captureButton", "reviewMedia"],
-      "interactive": false
-    },
-    "REVIEW_COMPLETE": {
-      "required_objects": [
-        "rootSurface",
-        "productMark",
-        "cameraStrip",
-        "storageBadge",
-        "reviewMedia",
-        "captureButton"
-      ],
-      "required_text": ["USB SAVED", "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"],
-      "interactive": true
-    },
-    "REVIEW_PARTIAL": {
-      "required_objects": [
-        "rootSurface",
-        "productMark",
-        "cameraStrip",
-        "storageBadge",
-        "reviewMedia",
-        "partialHeading",
-        "partialDetail",
-        "captureButton"
-      ],
-      "required_text": [
-        "USB SAVED",
-        "SAVED WITH",
-        "CAMERA",
-        "PRESS SHUTTER OR TAP FOR NEXT CAPTURE"
-      ],
-      "interactive": true
-    },
-    "ERROR_BLOCKING": {
-      "required_objects": ["rootSurface", "errorHeading", "errorDetail"],
-      "interactive": false
-    }
-  },
-  "named_bounds": {
-    "rootSurface": [0, 0, 800, 480],
-    "productMark": [18, 10, 74, 58],
-    "cameraStrip": [145, 10, 310, 58],
-    "storageBadge": [610, 10, 180, 58],
-    "captureButton": [52, 374, 696, 88]
-  },
-  "allowed_camera_progress": [
-    "WAITING",
-    "CAPTURING",
-    "TRANSFERRING",
-    "COMPLETE",
-    "FAILED"
-  ],
-  "ordered_phases": ["CAPTURING", "TRANSFERRING", "BUILDING ANIMATION"]
+    "UX-016",
+    "UX-017",
+    "UX-018",
+    "UX-019",
+    "UX-020",
+    "UX-021",
+    "UX-022"
+  ]
 }
