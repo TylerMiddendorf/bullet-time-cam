@@ -1,6 +1,8 @@
 # Milestone 4 Plan - Compact Version 1 Enclosure
 
-Status: active July 18, 2026
+Status: deferred July 19, 2026; the product owner is building the full enclosed
+prototype asynchronously while software work continues. All checkpoints and
+exit gates remain required before this milestone can be marked complete.
 
 ## Outcome
 

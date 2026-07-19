@@ -242,7 +242,8 @@ four-entry product catalog scan completed in 0.081 seconds. See
 
 ## Milestone 4 - Compact Version 1 Enclosure
 
-Status: active July 18, 2026
+Status: deferred July 19, 2026; the product owner is building the full enclosed
+prototype asynchronously while repository work continues on software
 
 The detailed layout, print, and acceptance checkpoints are in
 [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md).
@@ -256,7 +257,15 @@ The detailed layout, print, and acceptance checkpoints are in
 
 Ergonomics, weight optimization, integrated lighting, tripod mounting, and weather resistance are later revisions.
 
+The enclosure plan and its acceptance gates remain authoritative. Deferral does
+not mark the milestone complete, and the assembled V1 enclosure must still pass
+its recorded mechanical, optical, functional, removable-media, restart, and
+thermal checks before enclosure completion is claimed.
+
 ## Milestone 5 - Fast Follow
+
+Status: active July 19, 2026 for software work while Milestone 4 proceeds
+asynchronously
 
 - Add live preview.
 - Improve ordinary user-facing status and recovery behavior.

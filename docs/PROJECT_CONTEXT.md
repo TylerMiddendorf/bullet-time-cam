@@ -297,7 +297,7 @@ The two-second shutter-to-review goal is a soft normal-case target. It may be ex
 
 ## Current State
 
-As of July 18, 2026:
+As of July 19, 2026:
 
 - Four XIAO ESP32S3 Sense modules and four OV3660 sensors are on hand. Four node cards from the superseded prototype remain in inventory but are not used by current firmware.
 - All four modules are assembled on a breadboard.
@@ -415,9 +415,9 @@ As of July 18, 2026:
 - The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and native Qt touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track is complete, while live preview and operative camera settings remain deferred. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. Enclosure work remains.
+The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and native Qt touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track is complete. Live preview is now the active software direction but is not yet implemented; operative camera settings remain planned for Milestone 6. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. The full enclosed prototype remains incomplete and is being built asynchronously by the product owner.
 
-The active work is the compact V1 enclosure in Milestone 4. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. A synchronized settings/control milestone is now planned after the fast-follow live-preview work; its inventory, UI structure, protocol boundaries, and qualification gates are in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+Milestone 4 enclosure work is deferred in the repository while the product owner builds the full enclosed prototype asynchronously. Milestone 5 software work is active, beginning with the fast-follow live-preview path and ordinary status/recovery refinement. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. A synchronized settings/control milestone remains planned after the fast-follow live-preview work; its inventory, UI structure, protocol boundaries, and qualification gates are in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -494,8 +494,9 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - A touchscreen and 3D printer are already available.
 - Approximately $200 remains for version 1.
 - The bench-top, USB-powered end-to-end milestone from four camera nodes through Raspberry Pi GIF generation and touchscreen review is complete.
-- Removable USB media fault qualification is complete; the external battery
-  arrangement is accepted, and compact enclosure integration is next.
+- Removable USB media fault qualification is complete and the external battery
+  arrangement is accepted. The product owner is building the compact enclosure
+  asynchronously; software work proceeds with Milestone 5.
 - Progress is milestone-based without a fixed version 1 deadline.
 
 ## Provisional Ideas

@@ -391,6 +391,14 @@ Implementation status:
 - Commit and push the change, fast-forward pull it on the Raspberry Pi, and
   verify it with a real capture on the physical rig.
 
+### 2026-07-19 - Enclosure prototype deferred from active repository work
+
+- The product owner will build the full enclosed prototype asynchronously.
+- Mark Milestone 4 deferred rather than complete; its physical fit, optical,
+  functional, removable-media, restart, and thermal exit gates still apply.
+- Continue repository work on software, with Milestone 5 fast-follow work now
+  active while enclosure construction proceeds separately.
+
 ### 2026-07-19 - Version 2 settings and control planning
 
 - The product owner requested a comprehensive inventory of camera and complete-

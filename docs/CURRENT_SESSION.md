@@ -1,6 +1,6 @@
-# Current Session - Compact Version 1 Enclosure
+# Current Session - Fast-Follow Software
 
-Status reviewed: July 18, 2026
+Status reviewed: July 19, 2026
 
 ## Qt UX Implementation Rollback Baseline
 
@@ -82,16 +82,15 @@ Status reviewed: July 18, 2026
 
 ## Immediate Work
 
-Execute Milestone 4 from [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md):
+Milestone 4 is deferred as active repository work while the product owner builds
+the full enclosed prototype asynchronously. Its plan and acceptance gates remain
+open and must be completed before the enclosure milestone is closed.
 
-1. Measure every enclosure-facing component and connector, including the real
-   display bezel/depth, camera modules and ribbons, Raspberry Pi, installed
-   hubs/cabling, trigger hardware, shutter, and removable product USB drive.
-2. Lay out the four sensors in their straight 4 cm spacing and arrange the
-   remaining hardware for cooling, serviceability, cable bend radius, and
-   removable-media access.
-3. Route and strain-relieve the external pack's separate Pi and powered-hub
-   leads; the external pack does not consume internal enclosure volume.
-4. Produce and inspect fit-check prints before committing to a complete shell.
-5. Assemble and rerun the product capture, display, removable-media, and thermal
-   acceptance checks in the closed enclosure.
+Continue with Milestone 5 software work:
+
+1. Design and implement the fast-follow live-preview path without weakening the
+   validated capture, storage, trigger, or camera-identity behavior.
+2. Improve ordinary user-facing status and recovery behavior where demonstrated
+   gaps exist.
+3. Continue investigating the soft two-second latency target and unexplained Qt
+   soft-reboot failure as bounded software reliability work.
