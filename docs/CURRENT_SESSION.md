@@ -2,6 +2,20 @@
 
 Status reviewed: July 18, 2026
 
+## Qt UX Implementation Rollback Baseline
+
+- Work on the Qt Quick/PySide6 interface began from Git commit `63420c1`
+  (`Accept external V1 power arrangement`) on branch `main`.
+- No files were staged when the implementation session began. An existing
+  unstaged product-owner edit to `docs/MILESTONE_4_PLAN.md` was deliberately
+  left untouched and is not part of the UI rollback baseline.
+- To return to the exact pre-UI repository state without discarding unrelated
+  working-tree changes, restore the UI commits relative to `63420c1`; do not
+  use a destructive working-tree reset.
+- Scope guard: implement the supplied UX mockups with a generated temporary
+  preview image, but do not implement a live camera stream and do not display
+  battery level or battery status.
+
 ## Verified State
 
 - Milestones 1 and 2 are complete. The full four-camera workflow and removable
