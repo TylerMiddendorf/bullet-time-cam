@@ -66,7 +66,7 @@ def compact_ui_message(message: str) -> str:
     return message
 
 
-def _capture_phase(event: dict, message: str) -> str:
+def _capture_phase(event: dict, message: str, current: str) -> str:
     phase = str(event.get("phase", "")).lower()
     if phase in {"capturing", "transferring", "building"}:
         return phase
@@ -75,6 +75,8 @@ def _capture_phase(event: dict, message: str) -> str:
         return "building"
     if "transfer" in lowered or "finishing" in lowered:
         return "transferring"
+    if current in {"capturing", "transferring", "building"}:
+        return current
     return "capturing"
 
 
@@ -128,17 +130,31 @@ class PresentationState:
         )
 
     def _apply_connected_cameras(self, event: dict) -> None:
-        connected = _event_camera_ids(event, "connected_camera_ids")
-        if connected:
-            self.connected_camera_ids = connected
-        elif int(event.get("connected_camera_count", 0)) == CAMERA_COUNT:
-            self.connected_camera_ids = tuple(range(1, CAMERA_COUNT + 1))
+        connectivity_provided = "connected_camera_ids" in event or "connected_camera_count" in event
+        if "connected_camera_ids" in event:
+            self.connected_camera_ids = _event_camera_ids(event, "connected_camera_ids")
+        elif "connected_camera_count" in event:
+            count = int(event.get("connected_camera_count", 0))
+            if count == 0:
+                self.connected_camera_ids = ()
+            elif count == CAMERA_COUNT:
+                self.connected_camera_ids = tuple(range(1, CAMERA_COUNT + 1))
+
+        explicit_states = event.get("camera_states")
+        if isinstance(explicit_states, (list, tuple)) and len(explicit_states) == CAMERA_COUNT:
+            normalized = [str(value).lower() for value in explicit_states]
+            if all(value in CAMERA_STATES for value in normalized):
+                self.camera_states = normalized
+                return
+
         connected_set = set(self.connected_camera_ids)
         for index in range(CAMERA_COUNT):
             if not self.capture_in_progress:
                 self.camera_states[index] = (
                     "ready" if index + 1 in connected_set else "disconnected"
                 )
+            elif connectivity_provided and index + 1 not in connected_set:
+                self.camera_states[index] = "disconnected"
 
     def _apply_progress(self, event: dict, message: str, was_capturing: bool) -> None:
         if not was_capturing:
@@ -149,15 +165,32 @@ class PresentationState:
             ]
             self.failed_camera_ids = ()
             self.view_count = 0
-        self.capture_phase = _capture_phase(event, message)
+        self.capture_phase = _capture_phase(event, message, self.capture_phase)
         camera_id = int(event.get("camera_id", 0) or 0)
         camera_status = str(event.get("camera_status", "")).lower()
         if 1 <= camera_id <= CAMERA_COUNT and camera_status in CAMERA_STATES:
             self.camera_states[camera_id - 1] = camera_status
-        for complete_id in _event_camera_ids(event, "completed_camera_ids"):
+
+        completed = {
+            index + 1 for index, value in enumerate(self.camera_states) if value == "complete"
+        }
+        failed = set(self.failed_camera_ids)
+        completed.update(_event_camera_ids(event, "completed_camera_ids"))
+        failed.update(_event_camera_ids(event, "failed_camera_ids"))
+        if 1 <= camera_id <= CAMERA_COUNT:
+            if camera_status == "complete":
+                completed.add(camera_id)
+                failed.discard(camera_id)
+            elif camera_status == "error":
+                failed.add(camera_id)
+                completed.discard(camera_id)
+        completed.difference_update(failed)
+        for complete_id in completed:
             self.camera_states[complete_id - 1] = "complete"
-        for failed_id in _event_camera_ids(event, "failed_camera_ids"):
+        for failed_id in failed:
             self.camera_states[failed_id - 1] = "error"
+        self.failed_camera_ids = tuple(sorted(failed))
+        self.view_count = len(completed)
 
     def _apply_manifest(self, event: dict) -> None:
         manifest = event.get("manifest")
@@ -185,6 +218,9 @@ class PresentationState:
         state = str(event["state"])
         message = compact_ui_message(str(event.get("message", state)))
         was_capturing = self.capture_in_progress
+        # Connectivity is orthogonal to presentation state. In particular, an
+        # idle storage ERROR must not erase or hide the still-connected nodes.
+        self._apply_connected_cameras(event)
         if state == "LOADING":
             self.capture_in_progress = True
             self._apply_progress(event, message, was_capturing)
@@ -205,7 +241,6 @@ class PresentationState:
             self.capture_in_progress = False
             self.capture_phase = "idle"
             self.usb_status = "ready"
-            self._apply_connected_cameras(event)
             if self.review_image:
                 presentation = Presentation(state, self.review_image, "", "white")
             else:

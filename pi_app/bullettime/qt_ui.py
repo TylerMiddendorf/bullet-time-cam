@@ -1,0 +1,514 @@
+"""Qt Quick touchscreen runtime with a testable, toolkit-neutral controller."""
+
+from __future__ import annotations
+
+import base64
+import io
+import logging
+import queue
+import threading
+import time
+from collections.abc import Callable
+from pathlib import Path
+
+from PIL import Image
+
+from .gpio_trigger import HardwareTrigger
+from .media_catalog import (
+    CatalogEntry,
+    CatalogSnapshot,
+    load_catalog_animation,
+    scan_capture_catalog,
+)
+from .storage import UsbStorageResolver, atomic_json
+from .ui_model import PresentationState, UiSnapshot
+
+LOGGER = logging.getLogger(__name__)
+RUNTIME_ROUTES = frozenset({"ready", "progress", "review"})
+DEMO_ROUTES = frozenset({"preview", "control", "library", "viewer"})
+ALL_ROUTES = RUNTIME_ROUTES | DEMO_ROUTES
+CAPTURE_ROUTES = frozenset({"ready", "review", "preview", "control"})
+CAPTURE_STATES = frozenset({"READY", "REVIEW", "REVIEW_WITH_ERROR", "ERROR"})
+
+
+def _frame_data_url(frame: Image.Image) -> str:
+    output = io.BytesIO()
+    frame.save(output, format="PNG")
+    encoded = base64.b64encode(output.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+class QtUiController:
+    """Own UI state without importing PySide6, so headless tests remain portable."""
+
+    def __init__(
+        self,
+        commands: queue.Queue,
+        *,
+        display_size: tuple[int, int] = (800, 480),
+        on_changed: Callable[[], None] | None = None,
+    ) -> None:
+        self.commands = commands
+        self.display_size = display_size
+        self.presentation_state = PresentationState()
+        self.route = "ready"
+        self.review_frames: list[str] = []
+        self.review_durations: list[int] = []
+        self.review_index = 0
+        self.library_items: list[CatalogEntry] = []
+        self.selected_library_index = -1
+        self.catalog_status = "idle"
+        self.catalog_message = ""
+        self.last_manifest: dict | None = None
+        self.display_timing_recorded = False
+        self._on_changed = on_changed or (lambda: None)
+        self._refresh_catalog: Callable[[], None] = lambda: None
+        self._open_catalog_entry: Callable[[CatalogEntry], None] = lambda _entry: None
+
+    @property
+    def snapshot(self) -> UiSnapshot:
+        return self.presentation_state.snapshot
+
+    @property
+    def image_source(self) -> str:
+        if not self.review_frames:
+            return ""
+        return self.review_frames[self.review_index]
+
+    @property
+    def qml_library_items(self) -> list[dict]:
+        return [
+            {
+                "title": item.capture_id,
+                "viewCount": item.view_count,
+                "partial": item.status == "partial",
+                "thumbnail": (
+                    "data:image/png;base64," + base64.b64encode(item.thumbnail_png).decode("ascii")
+                ),
+            }
+            for item in self.library_items
+        ]
+
+    @property
+    def can_capture(self) -> bool:
+        return self.route in CAPTURE_ROUTES and self.snapshot.state in CAPTURE_STATES
+
+    @property
+    def viewer_view_count(self) -> int:
+        if 0 <= self.selected_library_index < len(self.library_items):
+            return self.library_items[self.selected_library_index].view_count
+        return self.snapshot.view_count
+
+    def set_changed_callback(self, callback: Callable[[], None]) -> None:
+        self._on_changed = callback
+
+    def set_catalog_callbacks(
+        self,
+        refresh: Callable[[], None],
+        open_entry: Callable[[CatalogEntry], None],
+    ) -> None:
+        self._refresh_catalog = refresh
+        self._open_catalog_entry = open_entry
+
+    def navigate(self, route: str) -> bool:
+        if route not in ALL_ROUTES or self.snapshot.capture_in_progress:
+            return False
+        self.route = route
+        if route == "library":
+            self.catalog_status = "loading"
+            self.catalog_message = "Refreshing removable USB media"
+            self._refresh_catalog()
+        self._on_changed()
+        return True
+
+    def request_capture(self) -> bool:
+        if not self.can_capture:
+            return False
+        self.presentation_state.apply(
+            {"state": "LOADING", "message": "Starting capture", "phase": "capturing"}
+        )
+        self.route = "progress"
+        self.commands.put("CAPTURE")
+        self._on_changed()
+        return True
+
+    def open_library_item(self, index: int) -> bool:
+        if not 0 <= index < len(self.library_items) or self.snapshot.capture_in_progress:
+            return False
+        self.selected_library_index = index
+        self.catalog_status = "loading"
+        self.catalog_message = f"Opening {self.library_items[index].capture_id}"
+        self._open_catalog_entry(self.library_items[index])
+        self._on_changed()
+        return True
+
+    def select_library_item(self, index: int) -> bool:
+        if not 0 <= index < len(self.library_items):
+            return False
+        self.selected_library_index = index
+        self._on_changed()
+        return True
+
+    def apply_catalog(self, catalog: CatalogSnapshot) -> None:
+        selected_id = (
+            self.library_items[self.selected_library_index].capture_id
+            if 0 <= self.selected_library_index < len(self.library_items)
+            else None
+        )
+        self.library_items = list(catalog.entries)
+        self.catalog_status = catalog.status
+        self.catalog_message = catalog.message
+        self.selected_library_index = next(
+            (
+                index
+                for index, entry in enumerate(self.library_items)
+                if entry.capture_id == selected_id
+            ),
+            0 if self.library_items else -1,
+        )
+        self._on_changed()
+
+    def apply_opened_catalog(
+        self,
+        entry: CatalogEntry,
+        frames: list[Image.Image] | None,
+        durations: list[int] | None,
+        error: Exception | None,
+    ) -> None:
+        if error is not None or not frames or not durations:
+            self.catalog_status = "removed"
+            self.catalog_message = "Selected media was removed, corrupt, or unreadable"
+            self.route = "library"
+            self._on_changed()
+            return
+        self.review_frames = [_frame_data_url(frame) for frame in frames]
+        self.review_durations = list(durations)
+        self.review_index = 0
+        self.catalog_status = "ready"
+        self.catalog_message = entry.capture_id
+        self.route = "viewer"
+        self._on_changed()
+
+    def advance_review_frame(self) -> int:
+        if len(self.review_frames) < 2:
+            return 0
+        self.review_index = (self.review_index + 1) % len(self.review_frames)
+        self._on_changed()
+        return self.review_durations[self.review_index]
+
+    def _detach_review(self, path_text: str) -> None:
+        # Import lazily to keep one canonical loader and avoid a Qt dependency.
+        from .ui import _load_review_frames
+
+        frames, durations = _load_review_frames(Path(path_text), self.display_size)
+        self.review_frames = [_frame_data_url(frame) for frame in frames]
+        self.review_durations = durations
+        self.review_index = 0
+
+    def handle_event(self, event: dict) -> None:
+        try:
+            presentation = self.presentation_state.apply(event)
+            if presentation.image:
+                self._detach_review(presentation.image)
+            if self.snapshot.screen == "progress":
+                self.route = "progress"
+            elif self.snapshot.screen == "review":
+                self.route = "review"
+            elif self.route in RUNTIME_ROUTES:
+                self.route = "ready"
+            self.last_manifest = event.get("manifest")
+            if self.last_manifest is not None:
+                self.display_timing_recorded = False
+        except Exception as exc:
+            LOGGER.error("Qt presentation failed for event %r: %s", event.get("state"), exc)
+            self.review_frames = []
+            self.review_durations = []
+            self.presentation_state = PresentationState()
+            self.presentation_state.apply(
+                {
+                    "state": "ERROR",
+                    "message": (
+                        "Review unavailable\nThe USB drive containing it was removed.\n"
+                        "Reconnect the drive or tap to capture again."
+                    ),
+                }
+            )
+            self.route = "ready"
+        self._on_changed()
+
+    def record_display_timing(self) -> None:
+        manifest = self.last_manifest
+        image = self.snapshot.image
+        if not manifest or not image or self.display_timing_recorded:
+            return
+        try:
+            rendered_ns = time.monotonic_ns()
+            monotonic = manifest["metrics"]["pi_monotonic_ns"]
+            monotonic["display_callback_ns"] = rendered_ns
+            start = monotonic.get("first_capture_started_ns", rendered_ns)
+            manifest["metrics"]["durations_ms"]["capture_event_to_display_callback"] = (
+                rendered_ns - start
+            ) / 1_000_000
+            atomic_json(Path(image).parent / "manifest.json", manifest)
+            self.display_timing_recorded = True
+        except (KeyError, OSError, TypeError) as exc:
+            LOGGER.warning("Could not persist display timing: %s", exc)
+
+
+def run_qt_ui(
+    config: dict,
+    trigger: HardwareTrigger,
+    storage: UsbStorageResolver,
+    *,
+    verify_only: bool = False,
+) -> None:
+    """Run the native Qt Quick UI. PySide6 is intentionally imported only here."""
+
+    from PySide6.QtCore import Property, QObject, Qt, QTimer, QUrl, Signal, Slot
+    from PySide6.QtGui import QGuiApplication
+    from PySide6.QtQml import QQmlApplicationEngine
+
+    from .receiver import Receiver
+
+    app = QGuiApplication.instance() or QGuiApplication([])
+    if config.get("hide_pointer", True):
+        app.setOverrideCursor(Qt.CursorShape.BlankCursor)
+
+    events: queue.Queue = queue.Queue()
+    commands: queue.Queue = queue.Queue()
+    stop = threading.Event()
+    controller = QtUiController(
+        commands,
+        display_size=(
+            int(config.get("display_width", 800)),
+            int(config.get("display_height", 480)),
+        ),
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    placeholder = repo_root / "assets" / "ui" / "preview-placeholder.png"
+    logo = Path(config.get("startup_logo", repo_root / "assets" / "Logo_800x480.png"))
+    first_frame = {"seen": False, "callback": lambda: None}
+
+    class Bridge(QObject):
+        changed = Signal()
+
+        def __init__(self) -> None:
+            super().__init__()
+            controller.set_changed_callback(self.changed.emit)
+
+        @Property(str, notify=changed)
+        def route(self) -> str:
+            return controller.route
+
+        @Property(str, notify=changed)
+        def state(self) -> str:
+            return controller.snapshot.state
+
+        @Property(str, notify=changed)
+        def message(self) -> str:
+            return controller.snapshot.message
+
+        @Property(str, notify=changed)
+        def usbStatus(self) -> str:  # noqa: N802 - QML property naming
+            return controller.snapshot.usb_status
+
+        @Property(str, notify=changed)
+        def capturePhase(self) -> str:  # noqa: N802
+            return controller.snapshot.capture_phase
+
+        @Property("QVariantList", notify=changed)
+        def cameraStates(self) -> list[str]:  # noqa: N802
+            return list(controller.snapshot.camera_states)
+
+        @Property("QVariantList", notify=changed)
+        def connectedCameraIds(self) -> list[int]:  # noqa: N802
+            return list(controller.snapshot.connected_camera_ids)
+
+        @Property("QVariantList", notify=changed)
+        def failedCameraIds(self) -> list[int]:  # noqa: N802
+            return list(controller.snapshot.failed_camera_ids)
+
+        @Property(int, notify=changed)
+        def viewCount(self) -> int:  # noqa: N802
+            return controller.snapshot.view_count
+
+        @Property(int, notify=changed)
+        def viewerViewCount(self) -> int:  # noqa: N802
+            return controller.viewer_view_count
+
+        @Property(str, notify=changed)
+        def imageSource(self) -> str:  # noqa: N802
+            return controller.image_source
+
+        @Property("QVariantList", notify=changed)
+        def libraryItems(self) -> list[dict]:  # noqa: N802
+            return controller.qml_library_items
+
+        @Property(int, notify=changed)
+        def selectedLibraryIndex(self) -> int:  # noqa: N802
+            return controller.selected_library_index
+
+        @Property(str, notify=changed)
+        def catalogStatus(self) -> str:  # noqa: N802
+            return controller.catalog_status
+
+        @Property(str, notify=changed)
+        def catalogMessage(self) -> str:  # noqa: N802
+            return controller.catalog_message
+
+        @Property(str, constant=True)
+        def previewPlaceholder(self) -> str:  # noqa: N802
+            return QUrl.fromLocalFile(str(placeholder)).toString()
+
+        @Property(str, constant=True)
+        def startupLogo(self) -> str:  # noqa: N802
+            return QUrl.fromLocalFile(str(logo)).toString()
+
+        @Property(bool, constant=True)
+        def fullscreen(self) -> bool:
+            return bool(config.get("fullscreen", True))
+
+        @Property(bool, notify=changed)
+        def canCapture(self) -> bool:  # noqa: N802
+            return controller.can_capture
+
+        @Slot(result=bool)
+        def capture(self) -> bool:
+            return controller.request_capture()
+
+        @Slot(str, result=bool)
+        def navigate(self, route: str) -> bool:
+            return controller.navigate(route)
+
+        @Slot(int, result=bool)
+        def openLibraryItem(self, index: int) -> bool:  # noqa: N802
+            return controller.open_library_item(index)
+
+        @Slot(int, result=bool)
+        def selectLibraryItem(self, index: int) -> bool:  # noqa: N802
+            return controller.select_library_item(index)
+
+        @Slot()
+        def framePresented(self) -> None:  # noqa: N802
+            if not first_frame["seen"]:
+                first_frame["seen"] = True
+                QTimer.singleShot(0, first_frame["callback"])
+                return
+            controller.record_display_timing()
+
+    bridge = Bridge()
+    engine = QQmlApplicationEngine()
+    engine.rootContext().setContextProperty("bridge", bridge)
+    qml_path = Path(__file__).with_name("qml") / "Main.qml"
+    engine.addImportPath(str(qml_path.parent))
+    engine.load(QUrl.fromLocalFile(str(qml_path)))
+    if not engine.rootObjects():
+        raise RuntimeError(f"Qt Quick failed to load {qml_path}")
+
+    if verify_only:
+        QTimer.singleShot(0, app.quit)
+        app.exec()
+        return
+
+    receiver = Receiver(config, events, commands, stop, trigger, storage)
+    catalog_results: queue.Queue = queue.Queue()
+    catalog_open_results: queue.Queue = queue.Queue()
+    catalog_scan_running = threading.Event()
+    catalog_open_running = threading.Event()
+
+    def refresh_catalog() -> None:
+        if catalog_scan_running.is_set():
+            return
+        catalog_scan_running.set()
+        root = storage.active_root
+
+        def scan() -> None:
+            try:
+                catalog_results.put(scan_capture_catalog(root))
+            finally:
+                catalog_scan_running.clear()
+
+        threading.Thread(target=scan, name="usb-media-catalog", daemon=True).start()
+
+    def open_catalog_entry(entry: CatalogEntry) -> None:
+        if catalog_open_running.is_set():
+            return
+        catalog_open_running.set()
+
+        def decode() -> None:
+            try:
+                frames, durations = load_catalog_animation(entry, controller.display_size)
+                catalog_open_results.put((entry, frames, durations, None))
+            except Exception as exc:
+                catalog_open_results.put((entry, None, None, exc))
+            finally:
+                catalog_open_running.clear()
+
+        threading.Thread(target=decode, name="usb-media-open", daemon=True).start()
+
+    controller.set_catalog_callbacks(refresh_catalog, open_catalog_entry)
+
+    poll_timer = QTimer()
+    poll_timer.setInterval(50)
+
+    def poll_events() -> None:
+        while True:
+            try:
+                event = events.get_nowait()
+            except queue.Empty:
+                break
+            controller.handle_event(event)
+            if event.get("manifest") is not None:
+                QTimer.singleShot(0, controller.record_display_timing)
+        try:
+            while True:
+                controller.apply_catalog(catalog_results.get_nowait())
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                controller.apply_opened_catalog(*catalog_open_results.get_nowait())
+        except queue.Empty:
+            pass
+
+    poll_timer.timeout.connect(poll_events)
+
+    frame_timer = QTimer()
+    frame_timer.setSingleShot(True)
+
+    def advance_frame() -> None:
+        delay = controller.advance_review_frame()
+        if delay:
+            frame_timer.start(delay)
+
+    frame_timer.timeout.connect(advance_frame)
+
+    def restart_animation() -> None:
+        frame_timer.stop()
+        if len(controller.review_frames) > 1:
+            frame_timer.start(controller.review_durations[controller.review_index])
+
+    bridge.changed.connect(restart_animation)
+
+    def start_runtime() -> None:
+        receiver.start()
+        poll_timer.start()
+
+    first_frame["callback"] = start_runtime
+
+    def shutdown() -> None:
+        stop.set()
+        if receiver.is_alive():
+            receiver.join(timeout=2)
+
+    app.aboutToQuit.connect(shutdown)
+    app.exec()
+
+
+def verify_qml(config: dict | None = None) -> None:
+    """Load the complete route tree without a receiver or hardware side effects."""
+
+    run_qt_ui(
+        config or {"fullscreen": False, "hide_pointer": False}, object(), object(), verify_only=True
+    )

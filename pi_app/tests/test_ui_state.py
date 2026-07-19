@@ -42,6 +42,93 @@ class PresentationStateTests(unittest.TestCase):
         self.assertEqual(state.snapshot.capture_phase, "transferring")
         self.assertEqual(state.snapshot.camera_states[1], "transferring")
 
+    def test_connectivity_is_orthogonal_to_idle_errors_and_accepts_explicit_empty_sets(self):
+        state = PresentationState()
+        state.apply(
+            {
+                "state": "READY",
+                "connected_camera_ids": [1, 2, 3, 4],
+            }
+        )
+        state.apply(
+            {
+                "state": "ERROR",
+                "message": "No writable USB storage is mounted",
+                "connected_camera_ids": [1, 2, 3, 4],
+            }
+        )
+        self.assertEqual(state.snapshot.connected_camera_ids, (1, 2, 3, 4))
+        self.assertEqual(state.snapshot.camera_states, ("ready",) * 4)
+        self.assertEqual(state.snapshot.usb_status, "error")
+
+        state.apply(
+            {
+                "state": "ERROR",
+                "message": "No camera nodes found",
+                "connected_camera_count": 0,
+                "connected_camera_ids": [],
+            }
+        )
+        self.assertEqual(state.snapshot.connected_camera_ids, ())
+        self.assertEqual(state.snapshot.camera_states, ("disconnected",) * 4)
+
+    def test_explicit_camera_states_apply_on_idle_error(self):
+        state = PresentationState()
+        state.apply(
+            {
+                "state": "ERROR",
+                "message": "USB storage unavailable",
+                "connected_camera_ids": [1, 2, 3],
+                "camera_states": ["ready", "ready", "ready", "disconnected"],
+            }
+        )
+        self.assertEqual(
+            state.snapshot.camera_states,
+            ("ready", "ready", "ready", "disconnected"),
+        )
+
+    def test_progress_merges_completed_failed_and_view_count_cumulatively(self):
+        state = PresentationState()
+        state.apply({"state": "READY", "connected_camera_ids": [1, 2, 3, 4]})
+        state.apply(
+            {
+                "state": "LOADING",
+                "phase": "transferring",
+                "camera_id": 1,
+                "camera_status": "complete",
+                "completed_camera_ids": [1],
+            }
+        )
+        state.apply(
+            {
+                "state": "LOADING",
+                "camera_id": 2,
+                "camera_status": "error",
+                "failed_camera_ids": [2],
+            }
+        )
+        state.apply(
+            {
+                "state": "LOADING",
+                "camera_id": 3,
+                "camera_status": "complete",
+                "completed_camera_ids": [3],
+            }
+        )
+        self.assertEqual(state.snapshot.capture_phase, "transferring")
+        self.assertEqual(state.snapshot.view_count, 2)
+        self.assertEqual(state.snapshot.failed_camera_ids, (2,))
+        self.assertEqual(
+            state.snapshot.camera_states,
+            ("complete", "error", "complete", "waiting"),
+        )
+
+    def test_phase_less_duplicate_loading_preserves_the_current_phase(self):
+        state = PresentationState()
+        state.apply({"state": "LOADING", "phase": "transferring", "message": "Finishing"})
+        state.apply({"state": "LOADING", "message": "Capture already in progress"})
+        self.assertEqual(state.snapshot.capture_phase, "transferring")
+
     def test_review_manifest_drives_view_count_and_failed_camera_indicators(self):
         state = PresentationState()
         state.apply(

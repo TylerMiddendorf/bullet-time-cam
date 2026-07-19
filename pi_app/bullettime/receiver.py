@@ -205,7 +205,12 @@ class Receiver(threading.Thread):
                     session.start()
             connected = len(self.sessions_by_uid)
         if not discovered and connected == 0 and self.coordinator.trigger_allowed:
-            self.send_status("ERROR", message="No camera nodes found")
+            self.send_status(
+                "ERROR",
+                message="No camera nodes found",
+                connected_camera_count=0,
+                connected_camera_ids=[],
+            )
 
     def session_connected(self, session: NodeSession, hello_metadata: dict) -> str:
         uid = str(hello_metadata.get("node_uid", ""))
@@ -233,7 +238,12 @@ class Receiver(threading.Thread):
                 connected_camera_ids=connected_camera_ids,
             )
         except StorageUnavailable as exc:
-            self.send_status("ERROR", message=str(exc))
+            self.send_status(
+                "ERROR",
+                message=str(exc),
+                connected_camera_count=connected,
+                connected_camera_ids=connected_camera_ids,
+            )
         return uid
 
     def session_disconnected(self, session: NodeSession, exc: Exception) -> None:
@@ -331,11 +341,24 @@ class Receiver(threading.Thread):
             try:
                 self.storage.resolve()
             except StorageUnavailable as exc:
-                self.send_status("ERROR", message=str(exc))
+                connected_camera_ids = sorted(
+                    self.logical_cameras[uid] for uid in self.sessions_by_uid
+                )
+                self.send_status(
+                    "ERROR",
+                    message=str(exc),
+                    connected_camera_count=len(connected_camera_ids),
+                    connected_camera_ids=connected_camera_ids,
+                )
                 return
             sessions = list(self.sessions_by_uid.values())
             if not sessions:
-                self.send_status("ERROR", message="No registered camera nodes are connected")
+                self.send_status(
+                    "ERROR",
+                    message="No registered camera nodes are connected",
+                    connected_camera_count=0,
+                    connected_camera_ids=[],
+                )
                 return
             if self.corrupt_next_payload:
                 target_id = int(self.config.get("corrupt_camera_id", 1))
@@ -598,12 +621,30 @@ class Receiver(threading.Thread):
 
     def _node_error(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
         message = str(metadata.get("message", "Node error"))
+        camera_id = int(metadata.get("logical_camera_id", 0) or 0)
         try:
             self.coordinator.fail(metadata, "node_error", message, now_ns)
             session.current_metadata = None
+            self.send_status(
+                "LOADING",
+                message=f"Camera {camera_id} failed; finishing remaining views",
+                phase="transferring",
+                camera_id=camera_id,
+                camera_status="error",
+                failed_camera_ids=[camera_id],
+            )
             self._finalize_if_ready(now_ns)
         except CoordinationError:
-            self.send_status("ERROR", message=f"Camera node error: {message}")
+            connected_camera_ids = sorted(self.logical_cameras[uid] for uid in self.sessions_by_uid)
+            self.send_status(
+                "ERROR",
+                message=f"Camera {camera_id} node error: {message}",
+                camera_id=camera_id,
+                camera_status="error",
+                failed_camera_ids=[camera_id],
+                connected_camera_count=len(connected_camera_ids),
+                connected_camera_ids=connected_camera_ids,
+            )
 
     def _finalize_if_ready(self, now_ns: int) -> None:
         if self.coordinator.active_capture_id is None:

@@ -240,6 +240,29 @@ class ReceiverCompletionTests(unittest.TestCase):
                 receiver.session_disconnected(session, OSError("cable removed"))
             self.assertEqual(receiver.coordinator._active.errors[3].code, "transfer_truncated")
 
+    def test_node_error_emits_structured_camera_progress(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            session = FakeSession(2)
+            meta = metadata(2)
+            receiver._capture_started(session, meta, 1_000_000)
+
+            receiver._node_error(
+                session,
+                {**meta, "message": "sensor capture failed"},
+                2_000_000,
+            )
+
+            emitted = []
+            while not events.empty():
+                emitted.append(events.get_nowait())
+            node_error = emitted[-1]
+            self.assertEqual(node_error["state"], "LOADING")
+            self.assertEqual(node_error["phase"], "transferring")
+            self.assertEqual(node_error["camera_id"], 2)
+            self.assertEqual(node_error["camera_status"], "error")
+            self.assertEqual(node_error["failed_camera_ids"], [2])
+
     def test_idle_disconnect_uses_camera_specific_bounded_ui_message(self):
         with tempfile.TemporaryDirectory() as temp:
             receiver, events = self.receiver(Path(temp))
