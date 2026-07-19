@@ -15,11 +15,16 @@ Rectangle {
 
     Text {
         anchors.centerIn: parent
+        width: parent.width - 24
         text: control.label
         color: control.enabled ? "white" : "#89919a"
         font.pixelSize: 20
+        fontSizeMode: Text.Fit
+        minimumPixelSize: 12
         font.bold: true
         font.letterSpacing: 2
+        horizontalAlignment: Text.AlignHCenter
+        elide: Text.ElideRight
     }
 
     MouseArea {

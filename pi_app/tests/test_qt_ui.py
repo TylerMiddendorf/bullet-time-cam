@@ -160,9 +160,12 @@ class QmlContractTests(unittest.TestCase):
     def test_library_is_scrollable_and_primary_touch_targets_are_not_tiny(self):
         library = (QML_ROOT / "pages" / "LibraryPage.qml").read_text(encoding="utf-8")
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
+        touch_button = (QML_ROOT / "components" / "TouchButton.qml").read_text(encoding="utf-8")
         self.assertIn("GridView", library)
         self.assertIn("boundsBehavior: Flickable.StopAtBounds", library)
         self.assertNotIn("height: 36", ready)
+        self.assertIn("fontSizeMode: Text.Fit", touch_button)
+        self.assertIn("width: parent.width - 24", touch_button)
 
     def test_contract_matches_detached_viewer_and_inert_settings(self):
         contract = json.loads(
