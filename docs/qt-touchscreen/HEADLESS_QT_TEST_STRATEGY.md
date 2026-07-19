@@ -80,8 +80,20 @@ command at this layer.
 
 ## Layer 3 - seven-route render matrix
 
-Render routes in canonical order after fonts and fixtures are ready. Use these
-filenames exactly:
+Render routes in canonical order after fonts and fixtures are ready.
+
+The tracked `RouteHarness.qml` supplies deterministic, command-free state for
+each native route. On the Pi, render one route per bounded process, optionally
+pointing review/viewer at a real published GIF:
+
+```bash
+python3 -m pi_app.tools.smoke_qt_qml \
+  --qml pi_app/bullettime/qml/RouteHarness.qml \
+  --platform wayland --route ready \
+  --screenshot build/qt-evidence/01-ready-800x480.png
+```
+
+Use these filenames exactly:
 
 ```text
 01-ready-800x480.png

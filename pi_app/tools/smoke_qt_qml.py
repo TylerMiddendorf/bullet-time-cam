@@ -19,6 +19,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout-ms", type=int, default=5000)
     parser.add_argument("--required-object", default="startupLogo")
     parser.add_argument("--screenshot", type=Path)
+    parser.add_argument(
+        "--route",
+        choices=("ready", "progress", "review", "preview", "control", "library", "viewer"),
+    )
+    parser.add_argument("--media", help="optional file URL for review/viewer route fixtures")
     return parser
 
 
@@ -55,7 +60,12 @@ def main(argv: list[str] | None = None) -> int:
             messages.append(message)
 
     qInstallMessageHandler(message_handler)
-    application = QGuiApplication.instance() or QGuiApplication([sys.argv[0]])
+    application_arguments = [sys.argv[0]]
+    if args.route:
+        application_arguments.append(f"--route={args.route}")
+    if args.media:
+        application_arguments.append(f"--media={args.media}")
+    application = QGuiApplication.instance() or QGuiApplication(application_arguments)
     engine = QQmlApplicationEngine()
     report: dict[str, Any] = {
         "status": "FAIL",
@@ -67,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
         "required_object_found": False,
         "errors": [],
     }
+    if args.route:
+        report["route"] = args.route
 
     def finish_error(error: str) -> None:
         report["errors"].append(error)
