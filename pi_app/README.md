@@ -17,7 +17,7 @@ Run tests from the repository root:
 python3 -m unittest discover -s pi_app/tests -v
 ```
 
-The normal local run currently discovers 118 tests: 117 pass and one
+The normal local run currently discovers 126 tests: 125 pass and one
 environment-gated physical-rig test is skipped until a live ledger is supplied.
 Coverage includes Qt state/routes, the Capture-only touchscreen command
 boundary, detached playback, historical USB catalog
@@ -42,6 +42,29 @@ Ready displays the current USB and four-camera state and navigates to Settings,
 Library, or Capture. It does not enqueue a photo. Capture is the only
 touchscreen route that can enqueue a shot; the physical shutter remains an
 independent hardware input.
+
+## Camera USB Recovery
+
+Settings includes `RECONNECT CAMERAS` for the observed case where a Pi xHCI
+failure removes the complete downstream camera hub and no serial devices remain
+for ordinary reconnect discovery. The action is available only while capture
+is idle. It stops the UI, syncs and unmounts USB-backed filesystems, resets the
+installer-validated xHCI controller, waits for four user-accessible ESP32 serial
+ports, and restarts the UI.
+
+Install its guarded root service once from the Pi checkout:
+
+```bash
+cd /home/username/bullet-time-cam
+sudo pi_app/scripts/install_usb_recovery.sh
+```
+
+The installer creates a sudoers rule for exactly
+`/usr/bin/systemctl start --no-block bullet-time-usb-recovery.service`. It does
+not grant a shell or arbitrary sudo arguments. A recovery briefly disconnects
+the touchscreen and removable drive along with the cameras; the root helper
+restarts the UI on both success and failure. Do not use the action during
+capture or an active media write.
 
 Storage behavior is configured in `pi_app/config.json`:
 

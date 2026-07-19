@@ -99,6 +99,14 @@ icon and enlarges Ready's Settings gear. Commit `4be243c` passed the full Pi
 suite, native-Wayland renders, a Library-to-Ready interaction smoke, the boot
 verifier, and live-service inspection. See the
 [`navigation icon evidence`](docs/evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
+App 0.2.7 adds an idle-only `RECONNECT CAMERAS` action in Settings for a verified
+Pi xHCI failure that removed the complete downstream camera hub branch. The
+guarded helper cleanly unmounts USB media, resets the controller, waits for four
+usable camera ports, and restarts the UI. Commit `83cfda4` passed a real
+controller recovery, native Settings render, byte-valid post-recovery capture,
+the final Pi suite and boot verifier, and offline product-FAT repair/validation
+with a retained full backup. See the
+[`camera USB recovery evidence`](docs/evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 Compact enclosure work remains the active milestone.

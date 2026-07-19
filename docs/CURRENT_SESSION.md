@@ -59,6 +59,14 @@ Status reviewed: July 18, 2026
   renders, Library-to-Ready interaction smoke, boot verifier, and restarted
   live service passed. Evidence is in
   [`evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md`](evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
+- App 0.2.7 camera USB recovery is deployed at `83cfda4`. The Settings action
+  passed native 800x480 rendering, the exact guarded root one-shot, four usable
+  stable camera sessions, byte-valid capture `20260719T200154Z_65b3fe04`, the
+  126-test Pi run with one expected skip, and all 39 boot checks. The product
+  FAT was backed up, repaired, and verified clean offline; the retained backup
+  is `/home/username/usb-recovery-backups/20260719T1605-camera-recovery`.
+  Evidence is in
+  [`evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md`](evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
 
 ## Immediate Work
 

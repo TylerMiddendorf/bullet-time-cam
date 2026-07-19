@@ -354,3 +354,20 @@ Implementation status:
   returns directly to Ready.
 - Make the Ready screen's Settings gear and the Library screen's home icon
   occupy most of their respective touch buttons.
+
+### 2026-07-19 - Camera USB recovery control
+
+- Add a Settings action that can recover all four camera connections when the
+  Raspberry Pi USB controller loses the downstream camera hub branch.
+- The recovery is system maintenance, not an operative camera-image setting;
+  exposure, white balance, smoothing, and interpolation remain disabled.
+- The action may run only while capture is idle. It stops the application,
+  syncs and unmounts USB filesystems, resets the validated Pi xHCI controller,
+  waits for four usable ESP32 serial ports, and restarts the application.
+- The product owner explicitly approved a persistent passwordless sudo rule
+  limited to `/usr/bin/systemctl start --no-block
+  bullet-time-usb-recovery.service`. No general shell or arbitrary sudo access
+  is authorized.
+- Track implementation and Pi validation through commit, push, fast-forward
+  pull, native Settings rendering, a real controller recovery, and a valid
+  four-camera capture afterward.

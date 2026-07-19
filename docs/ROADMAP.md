@@ -211,6 +211,17 @@ skip, native-Wayland icon renders, a Library-to-Ready QML interaction smoke,
 the complete boot/session verifier, and restarted live-service inspection. See
 [`navigation-icon-sizing-2026-07-19.md`](evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md).
 
+App 0.2.7 adds an idle-only `RECONNECT CAMERAS` action to Settings for the
+observed case where xHCI invalid-context/setup errors remove the complete
+downstream camera hub branch. The narrowly privileged one-shot cleanly unmounts
+USB storage, resets the validated controller, waits for four usable camera
+serial ports, and restarts the UI. Final commit `83cfda4` passed the real
+controller recovery, native Settings render, byte-valid four-camera capture
+`20260719T200154Z_65b3fe04`, 125 deterministic tests with one expected skip,
+all 39 boot checks, and a clean repaired product FAT with a retained verified
+backup. See
+[`camera-usb-recovery-2026-07-19.md`](evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md).
+
 ## Milestone 4 - Compact Version 1 Enclosure
 
 Status: active July 18, 2026

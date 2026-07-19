@@ -186,7 +186,11 @@ currently uses a logo-derived static placeholder marked `STATIC PLACEHOLDER`
 and `CAMERA VIEW NOT CONNECTED`. There is no live camera transport, Qt
 Multimedia dependency, or `LIVE` claim. The independent physical shutter
 continues to use the shared hardware trigger. Camera settings are visible only
-as disabled future controls and emit no node commands. The Library validates
+as disabled future controls and emit no node commands. Settings also provides
+an idle-only `RECONNECT CAMERAS` system-recovery action. Its narrowly privileged
+root helper cleanly unmounts USB filesystems, resets the validated Pi xHCI
+controller, waits for four usable ESP32 serial ports, and restarts the UI; it
+does not alter node configuration. The Library validates
 published schema-2 capture sets and decodes
 selected GIFs away from removable media before viewer display. A confirmed
 delete action is available from the library and viewer; it revalidates the
@@ -373,6 +377,16 @@ As of July 18, 2026:
   service inspection. The camera nodes remained disconnected during this
   UI-only pass. See
   `docs/evidence/qt-touchscreen/navigation-icon-sizing-2026-07-19.md`.
+- App 0.2.7 adds the idle-only Settings `RECONNECT CAMERAS` action after a live
+  xHCI invalid-context/enumeration failure removed the complete downstream
+  camera branch. Final commit `83cfda4` passed the guarded one-shot recovery,
+  native 800x480 Settings render, four usable stable camera sessions, byte-valid
+  post-recovery capture `20260719T200154Z_65b3fe04`, 125 deterministic Pi tests
+  with one expected skip, all 39 boot checks, read/write removable storage, and
+  GPIO17 output LOW. A full 20-file product-drive backup was retained before
+  clearing a discovered FAT dirty bit; the separate offline no-write check and
+  post-remount byte comparison passed. See
+  `docs/evidence/qt-touchscreen/camera-usb-recovery-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,
