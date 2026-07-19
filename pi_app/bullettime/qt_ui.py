@@ -452,8 +452,10 @@ def run_qt_ui(
 
     poll_timer = QTimer()
     poll_timer.setInterval(50)
+    automatic_quit_scheduled = False
 
     def poll_events() -> None:
+        nonlocal automatic_quit_scheduled
         while True:
             try:
                 event = events.get_nowait()
@@ -465,6 +467,13 @@ def run_qt_ui(
                 controller.apply_catalog(catalog_results.get_nowait())
         except queue.Empty:
             pass
+        if (
+            int(config.get("trigger_count", 0)) > 0
+            and receiver.automatic_run_completed.is_set()
+            and not automatic_quit_scheduled
+        ):
+            automatic_quit_scheduled = True
+            QTimer.singleShot(1000, app.quit)
         try:
             while True:
                 controller.apply_opened_catalog(*catalog_open_results.get_nowait())

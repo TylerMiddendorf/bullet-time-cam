@@ -48,6 +48,8 @@ class QtDeploymentContractTests(unittest.TestCase):
         self.assertIn('objectName: "startupLogo"', qml)
         self.assertIn('first_frame["callback"] = start_runtime', runtime)
         self.assertIn("bridge.setParent(engine)", runtime)
+        self.assertIn("receiver.automatic_run_completed.is_set()", runtime)
+        self.assertIn("QTimer.singleShot(1000, app.quit)", runtime)
         self.assertNotIn("QtMultimedia", qml + runtime)
 
 
