@@ -6,6 +6,7 @@ Rectangle {
     property string accent: "#63adf2"
     property bool enabled: true
     property bool iconOnly: false
+    property real iconScale: 0.72
     signal tapped
 
     radius: 12
@@ -20,7 +21,7 @@ Rectangle {
         text: control.label
         color: control.enabled ? "white" : "#89919a"
         font.pixelSize: control.iconOnly
-            ? Math.floor(Math.min(control.width, control.height) * 0.72)
+            ? Math.floor(Math.min(control.width, control.height) * control.iconScale)
             : 20
         fontSizeMode: Text.Fit
         minimumPixelSize: control.iconOnly ? 1 : 12

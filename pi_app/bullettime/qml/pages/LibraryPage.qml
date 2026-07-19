@@ -379,6 +379,7 @@ Item {
         height: 58
         label: "\u2302"
         iconOnly: true
+        iconScale: 1.0
         onTapped: bridge.navigate("ready")
     }
 
