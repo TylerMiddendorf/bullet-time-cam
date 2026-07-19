@@ -4,6 +4,7 @@ Rectangle {
     id: header
     property string title: "BULLET-TIME"
     property string subtitle: ""
+    property color subtitleColor: bridge.usbStatus === "error" ? "#ff6168" : "#67d884"
     property bool showBack: false
     signal back
 
@@ -54,7 +55,7 @@ Rectangle {
         anchors.rightMargin: 22
         anchors.verticalCenter: parent.verticalCenter
         text: header.subtitle
-        color: bridge.usbStatus === "error" ? "#ff6168" : "#67d884"
+        color: header.subtitleColor
         font.pixelSize: 18
         font.bold: true
         font.letterSpacing: 1.5

@@ -372,6 +372,20 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn("bridge.storageAvailableText", library)
         self.assertIn("bridge.storageUsedFraction", library)
 
+        storage_circle = (QML_ROOT / "components" / "StorageUsageCircle.qml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'text: usage.connected ? "USB CONNECTED" : "USB DISCONNECTED"', storage_circle
+        )
+        self.assertIn("Math.round(usage.fraction * 100)", storage_circle)
+        self.assertIn('text: usage.connected ? usage.availableText + " FREE"', storage_circle)
+
+        self.assertIn('objectName: "storageUsageCircle"', ready)
+        self.assertIn("connected: bridge.storageConnected", ready)
+        self.assertIn("fraction: bridge.storageUsedFraction", ready)
+        self.assertIn("availableText: bridge.storageAvailableText", ready)
+
         viewer = (QML_ROOT / "pages" / "ViewerPage.qml").read_text(encoding="utf-8")
         confirmation = (QML_ROOT / "components" / "DeleteConfirmation.qml").read_text(
             encoding="utf-8"
@@ -406,6 +420,12 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn('status: "V2 · DISABLED"', control)
         setting = (QML_ROOT / "components" / "SettingCard.qml").read_text(encoding="utf-8")
         self.assertNotIn("onTapped", setting)
+
+        self.assertIn('objectName: "homeButton"', control)
+        self.assertIn('label: "\\u2302"', control)
+        self.assertIn("iconOnly: true", control)
+        self.assertIn("iconScale: 1.0", control)
+        self.assertIn('onTapped: bridge.navigate("ready")', control)
 
     def test_qt_import_remains_lazy_for_headless_hosts(self):
         # Importing this module succeeds in CI without PySide6 installed.

@@ -50,7 +50,7 @@ Item {
         objectName: "captureNavigationButton"
         x: 18
         y: 386
-        width: 246
+        width: 170
         height: 72
         label: "CAPTURE"
         onTapped: bridge.navigate("capture")
@@ -58,7 +58,7 @@ Item {
 
     TouchButton {
         objectName: "cameraRecoveryButton"
-        x: 268
+        x: 198
         y: 386
         width: 250
         height: 72
@@ -69,11 +69,23 @@ Item {
 
     TouchButton {
         objectName: "libraryButton"
-        x: 536
+        x: 458
         y: 386
-        width: 246
+        width: 156
         height: 72
         label: "LIBRARY"
         onTapped: bridge.navigate("library")
+    }
+
+    TouchButton {
+        objectName: "homeButton"
+        x: 624
+        y: 386
+        width: 158
+        height: 72
+        label: "\u2302"
+        iconOnly: true
+        iconScale: 1.0
+        onTapped: bridge.navigate("ready")
     }
 }

@@ -9,7 +9,8 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         title: "4 CAMERA RIG"
-        subtitle: bridge.usbStatus === "error" ? "USB ERROR" : "USB READY"
+        subtitle: bridge.storageConnected ? "USB CONNECTED" : "USB DISCONNECTED"
+        subtitleColor: bridge.storageConnected ? "#67d884" : "#ff6168"
     }
 
     Row {
@@ -29,8 +30,10 @@ Item {
 
     Text {
         id: readyTitle
-        anchors.horizontalCenter: parent.horizontalCenter
+        x: 72
         y: 145
+        width: 500
+        horizontalAlignment: Text.AlignHCenter
         text: bridge.state === "ERROR" ? "ATTENTION" : "READY"
         color: bridge.state === "ERROR" ? "#ff6168" : "white"
         font.pixelSize: 76
@@ -41,8 +44,8 @@ Item {
     Text {
         anchors.top: readyTitle.bottom
         anchors.topMargin: -4
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: 680
+        x: 72
+        width: 500
         horizontalAlignment: Text.AlignHCenter
         text: bridge.state === "ERROR" ? bridge.message : "4 CAMERAS CONNECTED"
         color: bridge.state === "ERROR" ? "#ff9196" : "#63adf2"
@@ -50,6 +53,17 @@ Item {
         font.bold: true
         font.letterSpacing: 2
         wrapMode: Text.WordWrap
+    }
+
+    StorageUsageCircle {
+        objectName: "storageUsageCircle"
+        x: 626
+        y: 138
+        width: 150
+        height: 156
+        connected: bridge.storageConnected
+        fraction: bridge.storageUsedFraction
+        availableText: bridge.storageAvailableText
     }
 
     TouchButton {
