@@ -25,6 +25,11 @@ status narratives between files.
 
 ## Evidence and History
 
+The independent [`Qt touchscreen validation track`](qt-touchscreen/README.md)
+defines a non-shipped seven-route Qt Quick contract, deterministic headless
+strategy, evidence templates, and Pi deployment/rollback checklist. It does not
+change milestone status or product scope.
+
 - [`evidence/README.md`](evidence/README.md) — milestone/checkpoint evidence index
 - [`history/`](history/) — completed implementation-session logs retained for context
 
@@ -33,6 +38,10 @@ existence or an older successful demonstration is not evidence that a later
 integration gate works.
 
 ## Design References
+
+The native 800x480 seven-route adaptation is specified in
+[`qt-touchscreen/UX_SPEC.md`](qt-touchscreen/UX_SPEC.md) under the current
+four-camera, no-live-preview, no-battery, and no-hotspot scope guards.
 
 - [`../designs/ux-mockups/README.md`](../designs/ux-mockups/README.md) —
   non-binding touchscreen concepts organized by V1, fast-follow, and later scope

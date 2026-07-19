@@ -1,0 +1,84 @@
+{
+  "status": "UNRUN",
+  "contract_version": 2,
+  "git_sha": "<sha>",
+  "qt": {
+    "platform": "<offscreen-or-wayland>",
+    "pyside_version": "<version>",
+    "qt_version": "<version>",
+    "qml_warning_count": null,
+    "root_object_count": null,
+    "first_frame_swapped_ms": null
+  },
+  "viewport": [800, 480],
+  "routes": [
+    {
+      "id": "ready",
+      "source": "designs/ux-mockups/01-v1-ready.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "01-ready-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN"
+    },
+    {
+      "id": "progress",
+      "source": "designs/ux-mockups/02-v1-capture-progress.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "02-progress-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN"
+    },
+    {
+      "id": "partial-review",
+      "source": "designs/ux-mockups/03-v1-review-partial.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "03-partial-review-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN"
+    },
+    {
+      "id": "static-preview-placeholder",
+      "source": "designs/ux-mockups/04-fast-follow-live-preview.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "04-static-preview-placeholder-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN",
+      "backend": false,
+      "required_labels": ["DEMO PLACEHOLDER", "PREVIEW NOT CONNECTED"]
+    },
+    {
+      "id": "four-camera-control-center",
+      "source": "designs/ux-mockups/05-ideal-future-control-center.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "05-four-camera-control-center-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN",
+      "camera_count": 4,
+      "settings_enabled": false,
+      "node_commands": []
+    },
+    {
+      "id": "removable-media-library",
+      "source": "designs/ux-mockups/06-library-navigation.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "06-removable-media-library-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN",
+      "storage": "removable-usb-only",
+      "mutating_operations": []
+    },
+    {
+      "id": "gif-viewer",
+      "source": "designs/ux-mockups/07-gif-viewer.png",
+      "source_dimensions": [1619, 971],
+      "screenshot": "07-gif-viewer-800x480.png",
+      "screenshot_sha256": "<sha256>",
+      "result": "UNRUN",
+      "media_type": "image/gif",
+      "decoder": "QtQuick.AnimatedImage",
+      "qt_multimedia": false,
+      "gif_sha256": "<sha256>"
+    }
+  ],
+  "limitations": []
+}

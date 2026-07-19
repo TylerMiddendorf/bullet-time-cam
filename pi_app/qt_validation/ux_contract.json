@@ -30,20 +30,15 @@
       "QT_QUICK_CONTROLS_STYLE": "Basic"
     },
     "apt_packages": [
-      "python3-pyside6.qtcore",
-      "python3-pyside6.qtgui",
-      "python3-pyside6.qtqml",
       "python3-pyside6.qtquick",
-      "qml6-module-qml",
-      "qml6-module-qtqml",
-      "qml6-module-qtqml-workerscript",
-      "qml6-module-qtquick",
       "qml6-module-qtquick-controls",
       "qml6-module-qtquick-layouts",
-      "qml6-module-qtquick-templates",
-      "qml6-module-qtquick-window",
+      "qml6-module-qtqml-workerscript",
       "qt6-wayland"
     ],
+    "conditional_apt_packages": {
+      "qml6-module-qtquick-effects": "only-if-QML-imports-QtQuick.Effects"
+    },
     "forbidden_qt_modules": ["QtMultimedia"]
   },
   "touch": {

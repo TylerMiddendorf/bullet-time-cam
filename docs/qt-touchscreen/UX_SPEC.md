@@ -27,14 +27,20 @@ requirements for this track.
   headless tests. Whenever it is visible, `previewPlaceholderLabel` MUST overlay
   the exact text `DEMO PLACEHOLDER`; the UI MUST never use `LIVE` or imply that
   the fixture came from camera transport.
+- The validation route selector MUST be test-only. A deterministic route is not
+  automatically a shipped V1 feature or part of production navigation.
+- No route may render a hotspot state or claim network availability.
+- Unsupported camera settings MUST be disabled and MUST NOT call a node
+  command, transport, or configuration API.
 
 ## 2. Visual Language
 
-The first three files in `designs/ux-mockups/` are the only V1 visual sources.
-Each is a 1619x971 concept render. The implementation MUST create native
-800x480 Qt layouts and MUST NOT scale or use those mockup rasters as screen
-backgrounds. Bounds below are deliberate 800x480 layout specifications, not
-scaled mockup coordinates.
+The seven files in `designs/ux-mockups/` are the route composition sources.
+Every file is exactly 1619x971. The implementation MUST create native 800x480
+Qt layouts and MUST NOT scale or use those mockup rasters as screen backgrounds.
+Bounds below are deliberate 800x480 layout specifications, not scaled mockup
+coordinates. Designs 4-7 are adapted validation compositions, not authority to
+expand shipped product scope.
 
 ### 2.1 Palette
 
@@ -218,6 +224,64 @@ no camera nodes, or review-media load failure.
 - A review-media load failure reads `REVIEW UNAVAILABLE`, explains that the USB
   drive was removed, and permits recovery without terminating the event loop.
 
+### 4.8 STATIC_PREVIEW_PLACEHOLDER test route
+
+Route: `/preview-placeholder`; visual source:
+`designs/ux-mockups/04-fast-follow-live-preview.png`.
+
+- The route MUST use only `assets/ui/preview-placeholder.png` as its image-like
+  content and MUST render `DEMO PLACEHOLDER` over that asset.
+- It MUST also render `PREVIEW NOT CONNECTED`. It MUST NOT render `LIVE`, create
+  a camera-stream object, open camera transport, or import Qt Multimedia.
+- It shows exactly four camera identities and USB readiness without battery,
+  Wi-Fi, hotspot, timer, or user-setting claims.
+- It is non-interactive and emits no capture or node commands.
+
+### 4.9 FOUR_CAMERA_CONTROL_CENTER test route
+
+Route: `/control-center`; visual source:
+`designs/ux-mockups/05-ideal-future-control-center.png`.
+
+- The header MUST read `4 CAMERAS READY` and render exactly Cameras 1-4. It MUST
+  NOT retain the source concept's 12-camera, battery, or hotspot regions.
+- Exposure, white balance, smooth motion, and interpolation rows MUST be
+  visibly disabled. The route MUST show `SETTINGS UNAVAILABLE`; smooth motion
+  and interpolation MUST each say `UNAVAILABLE`.
+- Disabled setting objects MUST have no signal binding capable of sending a
+  node command. The route's `node_commands` contract remains an empty list.
+- The only allowed command is internal navigation to the library test route.
+  This route does not add a production media button or settings feature.
+
+### 4.10 REMOVABLE_MEDIA_LIBRARY test route
+
+Route: `/library`; visual source:
+`designs/ux-mockups/06-library-navigation.png`.
+
+- Entries MUST come only from committed capture directories on the selected
+  removable USB filesystem. The route MUST fail closed when that filesystem is
+  unavailable and MUST NOT enumerate or display boot-card media.
+- The library is read-only. It supports filter/select, open viewer, and back to
+  camera. It MUST NOT expose delete, rename, share, repair, or write actions.
+- Thumbnails and metadata load asynchronously or from deterministic fixtures;
+  enumeration and decode MUST NOT block the GUI thread for 33 ms.
+- Removal during enumeration or after thumbnail load MUST produce a bounded USB
+  error while the event loop survives. Already-decoded thumbnail data MUST not
+  retain an open removable-media file handle.
+
+### 4.11 REAL_GIF_VIEWER test route
+
+Route: `/viewer`; visual source:
+`designs/ux-mockups/07-gif-viewer.png`.
+
+- `gifPlayer` MUST load a real `image/gif` file using Qt Quick
+  `AnimatedImage`. The route MUST NOT import or depend on Qt Multimedia.
+- Play/pause, seek, 0.5x/1x/2x speed, loop, and back-to-library controls are
+  local viewer operations only. They emit no node or storage mutation command.
+- Decoded animation data MUST detach from removable media. Unplugging the drive
+  after load MUST not stop playback, event polling, or navigation.
+- Fixture evidence names the exact GIF and its SHA-256. Product evidence names
+  the capture ID and committed manifest.
+
 ## 5. Event-to-State Contract
 
 | Runtime input | Required transition |
@@ -232,6 +296,10 @@ no camera nodes, or review-media load failure.
 | ERROR while capture active | ERROR_BLOCKING with no stale image |
 | ERROR while idle partial review retained | retain REVIEW_PARTIAL and its original camera error |
 | invalid/removed review image | ERROR_BLOCKING; continue polling |
+| test route `/preview-placeholder` | static fixture; no command/backend |
+| test route `/control-center` | four cameras; settings disabled; no node command |
+| test route `/library` | read-only removable-media enumeration |
+| test route `/viewer` | real GIF through `AnimatedImage` |
 
 Events are processed on the Qt GUI thread through a queued signal or equivalent
 thread-safe boundary. Receiver work, filesystem resolution, image decoding, and
@@ -262,6 +330,12 @@ headless evidence and the Pi-only subset has physical-device evidence.
 | UX-014 | Geometry | Every screenshot is exactly 800x480; required bounds fit viewport |
 | UX-015 | Scope guard | No battery/power region or live/video/stream label; any preview fixture says DEMO PLACEHOLDER |
 | UX-016 | Shutdown | Receiver stop and Qt exit complete within service timeout |
+| UX-017 | Static preview route | Fixture says `DEMO PLACEHOLDER` and `PREVIEW NOT CONNECTED`; no backend or command |
+| UX-018 | Four-camera control center | Exactly four IDs; no battery/hotspot region; settings disabled; no node commands |
+| UX-019 | Removable-media library | Only committed USB captures; read-only operations; missing/removal fault survives |
+| UX-020 | Real GIF viewer | Real GIF animates through `AnimatedImage`; no Qt Multimedia import |
+| UX-021 | Route screenshot matrix | Seven canonical screenshots are each exactly 800x480 with recorded SHA-256 |
+| UX-022 | Wayland production gate | `QT_QPA_PLATFORM=wayland`; no Xwayland; bounded smoke has no warnings and a root object |
 
 ## 7. Evidence Rules
 
@@ -278,3 +352,27 @@ headless evidence and the Pi-only subset has physical-device evidence.
 - Unresolved clipping, missing assets/fonts, software-rendering differences,
   or Pi-only failures remain explicit; they are not converted into passes by a
   desktop headless result.
+
+## 8. Runtime and cleanup contract
+
+The target runtime is Debian 13 Trixie arm64 with its Qt/PySide 6.8 package
+family. The exact explicit minimum is recorded in
+`pi_app/system-requirements-qt.txt`: `python3-pyside6.qtquick`,
+`qml6-module-qtquick-controls`, `qml6-module-qtquick-layouts`,
+`qml6-module-qtqml-workerscript`, and `qt6-wayland`. Apt resolves their lower
+level dependencies. Install `qml6-module-qtquick-effects` only if a QML file
+actually imports `QtQuick.Effects`.
+
+- Production MUST set `QT_QPA_PLATFORM=wayland`; relying on the default or on
+  Xwayland is a failed migration gate.
+- Headless tests use `offscreen`, software RHI, the basic render loop, and the
+  Basic Controls style for deterministic comparisons.
+- A bounded QML smoke MUST fail on any QML warning, a load timeout, or
+  `rootObjects().length == 0`.
+- The first Qt frame MUST be the opaque product logo. The first `frameSwapped`
+  timestamp and logo-visible assertion are recorded independently.
+- Shutdown MUST stop the receiver, join its worker within the service timeout,
+  close serial ownership, and restore or confirm GPIO17 output LOW before Qt
+  exits.
+- The known Tk/X11 packages remain installed until the Wayland Qt route,
+  capture, partial, removal, reboot, and rollback gates all pass.

@@ -3,6 +3,8 @@
 These images are provisional visual references for the rig's 800x480-aspect
 touchscreen. They communicate possible layout and visual direction; they are
 not executable UI, hardware evidence, or confirmed product requirements.
+All seven PNG source renders are exactly 1619x971 and must be re-laid out as
+native 800x480 UI objects rather than used as scaled raster backgrounds.
 
 ## Version 1 Concepts
 
@@ -35,3 +37,10 @@ preview, synchronized settings, a gallery, enhanced processing, 12-camera
 operation, and hotspot status. Canonical scope and sequencing remain in
 [`docs/PROJECT_CONTEXT.md`](../../docs/PROJECT_CONTEXT.md) and
 [`docs/ROADMAP.md`](../../docs/ROADMAP.md).
+
+The independent [`Qt validation track`](../../docs/qt-touchscreen/README.md)
+defines bounded test-route adaptations for all seven compositions. In that
+track Design 4 is a labeled static placeholder, Design 5 is four-camera-only
+with settings disabled and no node commands, Design 6 is a read-only
+removable-USB catalog, and Design 7 uses a real GIF without Qt Multimedia.
+Those test routes do not promote the later concepts into shipped V1 scope.

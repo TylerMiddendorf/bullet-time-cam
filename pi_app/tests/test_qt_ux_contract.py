@@ -19,6 +19,7 @@ from pi_app.qt_validation.headless import (
     expected_screenshot_name,
     qt_environment,
 )
+from pi_app.tools.smoke_qt_qml import build_parser as build_qml_smoke_parser
 
 
 def _minimal_png_header(width: int, height: int) -> bytes:
@@ -47,6 +48,30 @@ class QtUxContractTests(unittest.TestCase):
         self.assertEqual(tuple(route["id"] for route in routes), EXPECTED_ROUTE_IDS)
         self.assertEqual(len({route["path"] for route in routes}), 7)
         self.assertEqual(self.contract["viewport"]["layout_mode"], "native")
+
+    def test_runtime_package_set_is_minimal_and_effects_is_conditional(self):
+        self.assertEqual(
+            self.contract["runtime"]["apt_packages"],
+            [
+                "python3-pyside6.qtquick",
+                "qml6-module-qtquick-controls",
+                "qml6-module-qtquick-layouts",
+                "qml6-module-qtqml-workerscript",
+                "qt6-wayland",
+            ],
+        )
+        self.assertEqual(
+            self.contract["runtime"]["conditional_apt_packages"],
+            {"qml6-module-qtquick-effects": "only-if-QML-imports-QtQuick.Effects"},
+        )
+        requirement_lines = [
+            line.strip()
+            for line in (REPOSITORY_ROOT / "pi_app" / "system-requirements-qt.txt")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+        self.assertEqual(requirement_lines, self.contract["runtime"]["apt_packages"])
 
     def test_validator_rejects_scope_expansion(self):
         unsafe = copy.deepcopy(self.contract)
@@ -139,6 +164,12 @@ class HeadlessQtUtilityTests(unittest.TestCase):
             _, errors = collect_screenshot_evidence(directory, contract)
         self.assertEqual(len(errors), 7)
         self.assertIn("is 801x480; expected 800x480", errors[0])
+
+    def test_qml_smoke_parser_is_bounded_and_headless_by_default(self):
+        arguments = build_qml_smoke_parser().parse_args(["--qml", "Main.qml"])
+        self.assertEqual(arguments.platform, "offscreen")
+        self.assertEqual(arguments.timeout_ms, 5000)
+        self.assertEqual(arguments.required_object, "startupLogo")
 
 
 if __name__ == "__main__":

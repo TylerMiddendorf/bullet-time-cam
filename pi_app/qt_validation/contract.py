@@ -10,6 +10,10 @@ from typing import Any
 
 CONTRACT_PATH = Path(__file__).with_name("ux_contract.json")
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+SYSTEM_REQUIREMENTS_PATH = REPOSITORY_ROOT / "pi_app" / "system-requirements-qt.txt"
+ROUTE_EVIDENCE_TEMPLATE_PATH = (
+    REPOSITORY_ROOT / "docs" / "qt-touchscreen" / "evidence" / "ROUTE_EVIDENCE_TEMPLATE.json"
+)
 EXPECTED_ROUTE_IDS = (
     "ready",
     "progress",
@@ -20,15 +24,13 @@ EXPECTED_ROUTE_IDS = (
     "gif-viewer",
 )
 EXPECTED_SOURCE_DESIGNS = tuple(range(1, 8))
-REQUIRED_APT_PACKAGES = {
-    "python3-pyside6.qtcore",
-    "python3-pyside6.qtgui",
-    "python3-pyside6.qtqml",
+REQUIRED_APT_PACKAGES = (
     "python3-pyside6.qtquick",
-    "qml6-module-qtquick",
     "qml6-module-qtquick-controls",
+    "qml6-module-qtquick-layouts",
+    "qml6-module-qtqml-workerscript",
     "qt6-wayland",
-}
+)
 
 
 @dataclass(frozen=True)
@@ -106,7 +108,15 @@ def _validate_bounds(contract: dict[str, Any], errors: list[str]) -> None:
             errors.append(f"named bound {name!r} exceeds the 800x480 viewport")
 
 
-def _validate_runtime(contract: dict[str, Any], errors: list[str]) -> None:
+def _requirement_lines(path: Path) -> list[str]:
+    return [
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+
+def _validate_runtime(contract: dict[str, Any], repository_root: Path, errors: list[str]) -> None:
     runtime = contract.get("runtime", {})
     expected = {
         "architecture": "arm64",
@@ -121,11 +131,21 @@ def _validate_runtime(contract: dict[str, Any], errors: list[str]) -> None:
     if runtime.get("production_environment", {}).get("QT_QPA_PLATFORM") != "wayland":
         errors.append("production QT_QPA_PLATFORM must be wayland")
     packages = runtime.get("apt_packages", [])
-    if not isinstance(packages, list) or packages != sorted(set(packages)):
-        errors.append("runtime apt_packages must be unique and sorted")
-    missing = sorted(REQUIRED_APT_PACKAGES.difference(packages))
-    if missing:
-        errors.append(f"runtime apt_packages missing: {', '.join(missing)}")
+    if not isinstance(packages, list) or len(packages) != len(set(packages)):
+        errors.append("runtime apt_packages must be a unique list")
+    if tuple(packages) != REQUIRED_APT_PACKAGES:
+        errors.append("runtime apt_packages must equal the five-package minimum set")
+    requirements_path = repository_root / "pi_app" / "system-requirements-qt.txt"
+    try:
+        requirement_lines = _requirement_lines(requirements_path)
+    except OSError as exc:
+        errors.append(f"Qt system requirements cannot be read: {exc}")
+    else:
+        if requirement_lines != packages:
+            errors.append("Qt system requirements must match runtime apt_packages exactly")
+    conditional = runtime.get("conditional_apt_packages", {})
+    if conditional != {"qml6-module-qtquick-effects": "only-if-QML-imports-QtQuick.Effects"}:
+        errors.append("QtQuick Effects package must remain conditional on its QML import")
     if "QtMultimedia" not in runtime.get("forbidden_qt_modules", []):
         errors.append("QtMultimedia must remain explicitly forbidden")
 
@@ -146,6 +166,24 @@ def _validate_scope(contract: dict[str, Any], errors: list[str]) -> None:
     for key, value in expected.items():
         if scope.get(key) != value:
             errors.append(f"scope {key} must be {value!r}")
+
+
+def _validate_evidence_template(repository_root: Path, errors: list[str]) -> None:
+    path = repository_root / "docs" / "qt-touchscreen" / "evidence" / "ROUTE_EVIDENCE_TEMPLATE.json"
+    try:
+        template = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        errors.append(f"route evidence template cannot be loaded: {exc}")
+        return
+    routes = template.get("routes", [])
+    route_ids = [route.get("id") for route in routes if isinstance(route, dict)]
+    if tuple(route_ids) != EXPECTED_ROUTE_IDS:
+        errors.append("route evidence template must cover all seven routes in order")
+    for route in routes:
+        if route.get("source_dimensions") != [1619, 971]:
+            errors.append(
+                f"evidence route {route.get('id')!r} must record 1619x971 source dimensions"
+            )
 
 
 def _validate_route(
@@ -249,8 +287,9 @@ def validate_contract(
         errors.append("source_raster must be 1619x971 and visual-reference-only")
 
     _validate_bounds(contract, errors)
-    _validate_runtime(contract, errors)
+    _validate_runtime(contract, repository_root, errors)
     _validate_scope(contract, errors)
+    _validate_evidence_template(repository_root, errors)
 
     routes = contract.get("routes", [])
     if not isinstance(routes, list):

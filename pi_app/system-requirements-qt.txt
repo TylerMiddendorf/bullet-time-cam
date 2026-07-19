@@ -1,0 +1,10 @@
+# Debian 13 (Trixie) arm64 minimum for the Qt Quick validation track.
+# Dependencies of these packages are resolved by apt; do not duplicate them here.
+python3-pyside6.qtquick
+qml6-module-qtquick-controls
+qml6-module-qtquick-layouts
+qml6-module-qtqml-workerscript
+qt6-wayland
+
+# Install qml6-module-qtquick-effects only if QML imports QtQuick.Effects.
+# Tk/X11 packages remain installed during migration so rollback stays immediate.
