@@ -49,6 +49,7 @@ Item {
 
         Column {
             anchors.centerIn: parent
+            width: parent.width
             spacing: 1
             Text {
                 width: parent.width - 16

@@ -267,6 +267,7 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn('text: "STATIC PLACEHOLDER"', placeholder)
         self.assertIn('text: "CAMERA VIEW NOT CONNECTED"', placeholder)
         self.assertIn("fontSizeMode: Text.Fit", placeholder)
+        self.assertIn("width: parent.width", placeholder)
         self.assertIn("bridge.capturePlaceholder", placeholder)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
