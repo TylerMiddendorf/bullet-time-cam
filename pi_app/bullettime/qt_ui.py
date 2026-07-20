@@ -74,6 +74,10 @@ def _frame_data_url(frame: Image.Image) -> str:
     return f"data:image/png;base64,{encoded}"
 
 
+def _jpeg_data_url(payload: bytes) -> str:
+    return "data:image/jpeg;base64," + base64.b64encode(payload).decode("ascii")
+
+
 class QtUiController:
     """Own UI state without importing PySide6, so headless tests remain portable."""
 
@@ -102,6 +106,8 @@ class QtUiController:
         self.display_timing_recorded = False
         self.camera_recovery_pending = False
         self.camera_recovery_message = ""
+        self.preview_source = ""
+        self.preview_camera_id = 0
         self._on_changed = on_changed or (lambda: None)
         self._refresh_catalog: Callable[[], None] = lambda: None
         self._refresh_storage: Callable[[], None] = lambda: None
@@ -201,10 +207,24 @@ class QtUiController:
     def set_camera_recovery_callback(self, recover: Callable[[], None]) -> None:
         self._recover_cameras = recover
 
+    def _change_route(self, route: str) -> None:
+        previous = self.route
+        if previous == route:
+            return
+        if previous == "capture":
+            self.commands.put("PREVIEW_STOP")
+            self.preview_source = ""
+            self.preview_camera_id = 0
+        self.route = route
+        if route == "capture":
+            self.preview_source = ""
+            self.preview_camera_id = 0
+            self.commands.put("PREVIEW_START")
+
     def navigate(self, route: str) -> bool:
         if route not in ALL_ROUTES or self.snapshot.capture_in_progress:
             return False
-        self.route = route
+        self._change_route(route)
         if route == "library":
             self.catalog_status = "loading"
             self.catalog_message = "Refreshing removable USB media"
@@ -224,7 +244,7 @@ class QtUiController:
         self.presentation_state.apply(
             {"state": "LOADING", "message": "Starting capture", "phase": "capturing"}
         )
-        self.route = "progress"
+        self._change_route("progress")
         self.commands.put("CAPTURE")
         self._on_changed()
         return True
@@ -327,7 +347,7 @@ class QtUiController:
         if error is not None or not frames or not durations:
             self.catalog_status = "removed"
             self.catalog_message = "Selected media was removed, corrupt, or unreadable"
-            self.route = "library"
+            self._change_route("library")
             self._on_changed()
             return
         self.review_frames = [_frame_data_url(frame) for frame in frames]
@@ -335,7 +355,7 @@ class QtUiController:
         self.review_index = 0
         self.catalog_status = "ready"
         self.catalog_message = entry.capture_id
-        self.route = "viewer"
+        self._change_route("viewer")
         self._on_changed()
 
     def apply_deleted_catalog(
@@ -347,7 +367,7 @@ class QtUiController:
     ) -> None:
         self.delete_confirmation_visible = False
         self.pending_delete_entry = None
-        self.route = "library"
+        self._change_route("library")
         if storage_usage is not None:
             self.storage_usage = storage_usage
         if error is not None or catalog is None:
@@ -392,16 +412,22 @@ class QtUiController:
         self.review_index = 0
 
     def handle_event(self, event: dict) -> None:
+        if event.get("type") == "preview_frame":
+            if self.route == "capture" and not self.snapshot.capture_in_progress:
+                self.preview_source = _jpeg_data_url(event["jpeg"])
+                self.preview_camera_id = int(event["camera_id"])
+                self._on_changed()
+            return
         try:
             presentation = self.presentation_state.apply(event)
             if presentation.image:
                 self._detach_review(presentation.image)
             if self.snapshot.screen == "progress":
-                self.route = "progress"
+                self._change_route("progress")
             elif self.snapshot.screen == "review":
-                self.route = "review"
+                self._change_route("review")
             elif self.route in RUNTIME_ROUTES:
-                self.route = "ready"
+                self._change_route("ready")
             self.last_manifest = event.get("manifest")
             if self.last_manifest is not None:
                 self.display_timing_recorded = False
@@ -419,7 +445,7 @@ class QtUiController:
                     ),
                 }
             )
-            self.route = "ready"
+            self._change_route("ready")
         self._on_changed()
 
     def record_display_timing(self) -> None:
@@ -472,7 +498,6 @@ def run_qt_ui(
     )
 
     repo_root = Path(__file__).resolve().parents[2]
-    placeholder = repo_root / "assets" / "ui" / "preview-placeholder.png"
     logo = Path(config.get("startup_logo", repo_root / "assets" / "Logo_800x480.png"))
     first_frame = {"seen": False, "callback": lambda: None}
 
@@ -527,6 +552,18 @@ def run_qt_ui(
         def imageSource(self) -> str:  # noqa: N802
             return controller.image_source
 
+        @Property(str, notify=changed)
+        def previewSource(self) -> str:  # noqa: N802
+            return controller.preview_source
+
+        @Property(int, notify=changed)
+        def previewCameraId(self) -> int:  # noqa: N802
+            return controller.preview_camera_id
+
+        @Property(bool, notify=changed)
+        def previewAvailable(self) -> bool:  # noqa: N802
+            return bool(controller.preview_source)
+
         @Property("QVariantList", notify=changed)
         def libraryItems(self) -> list[dict]:  # noqa: N802
             return controller.qml_library_items
@@ -566,10 +603,6 @@ def run_qt_ui(
         @Property(str, notify=changed)
         def pendingDeleteTitle(self) -> str:  # noqa: N802
             return controller.pending_delete_title
-
-        @Property(str, constant=True)
-        def capturePlaceholder(self) -> str:  # noqa: N802
-            return QUrl.fromLocalFile(str(placeholder)).toString()
 
         @Property(str, constant=True)
         def startupLogo(self) -> str:  # noqa: N802

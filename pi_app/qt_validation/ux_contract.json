@@ -49,7 +49,7 @@
   },
   "scope": {
     "camera_count": 4,
-    "live_preview_backend": false,
+    "live_preview_backend": true,
     "multimedia_dependency": false,
     "battery_ui": false,
     "battery_reserved_space": false,
@@ -71,13 +71,6 @@
     "video stream",
     "streaming"
   ],
-  "capture_fixture": {
-    "path": "assets/ui/preview-placeholder.png",
-    "required_label": "STATIC PLACEHOLDER",
-    "forbidden_label": "LIVE",
-    "source": "generated-static-fixture",
-    "camera_transport": false
-  },
   "routes": [
     {
       "id": "ready",
@@ -170,23 +163,23 @@
       "product_tier": "v1",
       "rendered_text": [
         "CAPTURE",
-        "STATIC PLACEHOLDER",
+        "PREVIEW CAMERA 1",
         "4 CAMERAS CONNECTED",
         "USB READY",
-        "CAMERA VIEW NOT CONNECTED"
+        "320 × 240 · ROTATING VIEWS"
       ],
       "required_objects": [
         "rootSurface",
         "productMark",
         "cameraStrip",
         "storageBadge",
-        "capturePlaceholder",
+        "previewImage",
         "captureButton"
       ],
-      "forbidden_objects": ["previewStream", "videoOutput"],
+      "forbidden_objects": ["videoOutput"],
       "allowed_commands": ["CAPTURE", "NAVIGATE_SETTINGS", "NAVIGATE_READY"],
       "interactive_objects": ["captureButton", "settingsButton", "backButton"],
-      "fixture": "assets/ui/preview-placeholder.png"
+      "preview_transport": "BTC1-polled-JPEG"
     },
     {
       "id": "four-camera-control-center",

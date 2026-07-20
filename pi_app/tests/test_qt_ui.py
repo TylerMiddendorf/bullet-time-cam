@@ -99,7 +99,9 @@ class QtUiControllerTests(unittest.TestCase):
         self.assertEqual(controller.snapshot.state, "READY")
 
         self.assertTrue(controller.navigate("capture"))
+        self.assertEqual(commands.get_nowait(), "PREVIEW_START")
         self.assertTrue(controller.request_capture())
+        self.assertEqual(commands.get_nowait(), "PREVIEW_STOP")
         self.assertEqual(commands.get_nowait(), "CAPTURE")
         self.assertEqual(controller.route, "progress")
         self.assertEqual(controller.snapshot.state, "LOADING")
@@ -292,7 +294,7 @@ class QmlContractTests(unittest.TestCase):
         for route in set(pages) - {"ready"}:
             self.assertIn(f'bridge.route === "{route}"', harness)
         self.assertIn("return readyPage", harness)
-        self.assertIn('argumentValue("--media="', harness)
+        self.assertIn('"--media="', harness)
         self.assertIn("flags: Qt.FramelessWindowHint", harness)
         self.assertIn("property bool canRecoverCameras", harness)
         self.assertIn("property bool cameraRecoveryPending", harness)
@@ -307,16 +309,16 @@ class QmlContractTests(unittest.TestCase):
         self.assertNotIn("HOTSPOT", content.upper())
         self.assertNotIn(" LIVE", content.upper())
 
-    def test_capture_placeholder_is_truthfully_labeled_and_settings_are_inert(self):
-        placeholder = (QML_ROOT / "components" / "PlaceholderSurface.qml").read_text(
-            encoding="utf-8"
-        )
+    def test_capture_uses_genuine_preview_bridge_and_settings_are_inert(self):
+        capture = (QML_ROOT / "pages" / "CapturePage.qml").read_text(encoding="utf-8")
         setting = (QML_ROOT / "components" / "SettingCard.qml").read_text(encoding="utf-8")
-        self.assertIn('text: "STATIC PLACEHOLDER"', placeholder)
-        self.assertIn('text: "CAMERA VIEW NOT CONNECTED"', placeholder)
-        self.assertIn("fontSizeMode: Text.Fit", placeholder)
-        self.assertIn("width: parent.width", placeholder)
-        self.assertIn("bridge.capturePlaceholder", placeholder)
+        self.assertIn('objectName: "previewImage"', capture)
+        self.assertIn("source: bridge.previewSource", capture)
+        self.assertIn("visible: bridge.previewAvailable", capture)
+        self.assertIn("bridge.previewCameraId", capture)
+        self.assertIn("Image.PreserveAspectFit", capture)
+        self.assertNotIn("STATIC PLACEHOLDER", capture)
+        self.assertNotIn("CAMERA VIEW NOT CONNECTED", capture)
         self.assertIn("enabled: false", setting)
         self.assertNotIn("bridge.", setting)
 
@@ -325,6 +327,23 @@ class QmlContractTests(unittest.TestCase):
         self.assertIn('"RECONNECT CAMERAS"', control)
         self.assertIn("enabled: bridge.canRecoverCameras", control)
         self.assertIn("bridge.recoverCameras()", control)
+
+    def test_preview_lifecycle_is_route_scoped_and_capture_priority_ordered(self):
+        commands = queue.Queue()
+        controller = QtUiController(commands)
+        controller.handle_event({"state": "READY", "connected_camera_ids": [1, 2, 3, 4]})
+
+        self.assertTrue(controller.navigate("capture"))
+        self.assertEqual(commands.get_nowait(), "PREVIEW_START")
+        controller.handle_event({"type": "preview_frame", "camera_id": 4, "jpeg": b"jpeg"})
+        self.assertTrue(controller.preview_source.startswith("data:image/jpeg;base64,"))
+        self.assertEqual(controller.preview_camera_id, 4)
+
+        self.assertTrue(controller.request_capture())
+        self.assertEqual(commands.get_nowait(), "PREVIEW_STOP")
+        self.assertEqual(commands.get_nowait(), "CAPTURE")
+        self.assertEqual(controller.preview_source, "")
+        self.assertEqual(controller.preview_camera_id, 0)
 
     def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")

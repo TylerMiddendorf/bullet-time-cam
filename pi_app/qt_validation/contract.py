@@ -153,7 +153,7 @@ def _validate_runtime(contract: dict[str, Any], repository_root: Path, errors: l
 def _validate_scope(contract: dict[str, Any], errors: list[str]) -> None:
     expected = {
         "camera_count": 4,
-        "live_preview_backend": False,
+        "live_preview_backend": True,
         "multimedia_dependency": False,
         "battery_ui": False,
         "battery_reserved_space": False,
@@ -228,11 +228,10 @@ def _validate_route(
             errors.append(f"route {route_id!r} renders forbidden term {term!r}")
 
     if route_id == "capture":
-        fixture = contract.get("capture_fixture", {})
-        if fixture.get("required_label") not in route.get("rendered_text", []):
-            errors.append("capture route must render STATIC PLACEHOLDER")
-        if route.get("fixture") != fixture.get("path"):
-            errors.append("capture route must use the approved fixture path")
+        if "previewImage" not in route.get("required_objects", []):
+            errors.append("capture route must provide the validated preview image")
+        if route.get("preview_transport") != "BTC1-polled-JPEG":
+            errors.append("capture route must use the validated BTC1 preview transport")
         if route.get("allowed_commands") != ["CAPTURE", "NAVIGATE_SETTINGS", "NAVIGATE_READY"]:
             errors.append("capture route must be the sole touchscreen capture-command route")
     elif route_id == "four-camera-control-center":
