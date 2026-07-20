@@ -27,6 +27,8 @@ from .protocol import (
     LOG,
     NACK,
     PING,
+    PREVIEW_IMAGE,
+    PREVIEW_REQUEST,
     TEST_CORRUPT_NEXT_IMAGE,
     TRANSFER_COMPLETE,
     encode_frame,
@@ -65,6 +67,7 @@ class NodeSession(threading.Thread):
         self.owner = owner
         self.port = port
         self.node_uid: str | None = None
+        self.boot_id: str | None = None
         self.stream = None
         self.write_lock = threading.Lock()
         self.current_metadata: dict | None = None
@@ -93,6 +96,7 @@ class NodeSession(threading.Thread):
                     {"host": "camerapi", "requested_monotonic_ns": time.monotonic_ns()},
                 )
                 hello = self._wait_for_hello()
+                self.boot_id = str(hello.metadata.get("boot_id", ""))
                 self.node_uid = self.owner.session_connected(self, hello.metadata)
                 while not self.owner.stop.is_set():
                     try:
@@ -173,6 +177,10 @@ class Receiver(threading.Thread):
         self.allow_incomplete_node_set = bool(config.get("allow_incomplete_node_set", False))
         self.pending_trigger: dict | None = None
         self.automatic_run_completed = threading.Event()
+        self.preview_requested = False
+        self.preview_outstanding: dict | None = None
+        self.preview_camera_index = 0
+        self.next_preview_request_ns = 0
 
     def send_status(self, state: str, **values) -> None:
         self.events.put({"state": state, **values})
@@ -184,6 +192,7 @@ class Receiver(threading.Thread):
             with self.lock:
                 self._finalize_if_ready(time.monotonic_ns())
                 self._expire_unanswered_trigger(time.monotonic_ns())
+                self._service_preview(time.monotonic_ns())
             self.stop.wait(0.05)
 
     def _refresh_sessions(self) -> None:
@@ -255,6 +264,8 @@ class Receiver(threading.Thread):
                 )
             active_before = self.coordinator.active_capture_id
             uid = session.node_uid
+            if self.preview_outstanding and self.preview_outstanding["node_uid"] == uid:
+                self.preview_outstanding = None
             if uid and self.sessions_by_uid.get(uid) is session:
                 self.sessions_by_uid.pop(uid, None)
             current = session.current_metadata
@@ -304,8 +315,15 @@ class Receiver(threading.Thread):
     def _process_commands(self) -> None:
         requested = False
         try:
-            while self.commands.get_nowait() == "CAPTURE":
-                requested = True
+            while True:
+                command = self.commands.get_nowait()
+                if command == "CAPTURE":
+                    requested = True
+                elif command == "PREVIEW_START":
+                    self.preview_requested = True
+                elif command == "PREVIEW_STOP":
+                    self.preview_requested = False
+                    self.preview_outstanding = None
         except queue.Empty:
             pass
         now_ns = time.monotonic_ns()
@@ -326,8 +344,46 @@ class Receiver(threading.Thread):
         if requested or automatic:
             self._request_capture(automatic=automatic)
 
+    def _service_preview(self, now_ns: int) -> None:
+        timeout_ns = int(self.config.get("preview_timeout_ms", 1000)) * 1_000_000
+        if self.preview_outstanding is not None:
+            if now_ns - self.preview_outstanding["requested_ns"] < timeout_ns:
+                return
+            self.preview_outstanding = None
+        if (
+            not self.preview_requested
+            or self.pending_trigger is not None
+            or not self.coordinator.trigger_allowed
+            or now_ns < self.next_preview_request_ns
+            or any(
+                session.current_metadata is not None for session in self.sessions_by_uid.values()
+            )
+        ):
+            return
+        sessions = sorted(
+            self.sessions_by_uid.values(),
+            key=lambda session: self.logical_cameras[str(session.node_uid)],
+        )
+        if len(sessions) != len(self.logical_cameras):
+            return
+        session = sessions[self.preview_camera_index % len(sessions)]
+        self.preview_camera_index = (self.preview_camera_index + 1) % len(sessions)
+        camera_id = self.logical_cameras[str(session.node_uid)]
+        session.send(
+            PREVIEW_REQUEST,
+            {"host": "camerapi", "logical_camera_id": camera_id, "requested_ns": now_ns},
+        )
+        self.preview_outstanding = {
+            "node_uid": session.node_uid,
+            "camera_id": camera_id,
+            "requested_ns": now_ns,
+        }
+        interval_ns = int(self.config.get("preview_interval_ms", 150)) * 1_000_000
+        self.next_preview_request_ns = now_ns + interval_ns
+
     def _request_capture(self, *, automatic: bool) -> None:
         with self.lock:
+            self.preview_outstanding = None
             if not self.coordinator.trigger_allowed or self.pending_trigger is not None:
                 self.send_status("LOADING", message="Capture already in progress")
                 return
@@ -439,6 +495,8 @@ class Receiver(threading.Thread):
                 self._transfer_complete(session, metadata, now_ns)
             elif frame.message_type == ERROR:
                 self._node_error(session, metadata, now_ns)
+            elif frame.message_type == PREVIEW_IMAGE:
+                self._preview_received(session, metadata, frame, now_ns)
             elif frame.message_type in {HELLO, LOG}:
                 return
 
@@ -470,6 +528,7 @@ class Receiver(threading.Thread):
                 session.stream.close()
 
     def _capture_started(self, session: NodeSession, metadata: dict, now_ns: int) -> None:
+        self.preview_outstanding = None
         key = transaction_key(metadata)
         try:
             capture_id = self.coordinator.start(metadata, now_ns)
@@ -494,6 +553,49 @@ class Receiver(threading.Thread):
             camera_id=int(metadata["logical_camera_id"]),
             camera_status="capturing",
         )
+
+    def _preview_received(self, session: NodeSession, metadata: dict, frame, now_ns: int) -> None:
+        outstanding = self.preview_outstanding
+        self.preview_outstanding = None
+        if (
+            not self.preview_requested
+            or outstanding is None
+            or outstanding["node_uid"] != session.node_uid
+            or self.pending_trigger is not None
+            or not self.coordinator.trigger_allowed
+        ):
+            return
+        try:
+            if str(metadata.get("boot_id", "")) != str(session.boot_id):
+                raise ValueError("preview boot identity mismatch")
+            if int(metadata.get("width", 0)) != 320 or int(metadata.get("height", 0)) != 240:
+                raise ValueError("preview dimensions invalid")
+            if int(metadata.get("jpeg_bytes", -1)) != len(frame.payload):
+                raise ValueError("preview byte count mismatch")
+            if not 0 < len(frame.payload) <= 64 * 1024:
+                raise ValueError("preview payload outside bounds")
+            expected_crc = str(metadata.get("jpeg_crc32", "")).lower()
+            actual_crc = f"{zlib.crc32(frame.payload) & 0xFFFFFFFF:08x}"
+            if expected_crc != actual_crc:
+                raise ValueError("preview checksum mismatch")
+            with Image.open(io.BytesIO(frame.payload)) as candidate:
+                if candidate.size != (320, 240) or candidate.format != "JPEG":
+                    raise ValueError("preview JPEG content invalid")
+                candidate.verify()
+            self.events.put(
+                {
+                    "type": "preview_frame",
+                    "camera_id": outstanding["camera_id"],
+                    "node_uid": session.node_uid,
+                    "preview_seq": int(metadata.get("preview_seq", 0)),
+                    "width": 320,
+                    "height": 240,
+                    "jpeg": frame.payload,
+                    "received_ns": now_ns,
+                }
+            )
+        except (OSError, TypeError, ValueError) as exc:
+            LOGGER.warning("Rejected Camera %s preview: %s", outstanding["camera_id"], exc)
 
     def _image_received(self, session: NodeSession, metadata: dict, frame, now_ns: int) -> None:
         key = transaction_key(metadata)

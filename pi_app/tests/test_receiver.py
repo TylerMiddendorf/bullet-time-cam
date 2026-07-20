@@ -11,7 +11,7 @@ from unittest.mock import patch
 from PIL import Image
 
 from pi_app.bullettime.coordinator import CaptureSetCoordinator
-from pi_app.bullettime.protocol import ACK, IMAGE, NACK, Frame
+from pi_app.bullettime.protocol import ACK, IMAGE, NACK, PREVIEW_IMAGE, PREVIEW_REQUEST, Frame
 from pi_app.bullettime.receiver import Receiver, response_metadata, transaction_key
 
 UIDS = {f"UID-{camera_id}": camera_id for camera_id in range(1, 5)}
@@ -43,6 +43,7 @@ class FakeSession:
     def __init__(self, camera_id):
         self.port = f"test-port-{camera_id}"
         self.node_uid = f"UID-{camera_id}"
+        self.boot_id = f"boot-{camera_id}"
         self.current_metadata = None
         self.sent = []
         self.fault_armed = threading.Event()
@@ -54,6 +55,12 @@ class FakeSession:
 def jpeg(camera_id):
     output = io.BytesIO()
     Image.new("RGB", (16, 12), (camera_id * 50, 30, 90)).save(output, "JPEG")
+    return output.getvalue()
+
+
+def preview_jpeg(camera_id):
+    output = io.BytesIO()
+    Image.new("RGB", (320, 240), (camera_id * 50, 30, 90)).save(output, "JPEG")
     return output.getvalue()
 
 
@@ -376,6 +383,123 @@ class ReceiverCompletionTests(unittest.TestCase):
         )
         self.assertEqual(len(response["error"]), 96)
         self.assertEqual(transaction_key(response), ("UID-1", "boot-1", 1))
+
+    def test_preview_rotates_single_flight_without_resolving_storage(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            receiver.sessions_by_uid = {session.node_uid: session for session in sessions.values()}
+            receiver.preview_requested = True
+            receiver.storage.resolve = unittest.mock.Mock(side_effect=AssertionError("USB touched"))
+
+            receiver._service_preview(1_000_000_000)
+            receiver._service_preview(1_100_000_000)
+            self.assertEqual(sessions[1].sent[0][0], PREVIEW_REQUEST)
+            self.assertEqual(sum(len(session.sent) for session in sessions.values()), 1)
+
+            receiver.preview_outstanding = None
+            receiver._service_preview(1_200_000_000)
+            self.assertEqual(sessions[2].sent[0][0], PREVIEW_REQUEST)
+
+    def test_capture_command_stops_new_preview_work_before_hardware_pulse(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            sessions = {camera_id: FakeSession(camera_id) for camera_id in range(1, 5)}
+            receiver.sessions_by_uid = {session.node_uid: session for session in sessions.values()}
+            receiver.preview_requested = True
+            receiver.preview_outstanding = {
+                "node_uid": "UID-1",
+                "camera_id": 1,
+                "requested_ns": 1,
+            }
+            receiver.commands.put("PREVIEW_STOP")
+            receiver.commands.put("CAPTURE")
+
+            receiver._process_commands()
+
+            self.assertFalse(receiver.preview_requested)
+            self.assertIsNone(receiver.preview_outstanding)
+            self.assertEqual(receiver.trigger.pulse_count, 1)
+            self.assertTrue(all(not session.sent for session in sessions.values()))
+
+    def test_physical_capture_start_preempts_outstanding_preview(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, _ = self.receiver(Path(temp))
+            receiver.preview_requested = True
+            receiver.preview_outstanding = {
+                "node_uid": "UID-1",
+                "camera_id": 1,
+                "requested_ns": 1,
+            }
+
+            receiver._capture_started(FakeSession(1), metadata(1), 2_000_000)
+
+            self.assertIsNone(receiver.preview_outstanding)
+            receiver._service_preview(3_000_000)
+
+    def test_valid_preview_is_memory_only_and_identity_attributed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            session = FakeSession(3)
+            payload = preview_jpeg(3)
+            receiver.preview_requested = True
+            receiver.preview_outstanding = {
+                "node_uid": session.node_uid,
+                "camera_id": 3,
+                "requested_ns": 1,
+            }
+            preview_metadata = {
+                "node_uid": session.node_uid,
+                "boot_id": session.boot_id,
+                "preview_seq": 7,
+                "width": 320,
+                "height": 240,
+                "jpeg_bytes": len(payload),
+                "jpeg_crc32": f"{zlib.crc32(payload) & 0xFFFFFFFF:08x}",
+                "logical_camera_id": 3,
+            }
+            frame = Frame(PREVIEW_IMAGE, preview_metadata, payload)
+
+            receiver._preview_received(session, preview_metadata, frame, 5_000_000)
+
+            event = events.get_nowait()
+            self.assertEqual(event["type"], "preview_frame")
+            self.assertEqual(event["camera_id"], 3)
+            self.assertEqual(event["node_uid"], "UID-3")
+            self.assertEqual(event["jpeg"], payload)
+            self.assertEqual(list(Path(temp).iterdir()), [])
+
+    def test_corrupt_preview_is_dropped_without_affecting_capture_state(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receiver, events = self.receiver(Path(temp))
+            session = FakeSession(4)
+            payload = preview_jpeg(4)
+            receiver.preview_requested = True
+            receiver.preview_outstanding = {
+                "node_uid": session.node_uid,
+                "camera_id": 4,
+                "requested_ns": 1,
+            }
+            preview_metadata = {
+                "node_uid": session.node_uid,
+                "boot_id": session.boot_id,
+                "preview_seq": 1,
+                "width": 320,
+                "height": 240,
+                "jpeg_bytes": len(payload),
+                "jpeg_crc32": "00000000",
+            }
+
+            with self.assertLogs("pi_app.bullettime.receiver", level="WARNING"):
+                receiver._preview_received(
+                    session,
+                    preview_metadata,
+                    Frame(PREVIEW_IMAGE, preview_metadata, payload),
+                    5_000_000,
+                )
+
+            self.assertTrue(events.empty())
+            self.assertTrue(receiver.coordinator.trigger_allowed)
 
 
 if __name__ == "__main__":

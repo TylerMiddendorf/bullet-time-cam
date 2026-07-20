@@ -28,6 +28,8 @@
   "gif_max_width": 800,
   "display_width": 800,
   "display_height": 480,
+  "preview_interval_ms": 150,
+  "preview_timeout_ms": 1000,
   "camera_recovery_command": [
     "/usr/bin/sudo",
     "-n",
