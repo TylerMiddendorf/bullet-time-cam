@@ -43,8 +43,8 @@ class FirmwareHostTests(unittest.TestCase):
             source.index("bool sendPreviewFrame()") : source.index("bool capturePhoto()")
         ]
 
-        restore = preview.index("setFrameSize(sensor, CAPTURE_FRAME_SIZE)")
-        trigger = preview.index("sharedTriggerPressed()")
+        restore = preview.rindex("setFrameSize(sensor, CAPTURE_FRAME_SIZE)")
+        trigger = preview.rindex("sharedTriggerPressed()")
         transfer = preview.index("sendFrame(MSG_PREVIEW_IMAGE")
         self.assertLess(restore, trigger)
         self.assertLess(trigger, transfer)
