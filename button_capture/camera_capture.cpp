@@ -45,6 +45,12 @@ bool setFrameSize(sensor_t* sensor, framesize_t frameSize) {
   return sensor && sensor->set_framesize && sensor->set_framesize(sensor, frameSize) == 0;
 }
 
+void restorePreviewMode(sensor_t* sensor) {
+  if (!setFrameSize(sensor, PREVIEW_FRAME_SIZE)) {
+    haltForever("Camera did not restore preview mode after still capture.");
+  }
+}
+
 void configureCameraPins(camera_config_t& config) {
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -77,12 +83,6 @@ void configureCameraPins(camera_config_t& config) {
 
 bool sendPreviewFrame() {
   static uint32_t previewSequence = 0;
-  sensor_t* sensor = esp_camera_sensor_get();
-  if (!setFrameSize(sensor, PREVIEW_FRAME_SIZE)) {
-    sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_SIZE_FAILED");
-    return false;
-  }
-
   camera_fb_t* frame = nullptr;
   for (uint8_t attempt = 0; attempt < PREVIEW_FRAME_ATTEMPTS; ++attempt) {
     frame = esp_camera_fb_get();
@@ -96,21 +96,12 @@ bool sendPreviewFrame() {
     esp_camera_fb_return(frame);
     frame = nullptr;
     if (sharedTriggerPressed()) {
-      if (!setFrameSize(sensor, CAPTURE_FRAME_SIZE)) {
-        haltForever("Camera did not restore the still-photo frame size after preview.");
-      }
       return true;
     }
   }
-  const bool restored = setFrameSize(sensor, CAPTURE_FRAME_SIZE);
   if (!frame) {
     sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_FRAME_FAILED");
     return false;
-  }
-
-  if (!restored) {
-    esp_camera_fb_return(frame);
-    haltForever("Camera did not restore the still-photo frame size after preview.");
   }
 
   // Capture always wins once a debounced shared-trigger press is observable.
@@ -154,18 +145,28 @@ bool capturePhoto() {
            static_cast<unsigned long long>(triggerAcceptedUs));
   sendFrame(MSG_CAPTURE_STARTED, captureMetadata);
 
+  sensor_t* sensor = esp_camera_sensor_get();
+  if (!setFrameSize(sensor, CAPTURE_FRAME_SIZE)) {
+    sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "CAPTURE_SIZE_FAILED");
+    return false;
+  }
+
   const uint64_t acquisitionStartedUs = esp_timer_get_time();
   delay(LIGHT_SETTLE_MS);
   if (!discardWarmupFrames()) {
+    restorePreviewMode(sensor);
     sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "CAMERA_SETTLE_FAILED");
     return false;
   }
 
   camera_fb_t* frame = esp_camera_fb_get();
   if (!frame) {
+    restorePreviewMode(sensor);
     sendNodeMessage(MSG_ERROR, sequence, esp_timer_get_time(), "FRAME_BUFFER_FAILED");
     return false;
   }
+
+  restorePreviewMode(sensor);
 
   const uint64_t frameReadyUs = esp_timer_get_time();
   bool ok = false;
@@ -278,4 +279,5 @@ void initializeCamera() {
 
   Serial.printf("Camera ready: %ux%u JPEG, quality %u.\n", CAPTURE_WIDTH, CAPTURE_HEIGHT,
                 JPEG_QUALITY);
+  restorePreviewMode(sensor);
 }

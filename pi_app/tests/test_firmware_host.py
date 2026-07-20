@@ -36,20 +36,27 @@ class FirmwareHostTests(unittest.TestCase):
         self.assertIn("MAX_PREVIEW_JPEG_BYTES = 64 * 1024", config)
         self.assertIn("PREVIEW_FRAME_ATTEMPTS = 3", config)
 
-    def test_preview_restores_still_mode_and_checks_trigger_before_transfer(self):
+    def test_preview_checks_trigger_and_capture_restores_idle_preview_mode(self):
         repository = Path(__file__).resolve().parents[2]
         source = (repository / "button_capture" / "camera_capture.cpp").read_text(encoding="utf-8")
         preview = source[
             source.index("bool sendPreviewFrame()") : source.index("bool capturePhoto()")
         ]
 
-        restore = preview.rindex("setFrameSize(sensor, CAPTURE_FRAME_SIZE)")
         trigger = preview.rindex("sharedTriggerPressed()")
         transfer = preview.index("sendFrame(MSG_PREVIEW_IMAGE")
-        self.assertLess(restore, trigger)
         self.assertLess(trigger, transfer)
         self.assertIn("frame->len > MAX_PREVIEW_JPEG_BYTES", preview)
         self.assertIn("attempt < PREVIEW_FRAME_ATTEMPTS", preview)
+
+        capture = source[
+            source.index("bool capturePhoto()") : source.index("void initializeCamera()")
+        ]
+        full_resolution = capture.index("setFrameSize(sensor, CAPTURE_FRAME_SIZE)")
+        capture_transfer = capture.index("sendFrame(MSG_IMAGE")
+        idle_preview = capture.index("restorePreviewMode(sensor)")
+        self.assertLess(full_resolution, idle_preview)
+        self.assertLess(idle_preview, capture_transfer)
 
     def test_registered_nodes_receive_distinct_transfer_slots(self):
         repository = Path(__file__).resolve().parents[2]
