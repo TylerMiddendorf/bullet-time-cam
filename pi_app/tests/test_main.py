@@ -68,6 +68,7 @@ class MainConfigurationTests(unittest.TestCase):
         self.assertEqual(args.trigger_count, 0)
         self.assertIsNone(args.initial_route)
         self.assertEqual(args.quit_after_seconds, 0)
+        self.assertEqual(args.capture_after_seconds, 0)
 
     def test_bounded_ui_validation_arguments_enter_capture_and_auto_quit(self):
         with patch(
@@ -78,6 +79,8 @@ class MainConfigurationTests(unittest.TestCase):
                 "capture",
                 "--quit-after-seconds",
                 "12.5",
+                "--capture-after-seconds",
+                "5",
             ],
         ):
             args = parse_args()
@@ -88,6 +91,7 @@ class MainConfigurationTests(unittest.TestCase):
             config = load_config(args)
         self.assertEqual(config["initial_route"], "capture")
         self.assertEqual(config["quit_after_ms"], 12_500)
+        self.assertEqual(config["capture_after_ms"], 5_000)
 
 
 if __name__ == "__main__":

@@ -860,6 +860,9 @@ def run_qt_ui(
         quit_after_ms = int(config.get("quit_after_ms", 0))
         if quit_after_ms > 0:
             QTimer.singleShot(quit_after_ms, app.quit)
+        capture_after_ms = int(config.get("capture_after_ms", 0))
+        if capture_after_ms > 0:
+            QTimer.singleShot(capture_after_ms, controller.request_capture)
 
     first_frame["callback"] = start_runtime
 

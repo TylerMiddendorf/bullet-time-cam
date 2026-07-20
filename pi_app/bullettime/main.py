@@ -60,6 +60,12 @@ def parse_args() -> argparse.Namespace:
         default=0,
         help="bounded UI validation: exit automatically after this many seconds",
     )
+    parser.add_argument(
+        "--capture-after-seconds",
+        type=float,
+        default=0,
+        help="bounded UI validation: invoke Capture after preview runs for this interval",
+    )
     return parser.parse_args()
 
 
@@ -87,6 +93,12 @@ def load_config(args: argparse.Namespace) -> dict:
     if quit_after_seconds < 0:
         raise ValueError("quit_after_seconds must not be negative")
     config["quit_after_ms"] = round(quit_after_seconds * 1000)
+    capture_after_seconds = float(getattr(args, "capture_after_seconds", 0))
+    if capture_after_seconds < 0:
+        raise ValueError("capture_after_seconds must not be negative")
+    if capture_after_seconds > 0 and config.get("initial_route") != "capture":
+        raise ValueError("capture_after_seconds requires --initial-route capture")
+    config["capture_after_ms"] = round(capture_after_seconds * 1000)
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str(
