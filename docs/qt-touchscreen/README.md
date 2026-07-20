@@ -22,7 +22,8 @@ recorded in `docs/evidence/qt-touchscreen/qt-ui-deployment-2026-07-18.md`.
 
 Explicitly excluded:
 
-- Live camera streaming or a live-preview pipeline
+- Independent camera connections, continuous streaming, or Qt Multimedia;
+  preview uses bounded JPEG requests on the existing BTC1 sessions
 - Battery level, charge, power-source, or battery-status UI
 - Live setting changes or any setting command sent to a camera node
 - Media renaming, sharing, editing, or boot-card browsing

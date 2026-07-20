@@ -41,8 +41,8 @@ recovery. Do not rewrite the transient as a permanently resolved fault.
 - [ ] Contract validator, focused tests, full deterministic suite, hooks, and
       bounded offscreen QML smoke pass.
 - [ ] Seven screenshots and evidence JSON are complete.
-- [ ] No QML imports `QtMultimedia`; no source claims live preview, battery,
-      hotspot, or 12-camera behavior.
+- [ ] No QML imports `QtMultimedia`; preview claims are backed by validated
+      BTC1 JPEG frames, and no source claims battery, hotspot, or 12-camera behavior.
 - [ ] Every unsupported setting is disabled and the node-command test sink is
       empty.
 - [x] Commit the coherent revision and record `git rev-parse HEAD` as
