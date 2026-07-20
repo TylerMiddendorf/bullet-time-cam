@@ -345,6 +345,11 @@ class QmlContractTests(unittest.TestCase):
         self.assertEqual(controller.preview_source, "")
         self.assertEqual(controller.preview_camera_id, 0)
 
+        self.assertTrue(controller.navigate("capture"))
+        self.assertEqual(commands.get_nowait(), "PREVIEW_START")
+        self.assertTrue(controller.navigate("ready"))
+        self.assertEqual(commands.get_nowait(), "PREVIEW_STOP")
+
     def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
         self.assertIn("bridge.connectedCameraIds.indexOf(index + 1) >= 0", ready)

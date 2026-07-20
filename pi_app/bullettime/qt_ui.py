@@ -496,6 +496,9 @@ def run_qt_ui(
             int(config.get("display_height", 480)),
         ),
     )
+    initial_route = str(config.get("initial_route", "ready"))
+    if initial_route != "ready" and not controller.navigate(initial_route):
+        raise ValueError(f"invalid initial_route: {initial_route}")
 
     repo_root = Path(__file__).resolve().parents[2]
     logo = Path(config.get("startup_logo", repo_root / "assets" / "Logo_800x480.png"))
