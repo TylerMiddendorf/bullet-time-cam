@@ -345,10 +345,13 @@ class QmlContractTests(unittest.TestCase):
         self.assertEqual(controller.preview_source, "")
         self.assertEqual(controller.preview_camera_id, 0)
 
-        self.assertTrue(controller.navigate("capture"))
-        self.assertEqual(commands.get_nowait(), "PREVIEW_START")
-        self.assertTrue(controller.navigate("ready"))
-        self.assertEqual(commands.get_nowait(), "PREVIEW_STOP")
+        idle_commands = queue.Queue()
+        idle_controller = QtUiController(idle_commands)
+        idle_controller.handle_event({"state": "READY", "connected_camera_ids": [1, 2, 3, 4]})
+        self.assertTrue(idle_controller.navigate("capture"))
+        self.assertEqual(idle_commands.get_nowait(), "PREVIEW_START")
+        self.assertTrue(idle_controller.navigate("ready"))
+        self.assertEqual(idle_commands.get_nowait(), "PREVIEW_STOP")
 
     def test_ready_navigation_has_settings_library_and_capture_without_capture_command(self):
         ready = (QML_ROOT / "pages" / "ReadyPage.qml").read_text(encoding="utf-8")
