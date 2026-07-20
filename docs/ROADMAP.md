@@ -267,6 +267,9 @@ thermal checks before enclosure completion is claimed.
 Status: active July 19, 2026 for software work while Milestone 4 proceeds
 asynchronously
 
+The live-preview architecture, invariants, checkpoints, tests, and physical exit
+gates are in [`MILESTONE_5_PLAN.md`](MILESTONE_5_PLAN.md).
+
 - Add live preview.
 - Improve ordinary user-facing status and recovery behavior.
 - Refine the enclosure and controls based on use.
