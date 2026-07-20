@@ -14,11 +14,31 @@ Item {
         onBack: bridge.navigate("ready")
     }
 
-    PlaceholderSurface {
+    Rectangle {
+        objectName: "controlReviewMedia"
         x: 18
         y: 78
         width: 500
         height: 290
+        color: "#080b0f"
+        border.color: "#38414a"
+
+        Image {
+            anchors.fill: parent
+            anchors.margins: 2
+            source: bridge.imageSource
+            fillMode: Image.PreserveAspectFit
+            visible: bridge.imageSource !== ""
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: "NO REVIEW IMAGE"
+            color: "#aeb7c0"
+            font.pixelSize: 16
+            font.bold: true
+            visible: bridge.imageSource === ""
+        }
     }
 
     Text {
