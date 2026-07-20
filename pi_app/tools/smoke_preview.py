@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import queue
 import threading
 import time
@@ -40,6 +41,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     args = parse_args()
     if args.timeout <= 0 or args.frames_per_camera <= 0:
         raise SystemExit("timeout and frames-per-camera must be positive")

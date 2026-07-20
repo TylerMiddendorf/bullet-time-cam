@@ -497,7 +497,15 @@ class Receiver(threading.Thread):
                 self._node_error(session, metadata, now_ns)
             elif frame.message_type == PREVIEW_IMAGE:
                 self._preview_received(session, metadata, frame, now_ns)
-            elif frame.message_type in {HELLO, LOG}:
+            elif frame.message_type == LOG:
+                message = str(metadata.get("message", ""))
+                if message.startswith("PREVIEW_"):
+                    LOGGER.warning(
+                        "Camera %s reported %s",
+                        metadata["logical_camera_id"],
+                        message,
+                    )
+            elif frame.message_type == HELLO:
                 return
 
     def payload_progress(
