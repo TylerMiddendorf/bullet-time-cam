@@ -68,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
         application_arguments.append(f"--media={args.media}")
     application = QGuiApplication.instance() or QGuiApplication(application_arguments)
     engine = QQmlApplicationEngine()
+    engine.warnings.connect(lambda warnings: messages.extend(item.toString() for item in warnings))
     report: dict[str, Any] = {
         "status": "FAIL",
         "platform": args.platform,
