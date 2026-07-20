@@ -63,7 +63,7 @@ Status: `PASS | PARTIAL | FAIL`
 | 01 ready | `1619x971` | `01-ready-800x480.png` | | Four IDs, USB READY, gear/Settings, Library, Capture navigation; no capture command |
 | 02 progress | `1619x971` | `02-progress-800x480.png` | | No stale review; no touch command |
 | 03 partial review | `1619x971` | `03-partial-review-800x480.png` | | Logical failed camera and real/fixture GIF |
-| 04 Capture | `1619x971` | `04-capture-800x480.png` | | `CAPTURE`; `STATIC PLACEHOLDER`; `CAMERA VIEW NOT CONNECTED`; sole touch capture command |
+| 04 Capture | `1619x971` | `04-capture-800x480.png` | | `CAPTURE`; genuine preview or waiting state; camera attribution; rotating-view status; sole touch capture command |
 | 05 four-camera control center | `1619x971` | `05-four-camera-control-center-800x480.png` | | Four IDs; disabled settings; zero node commands |
 | 06 removable-media library | `1619x971` | `06-removable-media-library-800x480.png` | | USB-only, read-only catalog |
 | 07 GIF viewer | `1619x971` | `07-gif-viewer-800x480.png` | | Named real GIF; detached PNG frames; no Qt Multimedia |
@@ -140,10 +140,12 @@ service result, recovery action, and first successful post-recovery capture.
 
 ## Scope Audit
 
-- [ ] No live camera stream or live-preview pipeline was exercised or claimed.
-- [ ] The only preview-like asset is `assets/ui/preview-placeholder.png`.
-- [ ] Whenever the camera-view fixture is visible, it says `STATIC PLACEHOLDER` and
-      never `LIVE`.
+- [ ] Any production Capture-route image is a validated, memory-resident JPEG
+      from the attributed physical camera; otherwise the route shows its waiting state.
+- [ ] Preview transport shares the existing BTC1 sessions, permits only one
+      outstanding request, and yields before capture.
+- [ ] The generated preview fixture is used only by tests and is never presented
+      as physical-camera evidence.
 - [ ] No battery level, icon, charge, power-source, or battery-status UI appears.
 - [ ] No empty battery compartment, divider, spacer, or reserved header region
       remains.

@@ -22,11 +22,10 @@ requirements for this track.
 - The screen MUST NOT show battery percentage, battery icons, charging state,
   remaining runtime, power-source state, or low-battery warnings. The external
   pack is the V1 charge indicator.
-- The screen MUST NOT show or imply a live camera feed. The deterministic
-  `assets/ui/preview-placeholder.png` fixture MAY be used for layout and
-  headless tests. Whenever it is visible, the surface MUST overlay
-  the exact text `STATIC PLACEHOLDER`; the UI MUST never use `LIVE` or imply that
-  the fixture came from camera transport.
+- The Capture screen MAY show only validated, identity-attributed preview frames
+  supplied by the existing receiver. Preview MUST remain memory-only, stop on
+  route exit or before capture, and MUST NOT require Qt Multimedia. The
+  deterministic fixture remains permitted only in the test harness.
 - The validation route selector MUST be test-only. A deterministic route is not
   automatically a shipped V1 feature or part of production navigation.
 - No route may render a hotspot state or claim network availability.
@@ -222,10 +221,11 @@ no camera nodes, or review-media load failure.
 Route: `/capture`; visual source:
 `designs/ux-mockups/04-fast-follow-live-preview.png`.
 
-- The route MUST use only `assets/ui/preview-placeholder.png` as its image-like
-  content and MUST render `STATIC PLACEHOLDER` over that asset.
-- It MUST also render `CAMERA VIEW NOT CONNECTED`. It MUST NOT render `LIVE`, create
-  a camera-stream object, open camera transport, or import Qt Multimedia.
+- The route MUST display only CRC-validated 320x240 JPEG preview frames received
+  through the existing BTC1 session owner and MUST attribute the current logical
+  camera. Before the first genuine frame it renders a bounded waiting state.
+- Preview MUST stop before `CAPTURE` and on route exit. The route MUST NOT open
+  an independent camera stream, persist preview media, or import Qt Multimedia.
 - It shows exactly four camera identities and USB readiness without battery,
   Wi-Fi, hotspot, timer, or user-setting claims.
 - It is the only touchscreen route allowed to emit the existing product
@@ -298,7 +298,7 @@ Route: `/viewer`; visual source:
 | ERROR while capture active | ERROR_BLOCKING with no stale image |
 | ERROR while idle partial review retained | retain REVIEW_PARTIAL and its original camera error |
 | invalid/removed review image | ERROR_BLOCKING; continue polling |
-| route `/capture` | static fixture; sole touchscreen capture command/backend |
+| route `/capture` | rotating validated preview; sole touchscreen capture command/backend |
 | test route `/control-center` | four cameras; settings disabled; no node command |
 | test route `/library` | removable-media enumeration and confirmed whole-set deletion |
 | test route `/viewer` | real GIF decoded to detached PNG frames |
@@ -330,9 +330,9 @@ headless evidence and the Pi-only subset has physical-device evidence.
 | UX-012 | READY after review | Latest review remains visible and animated |
 | UX-013 | Error after new capture | Stale review is not restored |
 | UX-014 | Geometry | Every screenshot is exactly 800x480; required bounds fit viewport |
-| UX-015 | Scope guard | No battery/power region or live/video/stream label; the camera fixture says STATIC PLACEHOLDER |
+| UX-015 | Scope guard | No battery/power region or unsupported video/stream claim; preview is camera-attributed |
 | UX-016 | Shutdown | Receiver stop and Qt exit complete within service timeout |
-| UX-017 | Capture route | Fixture says `STATIC PLACEHOLDER` and `CAMERA VIEW NOT CONNECTED`; sole touchscreen capture command |
+| UX-017 | Capture route | Genuine preview or bounded waiting state; preview stops before the sole touchscreen capture command |
 | UX-018 | Four-camera control center | Exactly four IDs; no battery/hotspot region; settings disabled; no node commands |
 | UX-019 | Removable-media library | Only committed USB captures; confirmed whole-set deletion; missing/removal fault survives |
 | UX-020 | Real GIF viewer | Real GIF decodes to detached looping PNG frames; no Qt Multimedia import |

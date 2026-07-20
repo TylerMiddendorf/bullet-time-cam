@@ -11,10 +11,10 @@ stream their original JPEGs to a Raspberry Pi. The Pi preserves the originals
 on removable USB storage, creates the back-and-forth animation, and presents the
 result on an integrated 800x480 touchscreen.
 
-Version 1 deliberately prioritizes a reliable four-image capture-to-review path.
-Alignment, appearance matching, interpolation, live preview, settings, battery
-integration, and the enclosure advance only through the milestones defined in
-the project roadmap.
+Version 1 deliberately prioritized a reliable four-image capture-to-review
+path. The first fast-follow milestone now adds genuine rotating preview.
+Alignment, appearance matching, interpolation, settings, and the enclosure
+advance only through the milestones defined in the project roadmap.
 
 The planned Version 2 settings work is specified in
 [`docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](docs/MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md).
@@ -44,7 +44,8 @@ trigger both drive the integrated four-node path through validated originals,
 atomic manifests, ordered six-frame GIF generation, and full-screen review.
 Camera-specific partial captures preserve and display the successful views.
 
-Firmware 0.2.3 streams directly from each camera frame buffer without node-local
+Firmware 0.3.0 serves bounded 320x240 preview JPEGs while idle and streams each
+2048x1536 still directly from its camera frame buffer without node-local
 storage. The Pi runtime supports concurrent CRC-checked transfer, stable node
 identity, atomic USB-media persistence, GPIO17 hardware triggering, ordered GIFs,
 camera-specific partial review, timing/resource instrumentation, reconnect
@@ -71,12 +72,12 @@ The physical Pi runs the native Qt Quick/PySide6 touchscreen at 800x480 on
 Wayland. Seven routes cover Ready, progress, partial review, Capture, Settings,
 Library, and a detached GIF viewer. Ready retains camera/USB status and offers
 gear/Settings, Library, and Capture navigation without taking a photo itself;
-Capture is the sole touchscreen photo-taking route. Its camera surface remains
-a truthfully labeled static placeholder until live preview is implemented. The
+Capture is the sole touchscreen photo-taking route. App 0.3.0 shows genuine
+memory-only frames rotated across Cameras 1-4 and stops preview before capture
+or route exit. The
 Library and viewer can permanently
 delete a confirmed capture set, including its JPEG originals, GIF, and manifest.
-The application includes no live-preview
-backend and no battery UI. The library supports touch flicking plus visible
+The application includes no battery UI. The library supports touch flicking plus visible
 right-side page navigation with a current/total page indicator. The `fb1d1e7` runtime passed native-Wayland,
 capture, and real-library validation; seven route renders produced across
 `d502fff` and `828831b` are preserved with their exact commit attribution and
@@ -124,12 +125,18 @@ the existing bounded GIF fallback only for historical sets. Commit `ea9e4c5`
 passed both full deterministic suites and a real four-camera capture on the Pi;
 see the
 [`capture-preview evidence`](docs/evidence/qt-touchscreen/library-capture-previews-2026-07-19.md).
+App and firmware 0.3.0 add genuine rotating four-camera preview without a
+second serial reader, removable-media writes, or changes to the shared-trigger
+transaction. All four nodes passed preview, full-resolution capture, native
+800x480 display, USB recovery, post-recovery preview/capture, and boot/session
+checks. See the
+[`Milestone 5 live-preview evidence`](docs/evidence/milestone-5/live-preview-2026-07-19.md).
 The first Qt soft reboot did not return to the LAN and required a physical
 power cycle; its cause is unknown because no persistent journal was available.
 The product owner is building the full enclosed prototype asynchronously, so
 Milestone 4 is deferred rather than complete and retains all physical acceptance
-gates. Milestone 5 fast-follow software work is now active, beginning with live
-preview and ordinary user-facing status/recovery refinement.
+gates. Milestone 5 remains active for ordinary user-facing status/recovery and
+latency work; its live-preview checkpoint is complete.
 
 ## Camera Firmware
 

@@ -43,17 +43,17 @@ When sources disagree, use this order:
 
 All seven PNGs are 1619x971 reference renders, not pixel-perfect raster
 backgrounds. Every route lays out native 800x480 Qt objects. The source images
-do not authorize battery UI or reserved battery space, a live preview backend,
-hotspot claims, 12-camera behavior, multimedia dependencies, mutable media
+do not authorize battery UI or reserved battery space, hotspot claims,
+12-camera behavior, multimedia dependencies, mutable media
 operations other than confirmed whole-capture-set deletion, or node setting commands.
 
 The later compositions are deliberately adapted into bounded validation
 routes:
 
-- Design 4 is the Capture route. It uses only the generated static camera
-  fixture and must say `STATIC PLACEHOLDER` and
-  `CAMERA VIEW NOT CONNECTED` until live preview exists. It is the only
-  touchscreen route allowed to emit `CAPTURE`.
+- Design 4 is the Capture route. It shows only validated, memory-resident JPEG
+  preview frames with their camera attribution, or a truthful waiting state
+  before the first frame. It is the only touchscreen route allowed to emit
+  `CAPTURE`.
 - Design 5 reports the current four cameras. Unsupported settings are visible
   only as disabled/unavailable controls and have no node-command binding.
 - Design 6 reads only committed captures on removable USB media. It can delete
@@ -62,9 +62,9 @@ routes:
 - Design 7 decodes a selected real GIF into detached PNG data-URL frames and
   presents them with Qt Quick `Image`; it does not import Qt Multimedia.
 
-`assets/ui/preview-placeholder.png` is the only approved camera-view fixture
-for this track. Whenever it is visible, the UI must overlay the exact text
-`STATIC PLACEHOLDER`; it must never call the image live or imply camera transport.
+The preview path uses the existing BTC1 sessions and Qt Quick `Image`; it does
+not add Qt Multimedia or an independent camera connection. The generated
+preview fixture remains test-only and is not displayed by the production route.
 
 ## Documents
 

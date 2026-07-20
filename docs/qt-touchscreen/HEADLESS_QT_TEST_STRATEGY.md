@@ -114,9 +114,11 @@ scope. Visual review checks visible text, target sizing, clipping, missing
 assets, and overflow; the current harness does not programmatically walk every
 semantic identifier or compare pixels to the source mockups.
 
-The Capture screenshot must show `CAPTURE`, `STATIC PLACEHOLDER`, and
-`CAMERA VIEW NOT CONNECTED`. The viewer screenshot uses a named real GIF fixture,
-not the design raster.
+The Capture screenshot must show `CAPTURE`, the preview image or truthful
+waiting state, camera attribution, and the rotating-view status. The native QML
+harness may inject a named JPEG fixture to exercise rendering; physical
+qualification must use genuine camera frames. The viewer screenshot uses a
+named real GIF fixture, not the design raster.
 
 ## Layer 4 - timing and fault tests
 

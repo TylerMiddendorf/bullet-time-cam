@@ -79,6 +79,14 @@ Status reviewed: July 19, 2026
   `20260719T224502Z_b091c2b9` validated the preview and the live service was
   restored with all 39 boot/session checks passing. Evidence is in
   [`evidence/qt-touchscreen/library-capture-previews-2026-07-19.md`](evidence/qt-touchscreen/library-capture-previews-2026-07-19.md).
+- App and firmware 0.3.0 are deployed through `ab8c357`. All four stable nodes
+  serve bounded 320x240 memory-only previews; the native Capture route displays
+  genuine rotating frames and stops preview before capture. Preview-active and
+  comparison captures completed in 3.721 and 3.691 seconds respectively. The
+  installed xHCI recovery, post-recovery preview and capture
+  `20260720T005232Z_54ad4ce8`, 137 source tests, native 800x480 QML, all 39 boot
+  checks, normal service, and GPIO17 LOW passed. Evidence is in
+  [`evidence/milestone-5/live-preview-2026-07-19.md`](evidence/milestone-5/live-preview-2026-07-19.md).
 
 ## Immediate Work
 
@@ -88,9 +96,7 @@ open and must be completed before the enclosure milestone is closed.
 
 Continue with Milestone 5 software work:
 
-1. Design and implement the fast-follow live-preview path without weakening the
-   validated capture, storage, trigger, or camera-identity behavior.
-2. Improve ordinary user-facing status and recovery behavior where demonstrated
+1. Improve ordinary user-facing status and recovery behavior where demonstrated
    gaps exist.
-3. Continue investigating the soft two-second latency target and unexplained Qt
+2. Continue investigating the soft two-second latency target and unexplained Qt
    soft-reboot failure as bounded software reliability work.

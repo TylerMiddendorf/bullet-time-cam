@@ -12,9 +12,10 @@ status narratives between files.
 - [`MILESTONE_1_PLAN.md`](MILESTONE_1_PLAN.md) — completed bench end-to-end milestone plan and measured exit evidence
 - [`MILESTONE_2_PLAN.md`](MILESTONE_2_PLAN.md) — completed removable-media qualification procedures, evidence requirements, and exit result
 - [`MILESTONE_3_PLAN.md`](MILESTONE_3_PLAN.md) — closed/retired aggregate-power and safe battery-integration plan
-- [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md) — active enclosure layout, print, and acceptance gates
+- [`MILESTONE_4_PLAN.md`](MILESTONE_4_PLAN.md) — deferred enclosure layout, print, and acceptance gates
+- [`MILESTONE_5_PLAN.md`](MILESTONE_5_PLAN.md) — active fast-follow plan with completed live-preview checkpoints and remaining reliability/latency work
 - [`MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`](MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md) — planned synchronized camera/settings protocol, user-control inventory, 800x480 information architecture, and physical qualification gates
-- [`CURRENT_SESSION.md`](CURRENT_SESSION.md) — concise handoff for active enclosure work
+- [`CURRENT_SESSION.md`](CURRENT_SESSION.md) — concise handoff for active fast-follow software work
 - [`INTERVIEW.md`](INTERVIEW.md) — dated product-owner decisions and requirement changes
 
 ## Test Plans and Runbooks
@@ -32,6 +33,10 @@ strategy, evidence templates, and Pi deployment/rollback checklist. Deployment
 results and native 800x480 route captures are under
 [`evidence/qt-touchscreen/`](evidence/qt-touchscreen/).
 
+Milestone 5 firmware, all-camera preview, native runtime, capture-isolation,
+recovery, manifests, and screenshots are under
+[`evidence/milestone-5/`](evidence/milestone-5/).
+
 - [`evidence/README.md`](evidence/README.md) — milestone/checkpoint evidence index
 - [`history/`](history/) — completed implementation-session logs retained for context
 
@@ -41,9 +46,10 @@ integration gate works.
 
 ## Design References
 
-The native 800x480 seven-route adaptation is specified in
-[`qt-touchscreen/UX_SPEC.md`](qt-touchscreen/UX_SPEC.md) under the current
-four-camera, no-live-preview, no-battery, and no-hotspot scope guards.
+The native 800x480 seven-route adaptation began from
+[`qt-touchscreen/UX_SPEC.md`](qt-touchscreen/UX_SPEC.md). Its historical
+no-preview scope is superseded by the qualified Milestone 5 implementation;
+the four-camera, no-battery, and no-hotspot guards remain.
 
 - [`../designs/ux-mockups/README.md`](../designs/ux-mockups/README.md) —
   non-binding touchscreen concepts organized by V1, fast-follow, and later scope

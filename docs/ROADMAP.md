@@ -270,7 +270,11 @@ asynchronously
 The live-preview architecture, invariants, checkpoints, tests, and physical exit
 gates are in [`MILESTONE_5_PLAN.md`](MILESTONE_5_PLAN.md).
 
-- Add live preview.
+- **Complete July 19, 2026:** Add genuine rotating four-camera live preview.
+  App/firmware 0.3.0 passed all-camera memory-only preview, native 800x480
+  display, preview-active full-resolution capture, latency isolation, USB
+  recovery, post-recovery preview/capture, and boot/session gates. See
+  [`live-preview-2026-07-19.md`](evidence/milestone-5/live-preview-2026-07-19.md).
 - Improve ordinary user-facing status and recovery behavior.
 - Refine the enclosure and controls based on use.
 

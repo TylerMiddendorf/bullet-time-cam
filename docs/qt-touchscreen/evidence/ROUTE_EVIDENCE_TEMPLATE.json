@@ -44,7 +44,7 @@
       "screenshot_sha256": "<sha256>",
       "result": "UNRUN",
       "backend": false,
-      "required_labels": ["CAPTURE", "STATIC PLACEHOLDER", "CAMERA VIEW NOT CONNECTED"]
+      "required_labels": ["CAPTURE", "PREVIEW CAMERA 1", "320 × 240 · ROTATING VIEWS"]
     },
     {
       "id": "four-camera-control-center",

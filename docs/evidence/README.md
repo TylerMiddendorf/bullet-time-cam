@@ -51,6 +51,13 @@ reviewed without searching one large flat directory.
   - app 0.2.6 large Ready gear and Library home icon, native Pi render and
   interaction checks, commit/push/Pi-pull chain, and restarted-service health
 
+## Milestone 5 — Fast Follow
+
+- [`live-preview-2026-07-19.md`](milestone-5/live-preview-2026-07-19.md) —
+  firmware/app 0.3.0, four-node memory-only preview, native 800x480 runtime,
+  preview-active capture and comparison timing, USB recovery, post-recovery
+  preview/capture, screenshots, manifests, and final boot/service state
+
 Each new evidence directory should include or link to the relevant plan, state
 the date and tested revision, distinguish successful gates from limitations,
 and retain concrete artifacts where practical.

@@ -415,3 +415,22 @@ Implementation status:
   until they pass the plan's four-node hardware and image-quality gates.
 - Do not promote unsupported battery, network, audio, display-backlight,
   software-update, smoothing, or AI controls into claims of current capability.
+
+### 2026-07-19 - Implement and physically qualify live preview
+
+- Implement the fast-follow live-preview path while leaving the shared hardware
+  trigger and concurrent four-camera full-resolution JPEG capture behavior
+  intact.
+- Keep preview lightweight and isolated from camera identity, capture latency,
+  removable USB storage, and camera USB recovery.
+- Do not remove the truthfully labeled static Capture placeholder until genuine
+  frames work on all four physical cameras.
+- Add regression tests, commit and push in small checkpoints, fast-forward pull
+  each deployed checkpoint onto the Raspberry Pi, and iterate until the native
+  800x480 product UI passes.
+- Final implementation: firmware and app 0.3.0 use single-flight rotating
+  320x240 BTC1 JPEG preview, keep preview frames in memory only, stop preview
+  before capture/route exit, and retain the 2048x1536 shared-trigger still path.
+  All-camera preview, native display, capture isolation, USB recovery,
+  post-recovery preview/capture, and boot/session checks passed. Broader GIF and
+  display latency remains open Milestone 5 work.

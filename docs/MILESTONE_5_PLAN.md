@@ -1,6 +1,7 @@
 # Milestone 5 Plan - Live Preview and Fast-Follow Reliability
 
-Status: active July 19, 2026
+Status: live-preview checkpoints complete July 19, 2026; Milestone 5 remains
+active for status/recovery and latency follow-up
 
 ## Outcome
 
@@ -32,13 +33,14 @@ message types. It rotates requests through logical Cameras 1-4 while the Capture
 route is visible and the capture workflow is idle. At most one preview request
 is outstanding across the complete rig.
 
-Each node temporarily acquires a small JPEG, restores the still-photo sensor
-configuration before returning to its main loop, and labels the response with
+Each node remains in 320x240 preview mode while idle and labels each response with
 its stable UID, boot ID, preview sequence, dimensions, byte count, and CRC. The
-node checks the shared trigger before preview acquisition and again before
-transmission. Preview payload size and host request cadence are bounded so a
-physical shutter arriving during the short transmission window has a bounded
-delay.
+node checks the shared trigger during bounded preview acquisition and before
+transmission. After a shared trigger it switches to 2048x1536, uses the existing
+settle/warmup sequence, restores preview mode before transfer, and continues the
+unchanged capture transaction. Preview payload size and host request cadence are
+bounded so a shutter arriving during the short transmission window has a
+bounded delay.
 
 The existing receiver validates preview identity, dimensions, byte count, CRC,
 and JPEG decodability. It publishes the newest validated frame only to in-memory
@@ -111,6 +113,12 @@ Final exit gate: genuine preview works for all four cameras on the 800x480 Pi,
 both shutter paths still produce valid concurrent four-camera sets, storage and
 identity invariants hold, USB recovery passes, and concrete results are recorded
 under `docs/evidence/`.
+
+Result: passed. The full evidence, including the initial stale-buffer failure,
+final firmware design, test counts, firmware hash, all-camera CRCs, native
+screenshots, preview-active/no-preview timing comparison, USB recovery, and
+post-recovery capture is in
+[`evidence/milestone-5/live-preview-2026-07-19.md`](evidence/milestone-5/live-preview-2026-07-19.md).
 
 ## Follow-Up Work
 

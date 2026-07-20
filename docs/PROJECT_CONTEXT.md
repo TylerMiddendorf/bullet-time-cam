@@ -39,9 +39,11 @@ The intended subjects include people, places, and objects. The expected capture 
 
 Details of the later live-preview experience and the retake flow remain to be decided.
 
-For version 1, the screen is deliberately simpler than the eventual product concept:
+The completed version 1 base used this deliberately simpler screen scope; the
+Milestone 5 fast follow has since added live preview:
 
-- No live preview before capture
+- No live preview before capture in the completed V1 base; superseded by the
+  validated Milestone 5 rotating preview
 - No user-adjustable camera settings
 - A removable-USB library for browsing, viewing, and deleting complete capture sets
 - A capture/loading screen while a shot is being acquired and assembled
@@ -103,7 +105,13 @@ There are four identical camera nodes. Each currently consists of:
 - Connection to the shared physical trigger
 - The same Arduino camera-node firmware
 
-Firmware 0.2.3 implements the July 17 camera-node simplification and subsequent bounded transfer/recovery fixes: it streams the 2048x1536 JPEG directly from the frame buffer to the Pi, does not initialize or access node storage, and leaves `D0 / GPIO1` unused. The same image is flashed to all four nodes and each passes camera, BTC1 protocol/stable-identity, and trigger startup gates. Earlier card/LED results remain truthful historical prototype evidence, not evidence for the current design. Physical and Pi-triggered four-node capture/integrity function is verified, and the product owner completed the prescribed unpowered multimeter checklist with every check reported passing.
+Firmware 0.3.0 retains the July 17 simplified node design and adds bounded
+BTC1 preview requests/images. Nodes remain at 320x240 JPEG while idle, switch
+to 2048x1536 only after the shared trigger, use the qualified settle/warmup
+sequence, restore preview mode before transfer, and never access node storage.
+The same image is flashed to all four nodes and passes camera, BTC1 stable-
+identity, shared-trigger, genuine-preview, full-resolution capture, and recovery
+gates. `D0 / GPIO1` remains unused.
 
 ### Central computer - validated V1 bench implementation
 
@@ -184,10 +192,11 @@ Ready also reports whether removable USB storage is connected and shows a
 circular used-capacity gauge plus available space from that selected USB
 filesystem. It never substitutes boot-card capacity.
 Capture is the only touchscreen route that can take a photo; Review and
-Settings link to it instead of emitting capture commands. The Capture route
-currently uses a logo-derived static placeholder marked `STATIC PLACEHOLDER`
-and `CAMERA VIEW NOT CONNECTED`. There is no live camera transport, Qt
-Multimedia dependency, or `LIVE` claim. The independent physical shutter
+Settings link to it instead of emitting capture commands. App 0.3.0 displays
+genuine 320x240 JPEG previews polled one at a time across logical Cameras 1-4.
+The newest validated frame remains in memory only and is attributed by camera
+number. Preview stops before capture and whenever the user leaves Capture;
+there is no Qt Multimedia dependency. The independent physical shutter
 continues to use the shared hardware trigger. Camera settings are visible only
 as disabled future controls and emit no node commands. Settings also provides
 an idle-only `RECONNECT CAMERAS` system-recovery action. Its narrowly privileged
@@ -225,7 +234,7 @@ Provisional visual explorations for these phases are indexed under
 [`../designs/ux-mockups/`](../designs/ux-mockups/README.md). Seven selected
 compositions have now been translated into and rendered as native QML on the
 physical Pi display. The mockups remain design references rather than runtime
-assets; live-preview transport and operative settings remain later work.
+assets; operative settings remain later work.
 
 ### Power - selected version 1 arrangement
 
@@ -265,7 +274,13 @@ Current central storage design:
 - Automatic Raspberry Pi application discovery of writable USB-backed filesystems
 - A `BulletTime/` directory on the selected USB drive containing capture-set directories, original JPEGs, manifests, and generated GIFs
 
-Firmware 0.2.3 transmits the captured JPEG directly from the ESP32S3 frame buffer and returns the buffer after the ACK/NACK transfer attempt. Simultaneous four-node operation is validated at product level. The qualifying 25-cycle run completed every set, but its 3.250-second median remains above the soft two-second target.
+Firmware 0.3.0 transmits the captured JPEG directly from the ESP32S3 frame
+buffer and returns the buffer after the ACK/NACK transfer attempt. Preview
+frames remain memory-only and do not enter this storage path. Simultaneous
+four-node operation is validated at product level. The qualifying pre-preview
+25-cycle run completed every set, but its 3.250-second median remains above the
+soft two-second target; the preview-active/same-firmware comparison was
+3.721/3.691 seconds for the current larger-image scene.
 
 The Raspberry Pi boot card should not be normally accessible to the user. The removable USB drive uses a user-accessible USB port. The application must not fall back to the boot card when USB media is absent: touchscreen-initiated capture is blocked before a Pi trigger, and a physical/shared-bus capture that arrives without writable USB storage is rejected rather than committed internally. Raspberry Pi hardware tests cover missing, full, read-only, corrupt/unmountable, and active-write removal plus deterministic multi-drive selection. Their media-safety behavior passed; app 0.2.1 also keeps Tk polling alive when reviewed media disappears, fits storage errors within 800x480, and cleans unmistakably stale capture staging after a guarded age threshold.
 
@@ -308,7 +323,9 @@ As of July 19, 2026:
   output; the pack provides its own battery-percentage display.
 - The shared button and all four camera nodes work as expected.
 - Historical/superseded: the original prototype saved images to individual node cards.
-- Firmware 0.2.3 is flashed and startup-verified on all four nodes. It leaves `D0 / GPIO1` unused and transfers captures directly through BTC1 without initializing node storage.
+- Firmware 0.3.0 is flashed and startup-verified on all four nodes. It leaves
+  `D0 / GPIO1` unused, serves bounded memory-only preview JPEGs, and transfers
+  full-resolution captures directly through BTC1 without node storage.
 - A Raspberry Pi 4 Model B with 2 GB RAM is on hand.
 - The Raspberry Pi 4 has been imaged and boots Raspberry Pi OS successfully with the intended 800x480 HDMI display.
 - Touch input works on the intended display.
@@ -407,6 +424,15 @@ As of July 19, 2026:
   and validated a 1,602-byte 180x135 preview, and its four-entry product catalog
   scanned in 0.081 seconds. See
   `docs/evidence/qt-touchscreen/library-capture-previews-2026-07-19.md`.
+- App 0.3.0 and firmware 0.3.0 implement genuine rotating four-camera preview.
+  A storage-disabled smoke passed three 320x240 CRC-valid frames from every
+  stable UID; the native runtime displayed the frames at 800x480 with zero QML
+  errors. Preview-active capture `20260720T004727Z_c062657b` completed all four
+  originals in 3.721 seconds versus 3.691 seconds for the same-firmware
+  preview-disabled comparison. USB recovery, two new previews per camera,
+  post-recovery capture `20260720T005232Z_54ad4ce8`, all 39 boot checks, the
+  normal service, and GPIO17 LOW passed. See
+  `docs/evidence/milestone-5/live-preview-2026-07-19.md`.
 - The first Qt `sudo reboot` did not return to the LAN. A physical power cycle
   recovered the Pi, after which the verifier, service, cameras, GPIO, storage,
   and native Wayland session passed. Persistent journal data was unavailable,
@@ -415,9 +441,9 @@ As of July 19, 2026:
 - The product owner initially connected the trigger circuit while powered, then later completed the full prescribed unpowered multimeter checklist and reported every continuity, resistance, button, isolation, and no-direct-short check passing. Individual readings were not retained.
 - July 16-17 product-boot trials found four constraints on the current Raspberry Pi OS Trixie/kernel build. A custom Plymouth script theme crashed Plymouth 24.004.60 in `libply-splash-core`/`libply`; Raspberry Pi's initramfs early-fullscreen-logo path produced black/no-signal output and never reached networking; after the generated hook/package were removed and initramfs rebuilt, a console-less boot still failed to reach networking while the otherwise identical `console=tty1` recovery boot succeeded; and regenerating the already-clean initramfs after that successful boot again prevented the Pi from reaching userspace. The visually accepted implementation disables both splash mechanisms and desktop chrome, bypasses initramfs with `auto_initramfs=0`, retires Raspberry Pi Imager's completed NoCloud/cloud-init boot stages, retains one masked/silenced `tty1` console for boot compatibility, loads a transparent compositor cursor, and produces a blank early boot followed by matched compositor/application logo frames and the camera UI. The July 17 final cold boot showed no operating-system text or cursor and passed all automated checks. Reproduction and recovery are documented in `docs/RASPBERRY_PI_BOOT_RUNBOOK.md`.
 
-The project now has a validated four-node Raspberry Pi product workflow for both trigger sources. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, and native Qt touchscreen review work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track is complete. Live preview is now the active software direction but is not yet implemented; operative camera settings remain planned for Milestone 6. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. The full enclosed prototype remains incomplete and is being built asynchronously by the product owner.
+The project now has a validated four-node Raspberry Pi product workflow for both trigger sources plus genuine rotating preview on the physical 800x480 display. The node-to-Pi protocol, direct concurrent JPEG transfer, integrity checks, atomic capture-set preservation, ordered GIF generation, instrumentation, camera-specific partial degradation, native Qt touchscreen review, and memory-only preview work on the physical rig. Raspberry Pi GPIO17 is deployed, idles output LOW, and has passed fake-backend plus powered hardware tests. Milestone 1 is complete, with the 3.250-second median review latency explicitly retained above the soft two-second target. Milestone 2 removable-media qualification is complete, including fault recovery, UI recovery/presentation, staging cleanup, and repaired product FAT. The Qt touchscreen platform track and Milestone 5 live-preview implementation are complete; operative camera settings remain planned for Milestone 6. The product owner accepted the external battery pack and closed Milestone 3 without aggregate measurement. The full enclosed prototype remains incomplete and is being built asynchronously by the product owner.
 
-Milestone 4 enclosure work is deferred in the repository while the product owner builds the full enclosed prototype asynchronously. Milestone 5 software work is active, beginning with the fast-follow live-preview path and ordinary status/recovery refinement. Latency optimization can proceed without invalidating the completed behavior/reliability evidence. A synchronized settings/control milestone remains planned after the fast-follow live-preview work; its inventory, UI structure, protocol boundaries, and qualification gates are in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`. See `ROADMAP.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
+Milestone 4 enclosure work is deferred in the repository while the product owner builds the full enclosed prototype asynchronously. Milestone 5 remains active for ordinary status/recovery refinement, the unexplained Qt soft-reboot failure, and latency optimization; its live-preview checkpoint is complete. A synchronized settings/control milestone remains planned after Milestone 5; its inventory, UI structure, protocol boundaries, and qualification gates are in `MILESTONE_6_SETTINGS_AND_CONTROL_UI_PLAN.md`. See `ROADMAP.md`, `MILESTONE_5_PLAN.md`, `MILESTONE_4_PLAN.md`, the closed `MILESTONE_3_PLAN.md`, the completed `MILESTONE_2_PLAN.md`, the completed `MILESTONE_1_PLAN.md`, and `FOUR_NODE_E2E_TEST_PLAN.md`.
 
 The project is milestone-driven and has no fixed completion date. Work advances when the current milestone's exit criteria are satisfied.
 
@@ -435,7 +461,8 @@ The project is milestone-driven and has no fixed completion date. Work advances 
 - The initial animation uses the four captured photographs and plays back and forth.
 - Version 1 uses the raw captured images without alignment or appearance normalization.
 - Every original image and the generated GIF are preserved.
-- Version 1 provides post-capture review but no live preview. Ready is a
+- The completed V1 base provided post-capture review without preview. The
+  Milestone 5 fast follow now provides rotating four-camera preview. Ready is a
   status-and-navigation screen, and Capture is the only touchscreen route that
   can enqueue a photo.
 - During capture, version 1 displays a loading/capture screen.
