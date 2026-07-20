@@ -13,6 +13,7 @@ constexpr uint16_t PREVIEW_WIDTH = 320;
 constexpr uint16_t PREVIEW_HEIGHT = 240;
 constexpr framesize_t PREVIEW_FRAME_SIZE = FRAMESIZE_QVGA;
 constexpr size_t MAX_PREVIEW_JPEG_BYTES = 64 * 1024;
+constexpr uint8_t PREVIEW_FRAME_ATTEMPTS = 3;
 
 constexpr uint8_t JPEG_QUALITY = 8;  // Lower is higher quality.
 constexpr unsigned long LIGHT_SETTLE_MS = 700;

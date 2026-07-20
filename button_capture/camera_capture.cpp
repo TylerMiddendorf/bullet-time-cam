@@ -83,7 +83,25 @@ bool sendPreviewFrame() {
     return false;
   }
 
-  camera_fb_t* frame = esp_camera_fb_get();
+  camera_fb_t* frame = nullptr;
+  for (uint8_t attempt = 0; attempt < PREVIEW_FRAME_ATTEMPTS; ++attempt) {
+    frame = esp_camera_fb_get();
+    if (!frame) {
+      break;
+    }
+    if (frame->format == PIXFORMAT_JPEG && frame->width == PREVIEW_WIDTH &&
+        frame->height == PREVIEW_HEIGHT) {
+      break;
+    }
+    esp_camera_fb_return(frame);
+    frame = nullptr;
+    if (sharedTriggerPressed()) {
+      if (!setFrameSize(sensor, CAPTURE_FRAME_SIZE)) {
+        haltForever("Camera did not restore the still-photo frame size after preview.");
+      }
+      return true;
+    }
+  }
   const bool restored = setFrameSize(sensor, CAPTURE_FRAME_SIZE);
   if (!frame) {
     sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_FRAME_FAILED");
@@ -101,8 +119,7 @@ bool sendPreviewFrame() {
     return true;
   }
 
-  if (frame->format != PIXFORMAT_JPEG || frame->width != PREVIEW_WIDTH ||
-      frame->height != PREVIEW_HEIGHT || frame->len == 0 || frame->len > MAX_PREVIEW_JPEG_BYTES) {
+  if (frame->len == 0 || frame->len > MAX_PREVIEW_JPEG_BYTES) {
     esp_camera_fb_return(frame);
     sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_FRAME_INVALID");
     return false;

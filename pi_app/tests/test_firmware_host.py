@@ -34,6 +34,7 @@ class FirmwareHostTests(unittest.TestCase):
         self.assertIn("PREVIEW_WIDTH = 320", config)
         self.assertIn("PREVIEW_HEIGHT = 240", config)
         self.assertIn("MAX_PREVIEW_JPEG_BYTES = 64 * 1024", config)
+        self.assertIn("PREVIEW_FRAME_ATTEMPTS = 3", config)
 
     def test_preview_restores_still_mode_and_checks_trigger_before_transfer(self):
         repository = Path(__file__).resolve().parents[2]
@@ -48,6 +49,7 @@ class FirmwareHostTests(unittest.TestCase):
         self.assertLess(restore, trigger)
         self.assertLess(trigger, transfer)
         self.assertIn("frame->len > MAX_PREVIEW_JPEG_BYTES", preview)
+        self.assertIn("attempt < PREVIEW_FRAME_ATTEMPTS", preview)
 
     def test_registered_nodes_receive_distinct_transfer_slots(self):
         repository = Path(__file__).resolve().parents[2]
