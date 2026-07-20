@@ -48,6 +48,18 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="test-only: allow bounded automatic capture with one or more nodes missing",
     )
+    parser.add_argument(
+        "--initial-route",
+        choices=("ready", "capture"),
+        default=None,
+        help="bounded UI validation: open directly on the selected route",
+    )
+    parser.add_argument(
+        "--quit-after-seconds",
+        type=float,
+        default=0,
+        help="bounded UI validation: exit automatically after this many seconds",
+    )
     return parser.parse_args()
 
 
@@ -68,6 +80,13 @@ def load_config(args: argparse.Namespace) -> dict:
     )
     config["diagnostic_usb_trigger"] = args.diagnostic_usb_trigger
     config["allow_incomplete_node_set"] = args.allow_incomplete_node_set
+    initial_route = getattr(args, "initial_route", None)
+    if initial_route is not None:
+        config["initial_route"] = initial_route
+    quit_after_seconds = float(getattr(args, "quit_after_seconds", 0))
+    if quit_after_seconds < 0:
+        raise ValueError("quit_after_seconds must not be negative")
+    config["quit_after_ms"] = round(quit_after_seconds * 1000)
     if config.get("startup_logo"):
         logo_path = Path(config["startup_logo"])
         config["startup_logo"] = str(

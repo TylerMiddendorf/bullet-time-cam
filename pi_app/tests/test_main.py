@@ -66,6 +66,28 @@ class MainConfigurationTests(unittest.TestCase):
         self.assertFalse(args.allow_incomplete_node_set)
         self.assertEqual(args.truncate_camera_id, 0)
         self.assertEqual(args.trigger_count, 0)
+        self.assertIsNone(args.initial_route)
+        self.assertEqual(args.quit_after_seconds, 0)
+
+    def test_bounded_ui_validation_arguments_enter_capture_and_auto_quit(self):
+        with patch(
+            "sys.argv",
+            [
+                "bullet-time",
+                "--initial-route",
+                "capture",
+                "--quit-after-seconds",
+                "12.5",
+            ],
+        ):
+            args = parse_args()
+        with tempfile.TemporaryDirectory() as temp:
+            config_path = Path(temp) / "config.json"
+            config_path.write_text("{}", encoding="utf-8")
+            args.config = str(config_path)
+            config = load_config(args)
+        self.assertEqual(config["initial_route"], "capture")
+        self.assertEqual(config["quit_after_ms"], 12_500)
 
 
 if __name__ == "__main__":

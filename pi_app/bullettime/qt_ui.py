@@ -857,6 +857,9 @@ def run_qt_ui(
         receiver.start()
         poll_timer.start()
         refresh_storage_usage()
+        quit_after_ms = int(config.get("quit_after_ms", 0))
+        if quit_after_ms > 0:
+            QTimer.singleShot(quit_after_ms, app.quit)
 
     first_frame["callback"] = start_runtime
 
