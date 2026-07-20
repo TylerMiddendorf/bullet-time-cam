@@ -15,6 +15,7 @@ uint32_t bootId = 0;
 char uid[13] = {};
 uint8_t idleMagicMatched = 0;
 bool corruptNextUsbImage = false;
+bool previewRequested = false;
 
 void writeU16Le(uint8_t* target, uint16_t value) {
   target[0] = value & 0xff;
@@ -241,7 +242,17 @@ bool pollForUsbCaptureRequest() {
     sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "TEST_CORRUPTION_ARMED");
     return false;
   }
+  if (messageType == MSG_PREVIEW_REQUEST) {
+    previewRequested = true;
+    return false;
+  }
   return messageType == MSG_CAPTURE_REQUEST;
+}
+
+bool consumeUsbPreviewRequest() {
+  const bool requested = previewRequested;
+  previewRequested = false;
+  return requested;
 }
 
 bool consumeCorruptNextUsbImage() {

@@ -11,6 +11,8 @@ constexpr uint8_t MSG_LOG = 6;
 constexpr uint8_t MSG_CAPTURE_REQUEST = 7;
 constexpr uint8_t MSG_PING = 8;
 constexpr uint8_t MSG_TEST_CORRUPT_NEXT_IMAGE = 9;
+constexpr uint8_t MSG_PREVIEW_REQUEST = 10;
+constexpr uint8_t MSG_PREVIEW_IMAGE = 11;
 constexpr uint8_t MSG_ACK = 0x80;
 constexpr uint8_t MSG_NACK = 0x81;
 
@@ -28,4 +30,5 @@ void sendNodeMessage(uint8_t messageType, uint32_t sequence, uint64_t timestampU
 void sendHelloFrame();
 bool waitForHostAck(uint32_t sequence);
 bool pollForUsbCaptureRequest();
+bool consumeUsbPreviewRequest();
 bool consumeCorruptNextUsbImage();

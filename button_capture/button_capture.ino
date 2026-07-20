@@ -32,7 +32,10 @@ void setup() {
 }
 
 void loop() {
-  if (sharedTriggerPressed() || pollForUsbCaptureRequest()) {
+  const bool captureRequested = pollForUsbCaptureRequest();
+  if (sharedTriggerPressed() || captureRequested) {
+    capturePhoto();
+  } else if (consumeUsbPreviewRequest() && sendPreviewFrame()) {
     capturePhoto();
   }
   delay(5);

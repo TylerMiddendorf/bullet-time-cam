@@ -9,6 +9,11 @@ constexpr uint16_t CAPTURE_WIDTH = 2048;
 constexpr uint16_t CAPTURE_HEIGHT = 1536;
 constexpr framesize_t CAPTURE_FRAME_SIZE = FRAMESIZE_QXGA;
 
+constexpr uint16_t PREVIEW_WIDTH = 320;
+constexpr uint16_t PREVIEW_HEIGHT = 240;
+constexpr framesize_t PREVIEW_FRAME_SIZE = FRAMESIZE_QVGA;
+constexpr size_t MAX_PREVIEW_JPEG_BYTES = 64 * 1024;
+
 constexpr uint8_t JPEG_QUALITY = 8;  // Lower is higher quality.
 constexpr unsigned long LIGHT_SETTLE_MS = 700;
 constexpr uint8_t WARMUP_FRAME_COUNT = 4;
@@ -23,4 +28,4 @@ constexpr size_t USB_CHUNK_SIZE = 4096;
 constexpr size_t USB_TX_BUFFER_BYTES = 16 * 1024;
 constexpr unsigned long USB_WRITE_STALL_TIMEOUT_MS = 10000;
 constexpr uint8_t PROTOCOL_VERSION = 1;
-constexpr char FIRMWARE_VERSION[] = "0.2.3";
+constexpr char FIRMWARE_VERSION[] = "0.3.0";

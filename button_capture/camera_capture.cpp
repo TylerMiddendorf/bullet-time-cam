@@ -13,6 +13,7 @@
 
 #include "btc_protocol.h"
 #include "firmware_config.h"
+#include "trigger_input.h"
 
 namespace {
 
@@ -38,6 +39,10 @@ bool discardWarmupFrames() {
 uint8_t transferSlot() {
   const char* identity = nodeUid();
   return crc32Bytes(reinterpret_cast<const uint8_t*>(identity), strlen(identity)) % CAMERA_COUNT;
+}
+
+bool setFrameSize(sensor_t* sensor, framesize_t frameSize) {
+  return sensor && sensor->set_framesize && sensor->set_framesize(sensor, frameSize) == 0;
 }
 
 void configureCameraPins(camera_config_t& config) {
@@ -69,6 +74,56 @@ void configureCameraPins(camera_config_t& config) {
 }
 
 }  // namespace
+
+bool sendPreviewFrame() {
+  static uint32_t previewSequence = 0;
+  sensor_t* sensor = esp_camera_sensor_get();
+  if (!setFrameSize(sensor, PREVIEW_FRAME_SIZE)) {
+    sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_SIZE_FAILED");
+    return false;
+  }
+
+  camera_fb_t* frame = esp_camera_fb_get();
+  const bool restored = setFrameSize(sensor, CAPTURE_FRAME_SIZE);
+  if (!frame) {
+    sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_FRAME_FAILED");
+    return false;
+  }
+
+  if (!restored) {
+    esp_camera_fb_return(frame);
+    haltForever("Camera did not restore the still-photo frame size after preview.");
+  }
+
+  // Capture always wins once a debounced shared-trigger press is observable.
+  if (sharedTriggerPressed()) {
+    esp_camera_fb_return(frame);
+    return true;
+  }
+
+  if (frame->format != PIXFORMAT_JPEG || frame->width != PREVIEW_WIDTH ||
+      frame->height != PREVIEW_HEIGHT || frame->len == 0 || frame->len > MAX_PREVIEW_JPEG_BYTES) {
+    esp_camera_fb_return(frame);
+    sendNodeMessage(MSG_LOG, 0, esp_timer_get_time(), "PREVIEW_FRAME_INVALID");
+    return false;
+  }
+
+  const uint32_t sequence = ++previewSequence;
+  const uint32_t jpegCrc = crc32Bytes(frame->buf, frame->len);
+  char metadata[384];
+  snprintf(metadata, sizeof(metadata),
+           "{\"node_uid\":\"%s\",\"boot_id\":%lu,\"preview_seq\":%lu,"
+           "\"width\":%u,\"height\":%u,\"jpeg_bytes\":%u,"
+           "\"jpeg_crc32\":\"%08lx\",\"timestamp_us\":%llu}",
+           nodeUid(), static_cast<unsigned long>(nodeBootId()),
+           static_cast<unsigned long>(sequence), static_cast<unsigned int>(frame->width),
+           static_cast<unsigned int>(frame->height), static_cast<unsigned int>(frame->len),
+           static_cast<unsigned long>(jpegCrc),
+           static_cast<unsigned long long>(esp_timer_get_time()));
+  sendFrame(MSG_PREVIEW_IMAGE, metadata, frame->buf, frame->len);
+  esp_camera_fb_return(frame);
+  return false;
+}
 
 bool capturePhoto() {
   const uint32_t sequence = nextCaptureSequence();
