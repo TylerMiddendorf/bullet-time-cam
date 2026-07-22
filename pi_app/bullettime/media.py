@@ -89,12 +89,23 @@ def commit_capture_set(
                 camera_id: _display_frame(capture.images[camera_id].payload, gif_max_width)
                 for camera_id in ordered_ids
             }
-            frames = [frames_by_id[camera_id] for camera_id in sequence]
             files.append(
                 _write_library_preview(
                     frames_by_id[ordered_ids[0]], staging_dir / "library_preview.jpg"
                 )
             )
+            # Quantize each unique viewpoint once with Pillow's fastest supported
+            # palette method. Passing RGB frames to the GIF writer makes it repeat
+            # the substantially slower default quantization for the six-frame
+            # forward/reverse sequence.
+            palette_frames = {
+                camera_id: frame.quantize(
+                    colors=256,
+                    method=Image.Quantize.FASTOCTREE,
+                )
+                for camera_id, frame in frames_by_id.items()
+            }
+            frames = [palette_frames[camera_id] for camera_id in sequence]
             gif_path = staging_dir / "bullet_time.gif"
             frames[0].save(
                 gif_path,
@@ -103,6 +114,7 @@ def commit_capture_set(
                 duration=gif_frame_ms,
                 loop=0,
                 format="GIF",
+                optimize=False,
             )
             payload = gif_path.read_bytes()
             files.append(

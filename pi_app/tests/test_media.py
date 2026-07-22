@@ -18,6 +18,21 @@ def jpeg(camera_id):
     return output.getvalue()
 
 
+def large_jpeg(camera_id):
+    output = io.BytesIO()
+    image = Image.new("RGB", (800, 600))
+    pixels = image.load()
+    for y in range(image.height):
+        for x in range(image.width):
+            pixels[x, y] = (
+                (x + camera_id * 31) % 256,
+                (y + camera_id * 47) % 256,
+                (x + y + camera_id * 59) % 256,
+            )
+    image.save(output, "JPEG", quality=90)
+    return output.getvalue()
+
+
 def capture(failed=()):
     failed = set(failed)
     images = {
@@ -87,6 +102,38 @@ class MediaTests(unittest.TestCase):
             result = validate_capture(root, "capture-a", UIDS)
             self.assertEqual(result.successful_camera_ids, frozenset({1, 2, 3}))
             self.assertEqual(result.failed_camera_ids, frozenset({4}))
+
+    def test_gif_uses_display_fit_palette_frames_with_bounded_fidelity(self):
+        captured = capture()
+        captured.images = {
+            camera_id: CapturedImage(
+                camera_id,
+                f"UID-{camera_id}",
+                f"boot-{camera_id}",
+                1,
+                large_jpeg(camera_id),
+                {},
+            )
+            for camera_id in range(1, 5)
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            review_path, _ = commit_capture_set(
+                root,
+                captured,
+                storage={"transport": "usb"},
+                gif_max_width=640,
+            )
+
+            with Image.open(review_path) as image:
+                frames = [frame.convert("RGB") for frame in ImageSequence.Iterator(image)]
+            self.assertEqual(len(frames), 6)
+            self.assertTrue(all(frame.size == (640, 480) for frame in frames))
+            self.assertLess(review_path.stat().st_size, 1_500_000)
+            self.assertEqual(
+                validate_capture(root, "capture-a", UIDS).successful_camera_ids,
+                frozenset({1, 2, 3, 4}),
+            )
 
 
 if __name__ == "__main__":
